@@ -213,3 +213,20 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+# NetBeans specific #
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+# Class Files #
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
