@@ -147,6 +147,9 @@ public class AddressParsing
 
         // This matches a number which can be followed by a letter. I.e. 7 or 7A
         Pattern building = Pattern.compile("[0-9]+[a-zA-Z]{0,1}[\\s,]");
+        
+        // In scenarios where the street number is the last part of the string 
+        // the regex would fail to recognize the pattern.
         a = a + " ";
         matcher = building.matcher(a);
         if (matcher.find()) {                       // Label 3
