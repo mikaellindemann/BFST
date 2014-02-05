@@ -6,11 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,8 +19,7 @@ import java.util.regex.Pattern;
  */
 public class AddressParsing
 {
-
-    private static Connection con;
+    private static DatabaseConnection con;
 
     /**
      * Test cases.
@@ -66,48 +60,6 @@ public class AddressParsing
     {
     }
 
-    private static void connect()
-    {
-        try {
-            if (con == null || con.isValid(5)) {
-                con = DriverManager.getConnection("jdbc:mysql://mysql.itu.dk/GroupE", "GroupE", "GroupE");
-            }
-        } catch (SQLException ex) {
-            //Do something.
-        }
-    }
-
-    /**
-     * Uses regex to match an element in a table of the lookup-variable.
-     *
-     * @param lookup An enum containing information about the different tables
-     * and rows.
-     * @param name The roadname to match.
-     * @return <pre>true</pre> if the element is found in the database,
-     * <pre>false</pre> otherwise.
-     */
-    private static boolean matchRoadname(Lookup lookup, String name)
-    {
-        connect();
-        try {
-            PreparedStatement ps = con.prepareStatement(
-                    "SELECT * FROM `" + lookup.getTable() + "` WHERE `"
-                    + lookup.getColumn() + "` REGEXP ?");
-            ps.setString(1, name);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                if (rs.getString(lookup.getColumn()).equals(name)) {
-                    return true;
-                }
-            }
-        } catch (SQLException ex) {
-            // Do something.
-            System.out.println(ex);
-        }
-        return false;
-    }
-
     /**
      * Takes a string containing an address and converts it into a string-array.
      *
@@ -122,6 +74,9 @@ public class AddressParsing
      */
     public static String[] parseAddress(String address) throws InvalidAddressException
     {
+        if (con == null) {
+            con = new DatabaseConnection();
+        }
         // In Denmark we haven't seen cities or street names with less than two characters.
         if (address.length() < 2) {                 // Label 1
             throw new InvalidAddressException("The string is empty");
@@ -162,7 +117,7 @@ public class AddressParsing
         Pattern street = Pattern.compile("^(([^\\p{P}\\+\\s0-9]|[0-9a-zA-Z\\.]+)+\\s{0,1})+");
         matcher = street.matcher(a);
         if (matcher.find()) {                       // Label 4
-            if (matchRoadname(Lookup.ROAD, matcher.group().trim())) {
+            if (con.match(Lookup.ROAD, matcher.group().trim())) {
                 streetName = matcher.group().trim();
                 a = a.replace(streetName, ", ").trim();
             }
