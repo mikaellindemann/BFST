@@ -1,9 +1,11 @@
+#####Rued Langgaardsvej København
 Rued Langgaards Vej#47####
 Rued Langgaards Vej#47####
-Rued Langgaards Vej#47####
-Rued Langgaards Vej#47####
-Rued Langgaards Vej#47##5##
-MED ADDRESS
+MALFORMED ADDRESS
+Rued Langgaards Vej#7#B#5#2300#København S
+###5##København S
+Rued Langgaards Vej#7#B##2300#
+MALFORMED ADDRESS
 ###10##februar vej
 C. A. Nielsensvej#4##3#6543#København
 Siciliensgade#4##3#2300#København S
@@ -12,13 +14,19 @@ Ndr. Gribsøvej#572#A###København
 #####København S
 #####København
 #####Rued Langgaards Vej København S
-nhavn S
-D ADDRESS
-Haveforening De Gamle Haver#####
-Haveforening Fælleskær#####
-Haveforening Skovly#####
-Haveforening Vesterkær#####
-Haveforeningen 515#####
+MALFORMED ADDRESS
+MALFORMED ADDRESS
+MALFORMED ADDRESS
+MALFORMED ADDRESS
+MALFORMED ADDRESS
+MALFORMED ADDRESS
+MALFORMED ADDRESS
+MALFORMED ADDRESS
+MALFORMED ADDRESS
+ED ADDRESS
+MALFORMED ADDRESS
+MALFORMED ADDRESS
+ ADDRESS
 MALFORMED ADDRESS
 MALFORMED ADDRESS
 MALFORMED ADDRESS

@@ -31,16 +31,15 @@ public class AddressParsing
      * Test cases.
      */
     private static final String[] addresses = new String[]{
-        "Rued Langgaards Vej 47",
-        "Rued Langgaards Vej 47 ",
-        "Rued Langgaards Vej 47, ",
-        "Rued Langgaards Vej 47,",
-        "Rued Langgaards Vej 47 5.",
-        /* "H",
+        "Rued Langgaardsvej København",     //Should split, but doesn't
+        "Rued Langgaardsvej København S",   //Should split, but doesn't
+        "Rued Langgaards Vej 47",           // Tests that street number is 
+        "Rued Langgaards Vej 47 ",          // recognized by the regex
+        "H",                                // Should error
         "Rued Langgaards Vej 7B, 5. 2300 København S",
         "5. København S",
         "Rued Langgaards Vej 7B, 2300",
-        "??????",
+        "??????",                           // Should error
         "10. februar vej",
         "C. A. Nielsensvej 4, 3. sal 6543 København",
         "Siciliensgade 4, 3. tv. 2300 København S",
@@ -49,19 +48,15 @@ public class AddressParsing
         "København S",
         ", København",
         "Rued Langgaards Vej København S",
-/*        "HAVEFORENING AF 1934",
-        "Haveforening af 1941",
-        "Haveforening De Gamle Haver",
-        "Haveforening Fælleskær",
-        "Haveforening Skovly",
-        "Haveforening Vesterkær",
-        "Haveforeningen 515",
-        "Haveforeningen af 10. maj 1918",
-        "Haveforeningen af 1907",
-        "Haveforeningen af 1918",
-        "Haveforeningen af 1940",
-        "Haveforeningen af 4. Juli 1917",
-        "Haveforeningen af 4. Maj 1921"     */
+        "HAVEFORENING AF 1934",             // Currently unsupported addresses  
+        "Haveforening af 1941",             // to show examples that do not work
+        "Haveforeningen 515",               //
+        "Haveforeningen af 10. maj 1918",   //
+        "Haveforeningen af 1907",           //
+        "Haveforeningen af 1918",           //
+        "Haveforeningen af 1940",           //
+        "Haveforeningen af 4. Juli 1917",   //
+        "Haveforeningen af 4. Maj 1921"     //
     };
 
     /**
