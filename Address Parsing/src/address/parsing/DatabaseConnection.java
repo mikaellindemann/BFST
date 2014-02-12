@@ -10,9 +10,7 @@ import java.sql.SQLException;
  *
  * @author Mikael Lindemann Jepsen <mlin@itu.dk>
  */
-public class DatabaseConnection
-{
-
+public class DatabaseConnection {
     Connection con;
     
     public DatabaseConnection()
@@ -30,6 +28,8 @@ public class DatabaseConnection
         try {
             if (con == null || con.isValid(5)) {
                 con = DriverManager.getConnection("jdbc:mysql://mysql.itu.dk/GroupE", "GroupE", "GroupE");
+                // for local database
+                // con = DriverManager.getConnection("jdbc:mysql://localhost:3306/GroupE", "root", "GroupE");
             }
         } catch (SQLException ex) {
             //Do something.

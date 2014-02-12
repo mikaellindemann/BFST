@@ -83,7 +83,7 @@ public class AddressParsing
         }
 
         // Substitute non-usable information with separators.
-        String a = address.replace("sal", ", ").replace(" i ", ", ").replace("  ", " ").trim();
+        String a = address.replace(" sal ", ", ").replace(" i ", ", ").replace("  ", " ").trim();
 
         String streetName = "", number = "", buildingLetter = "", floor = "", postcode = "", city = "";
 
@@ -150,6 +150,7 @@ public class AddressParsing
         // not written in a syntax that the method understands, or that it
         // contains illegal characters.
         if (a.length() != 0) {                      // Label 7
+            //System.out.println("WTF");
             throw new InvalidAddressException(a);
         }
 
@@ -172,7 +173,7 @@ public class AddressParsing
                 parsedAddresses[i] = null;
             }
         }
-
+                    
         Path file = Paths.get("AddressParsingTest.txt");
         Charset charset = Charset.defaultCharset();
 
@@ -199,5 +200,4 @@ public class AddressParsing
             System.err.println(ex);
         }
     }
-
 }
