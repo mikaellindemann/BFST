@@ -8,7 +8,8 @@ import java.sql.SQLException;
 
 /**
  *
- * @author Mikael Lindemann Jepsen <mlin@itu.dk>
+ * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
+ * Jepsen <mlin@itu.dk>
  */
 public class DatabaseConnection {
     Connection con;
