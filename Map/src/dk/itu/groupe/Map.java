@@ -124,7 +124,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(loader);
         frame.getContentPane().addMouseListener(loader);
-        frame.getContentPane().addMouseMotionListener(loader);
+        //frame.getContentPane().addMouseMotionListener(loader);
         frame.pack();
         frame.repaint();
         frame.setVisible(true);
@@ -141,10 +141,10 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             System.out.println("Pressed low: " + lowX + " " + lowY);
             
             
-            highX = highX - (int) (startX*factor);
-            highY = highY - (highY - (int) (startY*factor));
-            lowX = lowX + (int) (stopX*factor);
-            lowY = lowY - (lowY + (int) (stopY*factor));
+            highX = (int) (lowX + (stopX*factor));
+            highY = (int) (lowY + ((getHeight() - startY)*factor)); 
+            lowX = (int) (lowX + (startX*factor));
+            lowY = (int) (lowY + ((getHeight() - stopY)*factor));
             repaint();
             
             System.out.println("Pressed high: " + highX + " " + highY);
