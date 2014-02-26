@@ -8,7 +8,6 @@ import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
@@ -22,7 +21,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     private final static int highestY_COORD = 6402050;
 
     // Bounds of the window.
-    private int lowX, lowY, highX, highY;
+    private double lowX, lowY, highX, highY;
     private double factor;
     
     private MouseEvent pressed, released;
