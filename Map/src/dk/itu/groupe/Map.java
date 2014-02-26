@@ -10,6 +10,8 @@ import java.util.HashMap;
 
 public class Map extends JComponent {
 
+    // These are the lowest and highest coordinates in the dataset.
+    // If we change dataset, these are likely to change.
     private final static int lowestX_COORD = 442254;
     private final static int highestX_COORD = 892658;
     private final static int lowestY_COORD = 6049914;
@@ -18,11 +20,10 @@ public class Map extends JComponent {
     private final ArrayList<NodeData> nodes;
     private final ArrayList<EdgeData> edges;
     private final HashMap<Integer, NodeData> nodeMap;
-    private final int width = 1300, height = 700;
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(width, height);
+        return new Dimension(1300, 700);
     }
 
     @Override
@@ -77,27 +78,6 @@ public class Map extends JComponent {
         for (NodeData nd : nodes) {
             nodeMap.put(nd.KDV, nd);
         }
-
-        int xlow = Integer.MAX_VALUE, xhigh = Integer.MIN_VALUE;
-        int ylow = Integer.MAX_VALUE, yhigh = Integer.MIN_VALUE;
-        for (NodeData nd : nodes) {
-            if (nd.X_COORD < xlow) {
-                xlow = (int) nd.X_COORD;
-            }
-            if (nd.X_COORD > xhigh) {
-                xhigh = (int) nd.X_COORD;
-            }
-            if (nd.Y_COORD < ylow) {
-                ylow = (int) nd.Y_COORD;
-            }
-            if (nd.Y_COORD > yhigh) {
-                yhigh = (int) nd.Y_COORD;
-            }
-        }
-
-        System.out.println("Nodes:");
-        System.out.println("Min: (" + xlow + ", " + ylow + ")");
-        System.out.println("Max: (" + xhigh + ", " + yhigh + ")");
     }
 
     public static void main(String[] args) throws IOException {
