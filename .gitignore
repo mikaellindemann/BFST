@@ -231,3 +231,5 @@ nb-configuration.xml
 *.jar
 *.war
 *.ear
+/Map/nbproject/private/
+/Map/data/
