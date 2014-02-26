@@ -7,6 +7,7 @@ import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
@@ -28,7 +29,7 @@ public class Map extends JComponent implements MouseListener {
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
      */
-    private final ArrayList<EdgeData> edges;
+    private final KDTree edges;
 
     /**
      * A HashMap that links a NodeData's KDV-number to the NodeData itself.
@@ -48,7 +49,7 @@ public class Map extends JComponent implements MouseListener {
 
         // For this example, we'll simply load the raw data into
         // ArrayLists.
-        edges = new ArrayList<>();
+        final List<EdgeData> edgeList = new ArrayList<>();
         nodeMap = new HashMap<>();
 
         // For that, we need to inherit from KrakLoader and override
@@ -62,7 +63,7 @@ public class Map extends JComponent implements MouseListener {
 
             @Override
             public void processEdge(EdgeData ed) {
-                edges.add(ed);
+                edgeList.add(ed);
             }
         };
 
@@ -72,6 +73,8 @@ public class Map extends JComponent implements MouseListener {
         // Invoke the loader class.
         loader.load(dir + "kdv_node_unload.txt",
                 dir + "kdv_unload.txt");
+        
+        edges = new KDTree(edgeList, nodeMap);
     }
 
     @Override
@@ -95,7 +98,7 @@ public class Map extends JComponent implements MouseListener {
     @Override
     public void paintComponent(Graphics g) {
         calculateFactor();
-        for (EdgeData edge : edges) {
+        for (EdgeData edge : edges.getEdges(lowX, lowY, highX, highY)) {
             if (edge.TYP != RoadType.FERRY.getTypeNumber()) {
                 int fx = (int) ((nodeMap.get(edge.FNODE).X_COORD - lowX) / factor);
                 int fy = getHeight() - (int)(( nodeMap.get(edge.FNODE).Y_COORD - lowY) / factor);
