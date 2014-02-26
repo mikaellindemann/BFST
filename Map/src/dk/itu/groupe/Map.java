@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +12,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
-public class Map extends JComponent implements MouseListener {
+public class Map extends JComponent implements MouseListener, MouseMotionListener {
 
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
@@ -25,11 +26,14 @@ public class Map extends JComponent implements MouseListener {
     private double factor;
     
     private MouseEvent pressed, released;
+    
+    private int trackX;
+    private int trackY;
 
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
      */
-    private final KDTree edges;
+    private ArrayList<EdgeData> edges;
 
     /**
      * A HashMap that links a NodeData's KDV-number to the NodeData itself.
@@ -49,8 +53,9 @@ public class Map extends JComponent implements MouseListener {
 
         // For this example, we'll simply load the raw data into
         // ArrayLists.
-        final List<EdgeData> edgeList = new ArrayList<>();
+        //final List<EdgeData> edgeList = new ArrayList<>();
         nodeMap = new HashMap<>();
+        edges = new ArrayList<>();
 
         // For that, we need to inherit from KrakLoader and override
         // processNode and processEdge. We do that with an 
@@ -63,7 +68,8 @@ public class Map extends JComponent implements MouseListener {
 
             @Override
             public void processEdge(EdgeData ed) {
-                edgeList.add(ed);
+                //edgeList.add(ed);
+                edges.add(ed);
             }
         };
 
@@ -74,7 +80,7 @@ public class Map extends JComponent implements MouseListener {
         loader.load(dir + "kdv_node_unload.txt",
                 dir + "kdv_unload.txt");
         
-        edges = new KDTree(edgeList, nodeMap);
+        //edges = new KDTree(edgeList, nodeMap);
     }
 
     @Override
@@ -99,7 +105,7 @@ public class Map extends JComponent implements MouseListener {
     @Override
     public void paintComponent(Graphics g) {
         calculateFactor();
-        for (EdgeData edge : edges.getEdges(lowX, lowY, highX, highY)) {
+        for (EdgeData edge : edges) {
             if (edge.TYP != RoadType.FERRY.getTypeNumber()) {
                 int fx = (int) ((nodeMap.get(edge.FNODE).X_COORD - lowX) / factor);
                 int fy = getHeight() - (int)(( nodeMap.get(edge.FNODE).Y_COORD - lowY) / factor);
@@ -118,6 +124,7 @@ public class Map extends JComponent implements MouseListener {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(loader);
         frame.getContentPane().addMouseListener(loader);
+        frame.getContentPane().addMouseMotionListener(loader);
         frame.pack();
         frame.repaint();
         frame.setVisible(true);
@@ -145,9 +152,24 @@ public class Map extends JComponent implements MouseListener {
 
         }
     }
+    
+    //Tracks exact position of mouse pointer
+    private void trackMouse(double xTrack, double yTrack)
+    {
+        System.out.println("x:" + xTrack + "| y:" + yTrack);
+    }
 
     @Override
     public void mouseClicked(MouseEvent me) {
+        
+    }
+    
+    @Override
+    public void mouseEntered(MouseEvent me) {
+        
+    }
+    
+    public void mouseOver(final MouseEvent me) {
         
     }
 
@@ -165,13 +187,20 @@ public class Map extends JComponent implements MouseListener {
         released = null;
     }
 
-    @Override
-    public void mouseEntered(MouseEvent me) {
 
-    }
 
     @Override
     public void mouseExited(MouseEvent me) {
 
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent me) {
+        trackMouse(trackX = me.getX(), trackY = me.getY());
     }
 }
