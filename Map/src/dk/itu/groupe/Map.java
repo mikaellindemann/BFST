@@ -17,7 +17,6 @@ public class Map extends JComponent {
     private final static int lowestY_COORD = 6049914;
     private final static int highestY_COORD = 6402050;
 
-    private final ArrayList<NodeData> nodes;
     private final ArrayList<EdgeData> edges;
     private final HashMap<Integer, NodeData> nodeMap;
 
@@ -28,7 +27,9 @@ public class Map extends JComponent {
 
     @Override
     public void paintComponent(Graphics g) {
-        int factor = (highestX_COORD-lowestX_COORD)/getWidth();
+
+        // This factor determines how big the Map will be drawn.
+        int factor = (highestX_COORD - lowestX_COORD) / getWidth();
         if ((highestY_COORD - lowestY_COORD) / getHeight() > factor) {
             factor = (highestY_COORD - lowestY_COORD) / getHeight();
         }
@@ -47,7 +48,6 @@ public class Map extends JComponent {
 
         // For this example, we'll simply load the raw data into
         // ArrayLists.
-        nodes = new ArrayList<>();
         edges = new ArrayList<>();
         nodeMap = new HashMap<>();
 
@@ -56,14 +56,12 @@ public class Map extends JComponent {
         // anonymous class. 
         KrakLoader loader = new KrakLoader() {
             @Override
-            public void
-                    processNode(NodeData nd) {
-                nodes.add(nd);
+            public void processNode(NodeData nd) {
+                nodeMap.put(nd.KDV, nd);
             }
 
             @Override
-            public void
-                    processEdge(EdgeData ed) {
+            public void processEdge(EdgeData ed) {
                 edges.add(ed);
             }
         };
@@ -74,10 +72,6 @@ public class Map extends JComponent {
         // Invoke the loader class.
         loader.load(dir + "kdv_node_unload.txt",
                 dir + "kdv_unload.txt");
-
-        for (NodeData nd : nodes) {
-            nodeMap.put(nd.KDV, nd);
-        }
     }
 
     public static void main(String[] args) throws IOException {
