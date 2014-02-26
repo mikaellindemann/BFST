@@ -4,7 +4,8 @@ package dk.itu.groupe;
 
 /**
  *
- * @author mikael
+ * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
+ * Jepsen <mlin@itu.dk>
  */
 public enum RoadType {
     HIGHWAY(1), 

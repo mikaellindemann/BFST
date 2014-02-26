@@ -17,6 +17,11 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
+/**
+ * 
+ * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
+ * Jepsen <mlin@itu.dk>
+ */
 public class Map extends JComponent implements MouseListener, MouseMotionListener
 {
 

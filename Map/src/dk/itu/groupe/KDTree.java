@@ -5,7 +5,8 @@ import java.util.Set;
 
 /**
  *
- * @author pecto
+ * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
+ * Jepsen <mlin@itu.dk>
  */
 public class KDTree
 {
