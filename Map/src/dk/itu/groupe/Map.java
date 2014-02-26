@@ -2,13 +2,15 @@ package dk.itu.groupe;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
-public class Map extends JComponent {
+public class Map extends JComponent implements MouseListener {
 
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
@@ -16,7 +18,12 @@ public class Map extends JComponent {
     private final static int highestX_COORD = 892658;
     private final static int lowestY_COORD = 6049914;
     private final static int highestY_COORD = 6402050;
-    private int factor;
+
+    // Bounds of the window.
+    private int lowX, lowY, highX, highY;
+    private double factor;
+    
+    private MouseEvent pressed, released;
 
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
@@ -31,34 +38,13 @@ public class Map extends JComponent {
      */
     private final HashMap<Integer, NodeData> nodeMap;
 
-    @Override
-    public Dimension getPreferredSize() {
-        return new Dimension(1300, 700);
-    }
-
-    private void calculateFactor() {
-        // This factor determines how big the Map will be drawn.
-        factor = (highestX_COORD - lowestX_COORD) / getWidth();
-        if ((highestY_COORD - lowestY_COORD) / getHeight() > factor) {
-            factor = (highestY_COORD - lowestY_COORD) / getHeight();
-        }
-    }
-
-    @Override
-    public void paintComponent(Graphics g) {
-        calculateFactor();
-        for (EdgeData edge : edges) {
-            int fx = (int) nodeMap.get(edge.FNODE).X_COORD / factor - (lowestX_COORD / factor);
-            int fy = getHeight() - ((int) nodeMap.get(edge.FNODE).Y_COORD / factor - (lowestY_COORD / factor));
-            int lx = (int) nodeMap.get(edge.TNODE).X_COORD / factor - (lowestX_COORD / factor);
-            int ly = getHeight() - ((int) nodeMap.get(edge.TNODE).Y_COORD / factor - (lowestY_COORD / factor));
-
-            g.drawLine(fx, fy, lx, ly);
-        }
-    }
-
     public Map() throws IOException {
         String dir = "./data/";
+
+        lowX = lowestX_COORD;
+        lowY = lowestY_COORD;
+        highX = highestX_COORD;
+        highY = highestY_COORD;
 
         // For this example, we'll simply load the raw data into
         // ArrayLists.
@@ -88,15 +74,85 @@ public class Map extends JComponent {
                 dir + "kdv_unload.txt");
     }
 
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(1300, 700);
+    }
+
+    private void calculateFactor() {
+        // This factor determines how big the Map will be drawn.
+        factor = (highX - lowX) / getWidth();
+        if ((highY - lowY) / getHeight() > factor) {
+            factor = (highY - lowY) / getHeight();
+        }
+        if (factor == 0) {
+            System.err.println("low: (" + lowX + ", " + lowY + ")");
+            System.err.println("high: (" + highX + ", " + highY + ")");
+            System.err.println("Window: (" + getWidth() + ", " + getHeight() + ")");
+        }
+    }
+
+    @Override
+    public void paintComponent(Graphics g) {
+        calculateFactor();
+        for (EdgeData edge : edges) {
+            if (edge.TYP != RoadType.FERRY.getTypeNumber()) {
+                int fx = (int) ((nodeMap.get(edge.FNODE).X_COORD - lowX) / factor);
+                int fy = getHeight() - (int)(( nodeMap.get(edge.FNODE).Y_COORD - lowY) / factor);
+                int lx = (int) ((nodeMap.get(edge.TNODE).X_COORD - lowX) / factor);
+                int ly = getHeight() - (int)(( nodeMap.get(edge.TNODE).Y_COORD - lowY) / factor);
+
+                g.drawLine(fx, fy, lx, ly);
+            }
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         Map loader = new Map();
 
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(loader);
-
+        frame.getContentPane().addMouseListener(loader);
         frame.pack();
         frame.repaint();
         frame.setVisible(true);
+    }
+    
+    private void zoomRect(double startX, double startY, double stopX, double stopY)
+    {
+        if (startX < stopX && startY < stopY) {
+            throw new UnsupportedOperationException("Not yet implemented");
+            //repaint();
+        }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent me) {
+        
+    }
+
+    @Override
+    public void mousePressed(MouseEvent me) {
+        pressed = me;
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent me) {
+        released = me;
+        
+        zoomRect(pressed.getX(), pressed.getY(), released.getX(), released.getY());
+        pressed = null;
+        released = null;
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent me) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent me) {
+
     }
 }
