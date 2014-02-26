@@ -135,9 +135,9 @@ public class Map extends JComponent implements MouseListener {
             
             
             highX = highX - (int) (startX*factor);
-            highY = highY - (int) (startY*factor);
+            highY = highY - (highY - (int) (startY*factor));
             lowX = lowX + (int) (stopX*factor);
-            lowY = lowY + (int) (stopY*factor);
+            lowY = lowY - (lowY + (int) (stopY*factor));
             repaint();
             
             System.out.println("Pressed high: " + highX + " " + highY);
