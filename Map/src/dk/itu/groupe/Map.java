@@ -90,6 +90,7 @@ public class Map extends JComponent implements MouseListener {
             System.err.println("high: (" + highX + ", " + highY + ")");
             System.err.println("Window: (" + getWidth() + ", " + getHeight() + ")");
         }
+        System.out.println(factor);
     }
 
     @Override
@@ -122,8 +123,23 @@ public class Map extends JComponent implements MouseListener {
     private void zoomRect(double startX, double startY, double stopX, double stopY)
     {
         if (startX < stopX && startY < stopY) {
-            throw new UnsupportedOperationException("Not yet implemented");
-            //repaint();
+            //throw new UnsupportedOperationException("Not yet implemented");
+            System.out.println("Pressed startXY: " + startX + " " + startY);
+            System.out.println("Pressed stopXY: " + stopX + " " + stopY);
+
+            System.out.println("Pressed high: " + highX + " " + highY);
+            System.out.println("Pressed low: " + lowX + " " + lowY);
+            
+            
+            highX = highX - (int) (startX*factor);
+            highY = highY - (int) (startY*factor);
+            lowX = lowX + (int) (stopX*factor);
+            lowY = lowY + (int) (stopY*factor);
+            repaint();
+            
+            System.out.println("Pressed high: " + highX + " " + highY);
+            System.out.println("Pressed low: " + lowX + " " + lowY);
+
         }
     }
 
