@@ -1,34 +1,36 @@
 package dk.itu.groupe;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *
  * @author pecto
  */
-public class KDTree {
+public class KDTree
+{
 
-    enum Dimension {
+    enum Dimension
+    {
 
         X, Y
     };
 
-    KDTree HIGH, LOW;
-    List<EdgeData> edges;
-    EdgeData centerEdge;
-    double xmin, ymin, xmax, ymax;
-    Dimension dim;
+    private final Set<EdgeData> empty = new HashSet<>();
+    private KDTree HIGH, LOW;
+    private Set<EdgeData> edges;
+    private EdgeData centerEdge;
+    private double xmin, ymin, xmax, ymax;
+    private Dimension dim;
 
-    public KDTree(List<EdgeData> edges, HashMap<Integer, NodeData> nodeMap) {
+    public KDTree(Set<EdgeData> edges)
+    {
         xmin = ymin = Double.MAX_VALUE;
         xmax = ymax = Double.MIN_VALUE;
         for (EdgeData edge : edges) {
-            NodeData firstNode = nodeMap.get(edge.FNODE);
-            NodeData lastNode = nodeMap.get(edge.TNODE);
-            
+            NodeData firstNode = Map.nodeMap.get(edge.FNODE);
+            NodeData lastNode = Map.nodeMap.get(edge.TNODE);
+
             // Set xmin, xmax, ymin and ymax.
             for (NodeData nd : new NodeData[]{firstNode, lastNode}) {
                 if (nd.X_COORD < xmin) {
@@ -47,13 +49,14 @@ public class KDTree {
         if (edges.size() <= 1000) {
             this.edges = edges;
         } else {
-            List<EdgeData> low = new ArrayList<>(), high = new ArrayList<>();
-            centerEdge = edges.remove(edges.size() / 2);
+            Set<EdgeData> low = new HashSet<>(), high = new HashSet<>();
+            centerEdge = (EdgeData) edges.toArray()[edges.size() / 2];
+            edges.remove(centerEdge);
             if (ymax - ymin < xmax - xmin) {
                 dim = Dimension.X;
                 // Put the right elements where it belongs.
                 for (EdgeData edge : edges) {
-                    if (nodeMap.get(edge.FNODE).X_COORD < nodeMap.get(centerEdge.FNODE).X_COORD) {
+                    if (Map.nodeMap.get(edge.FNODE).X_COORD < Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
                         low.add(edge);
                     } else {
                         high.add(edge);
@@ -63,73 +66,38 @@ public class KDTree {
                 dim = Dimension.Y;
                 // Put the right elements where it belongs.
                 for (EdgeData edge : edges) {
-                    if (nodeMap.get(edge.FNODE).Y_COORD < nodeMap.get(centerEdge.FNODE).Y_COORD) {
+                    if (Map.nodeMap.get(edge.FNODE).Y_COORD < Map.nodeMap.get(centerEdge.FNODE).Y_COORD) {
                         low.add(edge);
                     } else {
                         high.add(edge);
                     }
                 }
             }
-            LOW = new KDTree(low, nodeMap);
-            HIGH = new KDTree(high, nodeMap);
+            LOW = new KDTree(low);
+            HIGH = new KDTree(high);
         }
     }
 
-    public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
+    public Set<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh)
+    {
         if (dim == Dimension.X) {
-            if (xHigh <= xmin || xLow >= xmax) {
-                return new ArrayList<>();
+            if (xHigh < xmin || xLow > xmax) {
+                return empty;
             }
         } else {
-            if (yHigh <= ymin || yLow >= ymax) {
-                return new ArrayList<>();
+            if (yHigh < ymin || yLow > ymax) {
+                return empty;
             }
         }
 
         if (centerEdge == null) {
             return edges;
         } else {
-            List<EdgeData> edgeList = LOW.getEdges(xLow, yLow, xHigh, yHigh);
-            assert (centerEdge != null);
-            edgeList.add(centerEdge);
+            Set<EdgeData> edgeSet = LOW.getEdges(xLow, yLow, xHigh, yHigh);
+            edgeSet.add(centerEdge);
 
-            edgeList.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
-            return edgeList;
+            edgeSet.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
+            return edgeSet;
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        String dir = "./data/";
-
-        // For this example, we'll simply load the raw data into
-        // ArrayLists.
-        final List<EdgeData> edgeList = new ArrayList<>();
-        final HashMap<Integer, NodeData> nodeMap = new HashMap<>();
-
-        // For that, we need to inherit from KrakLoader and override
-        // processNode and processEdge. We do that with an 
-        // anonymous class. 
-        KrakLoader loader = new KrakLoader() {
-            @Override
-            public void processNode(NodeData nd) {
-                nodeMap.put(nd.KDV, nd);
-            }
-
-            @Override
-            public void processEdge(EdgeData ed) {
-                edgeList.add(ed);
-            }
-        };
-
-        // If your machine slows to a crawl doing inputting, try
-        // uncommenting this. 
-        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-        // Invoke the loader class.
-        loader.load(dir + "kdv_node_unload.txt",
-                dir + "kdv_unload.txt");
-        
-        KDTree tree = new KDTree(edgeList, nodeMap);
-        System.out.println("List: " + edgeList.size());
-        System.out.println("Tree: " + tree.getEdges(442254.35649, 6049914.43018, 892658.21706, 6402050.98297).size());
     }
 }
