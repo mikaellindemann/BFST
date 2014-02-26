@@ -3,7 +3,9 @@ package dk.itu.groupe;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -20,7 +22,7 @@ public class KDTree {
     List<EdgeData> edges;
     EdgeData centerEdge;
     double xmin, ymin, xmax, ymax;
-    Dimension dim = Dimension.X;
+    Dimension dim;
 
     public KDTree(List<EdgeData> edges, HashMap<Integer, NodeData> nodeMap) {
         xmin = ymin = Double.MAX_VALUE;
@@ -28,7 +30,7 @@ public class KDTree {
         for (EdgeData edge : edges) {
             NodeData firstNode = nodeMap.get(edge.FNODE);
             NodeData lastNode = nodeMap.get(edge.TNODE);
-
+            
             // Set xmin, xmax, ymin and ymax.
             for (NodeData nd : new NodeData[]{firstNode, lastNode}) {
                 if (nd.X_COORD < xmin) {
@@ -44,7 +46,7 @@ public class KDTree {
             }
         }
 
-        if (edges.size() <= 500) {
+        if (edges.size() <= 1000) {
             this.edges = edges;
         } else {
             List<EdgeData> low = new ArrayList<>(), high = new ArrayList<>();
@@ -75,45 +77,26 @@ public class KDTree {
         }
     }
 
-    public List<EdgeData> getEdges(double x1, double y1, double x2, double y2) {
+    public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
         if (dim == Dimension.X) {
-            if (x2 < xmin || x1 > xmax) {
+            if (xHigh <= xmin || xLow >= xmax) {
                 return new ArrayList<>();
             }
         } else {
-            if (y2 < ymin || y1 > ymax) {
+            if (yHigh <= ymin || yLow >= ymax) {
                 return new ArrayList<>();
             }
         }
 
-        if (HIGH == null && LOW == null) {
+        if (centerEdge == null) {
             return edges;
         } else {
-            List<EdgeData> edgeList = LOW.getEdges(x1, y1, x2, y2);
+            List<EdgeData> edgeList = LOW.getEdges(xLow, yLow, xHigh, yHigh);
             assert (centerEdge != null);
             edgeList.add(centerEdge);
 
-            edgeList.addAll(HIGH.getEdges(x1, y1, x2, y2));
+            edgeList.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
             return edgeList;
-        }
-    }
-
-    public void doStuff(double x1, double y1, double x2, double y2) {
-        if (dim == Dimension.X) {
-            if (x2 < xmin || x1 > xmax) {
-                return;
-            }
-        } else {
-            if (y2 < ymin || y1 > ymax) {
-                return;
-            }
-        }
-        // do stuff to data
-        if (HIGH != null) {
-            HIGH.doStuff(x1, y1, x2, y2);
-        }
-        if (LOW != null) {
-            LOW.doStuff(x1, y1, x2, y2);
         }
     }
 
@@ -146,9 +129,9 @@ public class KDTree {
         // Invoke the loader class.
         loader.load(dir + "kdv_node_unload.txt",
                 dir + "kdv_unload.txt");
-
+        
         KDTree tree = new KDTree(edgeList, nodeMap);
         System.out.println("List: " + edgeList.size());
-        System.out.println("Tree: " + tree.getEdges(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE).size());
+        System.out.println("Tree: " + tree.getEdges(442254.35649, 6049914.43018, 892658.21706, 6402050.98297).size());
     }
 }
