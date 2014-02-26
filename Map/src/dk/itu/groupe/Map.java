@@ -25,9 +25,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     private double factor;
     
     private MouseEvent pressed, released;
-    
-    private int trackX;
-    private int trackY;
 
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
@@ -129,6 +126,15 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         frame.setVisible(true);
     }
     
+    private void reset()
+    {
+        lowX = lowestX_COORD;
+        lowY = lowestY_COORD;
+        highX = highestX_COORD;
+        highY = highestY_COORD;
+        repaint();
+    }
+    
     private void zoomRect(double startX, double startY, double stopX, double stopY)
     {
         if (startX < stopX && startY < stopY) {
@@ -140,10 +146,10 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             System.out.println("Pressed low: " + lowX + " " + lowY);
             
             
-            highX = (int) (lowX + (stopX*factor));
-            highY = (int) (lowY + ((getHeight() - startY)*factor)); 
-            lowX = (int) (lowX + (startX*factor));
-            lowY = (int) (lowY + ((getHeight() - stopY)*factor));
+            highX = (lowX + (stopX*factor));
+            highY = (lowY + ((getHeight() - startY)*factor)); 
+            lowX = (lowX + (startX*factor));
+            lowY = (lowY + ((getHeight() - stopY)*factor));
             repaint();
             
             System.out.println("Pressed high: " + highX + " " + highY);
@@ -160,7 +166,10 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     @Override
     public void mouseClicked(MouseEvent me) {
-        
+        //Right click to reset.
+        if (me.getButton() == 3) {
+            reset();
+        }
     }
     
     @Override
@@ -200,6 +209,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     @Override
     public void mouseMoved(MouseEvent me) {
-        trackMouse(trackX = me.getX(), trackY = me.getY());
+        trackMouse(me.getX(), me.getY());
     }
 }
