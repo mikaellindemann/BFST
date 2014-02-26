@@ -1,12 +1,12 @@
 package dk.itu.groupe;
 
-import java.util.ArrayList;
-import java.io.IOException;
-import javax.swing.JFrame;
-import javax.swing.JComponent;
-import java.awt.Graphics;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
 
 public class Map extends JComponent {
 
@@ -16,8 +16,19 @@ public class Map extends JComponent {
     private final static int highestX_COORD = 892658;
     private final static int lowestY_COORD = 6049914;
     private final static int highestY_COORD = 6402050;
+    private int factor;
 
+    /**
+     * An ArrayList of EdgeData containing (for now) all the data supplied.
+     */
     private final ArrayList<EdgeData> edges;
+
+    /**
+     * A HashMap that links a NodeData's KDV-number to the NodeData itself.
+     *
+     * This way we can get the specified NodeData from the EdgeDatas FNODE and
+     * TNODE-fields.
+     */
     private final HashMap<Integer, NodeData> nodeMap;
 
     @Override
@@ -25,14 +36,17 @@ public class Map extends JComponent {
         return new Dimension(1300, 700);
     }
 
-    @Override
-    public void paintComponent(Graphics g) {
-
+    private void calculateFactor() {
         // This factor determines how big the Map will be drawn.
-        int factor = (highestX_COORD - lowestX_COORD) / getWidth();
+        factor = (highestX_COORD - lowestX_COORD) / getWidth();
         if ((highestY_COORD - lowestY_COORD) / getHeight() > factor) {
             factor = (highestY_COORD - lowestY_COORD) / getHeight();
         }
+    }
+
+    @Override
+    public void paintComponent(Graphics g) {
+        calculateFactor();
         for (EdgeData edge : edges) {
             int fx = (int) nodeMap.get(edge.FNODE).X_COORD / factor - (lowestX_COORD / factor);
             int fy = getHeight() - ((int) nodeMap.get(edge.FNODE).Y_COORD / factor - (lowestY_COORD / factor));
