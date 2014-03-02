@@ -1,7 +1,9 @@
 package dk.itu.groupe;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -13,8 +15,10 @@ import java.lang.management.MemoryMXBean;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.Timer;
 
 /**
@@ -31,6 +35,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     private final static int highestX_COORD = 892658;
     private final static int lowestY_COORD = 6049914;
     private final static int highestY_COORD = 6402050;
+    private static String xTrack;
+    private static String yTrack;
 
     // Bounds of the window.
     private double lowX, lowY, highX, highY;
@@ -134,15 +140,36 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     public static void main(String[] args) throws IOException
     {
         Map loader = new Map();
-
+        
+        JPanel panel = new JPanel();
         JFrame frame = new JFrame();
+       
+        frame.setLayout(new BorderLayout());
+        frame.add(panel, BorderLayout.SOUTH);
+
+        panel.add(new Label("x:" + xTrack + "| y:" + yTrack));
+        
+        JButton button = new JButton("Zoom to 100%");
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+               //reset();   
+            }
+        });
+        panel.add(button);
+        
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
         frame.getContentPane().add(loader);
         frame.getContentPane().addMouseListener(loader);
-        //frame.getContentPane().addMouseMotionListener(loader);
+        frame.getContentPane().addMouseMotionListener(loader);
         frame.pack();
         frame.repaint();
         frame.setVisible(true);
+        
+        
+        panel.setVisible(true);
+        panel.add("south", panel);
         Timer t = new Timer(1000, new ActionListener()
         {
             @Override
@@ -189,7 +216,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     //Tracks exact position of mouse pointer
     private void trackMouse(double xTrack, double yTrack)
     {
-        System.out.println("x:" + xTrack + "| y:" + yTrack);
+        //System.out.println("x:" + xTrack + "| y:" + yTrack);
     }
 
     @Override
