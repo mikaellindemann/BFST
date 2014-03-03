@@ -1,6 +1,7 @@
 package dk.itu.groupe;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -128,6 +129,57 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     {
         calculateFactor();
         for (EdgeData edge : edges.getEdges(lowX, lowY, highX, highY)) {
+            switch (edge.TYP) {
+                case(1):
+                case(21):
+                case(31):
+                    g.setColor(Color.RED);
+                    break;
+                case(2):
+                case(22):
+                case(32):
+                    g.setColor(Color.GRAY);
+                    break;
+                case(3):
+                case(23):
+                case(33):
+                    g.setColor(Color.YELLOW);
+                    break;
+                case(4):
+                case(5):
+                case(6):
+                case(24):
+                case(25):
+                case(26):
+                case(34):
+                case(35):
+                    g.setColor(Color.GRAY);
+                    break;
+                case(8):
+                case(10):
+                case(28):
+                    g.setColor(Color.LIGHT_GRAY);
+                    break;
+                case(11):
+                    g.setColor(Color.MAGENTA);
+                    break;
+                case(41):
+                case(42):                    
+                case(43):                    
+                case(44):                    
+                case(45):                    
+                case(46):                    
+                case(48):
+                    g.setColor(Color.GREEN);
+                    break;                    
+                case(80):
+                    continue;
+                case(99):
+                    continue;
+                default:
+                    g.setColor(Color.BLACK);
+            }
+
             int fx = (int) ((nodeMap.get(edge.FNODE).X_COORD - lowX) / factor);
             int fy = getHeight() - (int) ((nodeMap.get(edge.FNODE).Y_COORD - lowY) / factor);
             int lx = (int) ((nodeMap.get(edge.TNODE).X_COORD - lowX) / factor);
@@ -194,7 +246,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         highY = highestY_COORD;
         repaint();
     }
-
+    
     private void zoomRect(double startX, double startY, double stopX, double stopY)
     {
         if (startX < stopX && startY < stopY) {
