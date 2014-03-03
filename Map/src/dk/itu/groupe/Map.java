@@ -220,13 +220,13 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     public void goLeft() {
         lowX = lowX - (30 * factor);
-        highX = highX + (30 * factor);
+        highX = highX - (30 * factor);
         repaint();
     }
 
     public void goRight() {
         lowX = lowX + (30 * factor);
-        highX = highX - (30 * factor);
+        highX = highX + (30 * factor);
         repaint();
     }
 
