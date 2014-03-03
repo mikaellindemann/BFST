@@ -38,16 +38,14 @@ public abstract class KrakLoader {
             @Override
             public void run() {
                 try {
-                    /* Nodes. */
-                    BufferedReader br;
-                    br = new BufferedReader(new FileReader(nodeFile));
-                    br.readLine(); // First line is column names, not data.
-
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        processNode(new NodeData(line));
+                    try (BufferedReader br = new BufferedReader(new FileReader(nodeFile))) {
+                        br.readLine(); // First line is column names, not data.
+                        
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            processNode(new NodeData(line));
+                        }
                     }
-                    br.close();
                 } catch (IOException ex) {
                 }
             }
@@ -57,15 +55,14 @@ public abstract class KrakLoader {
             @Override
             public void run() {
                 try {
-                    /* Edges. */
-                    BufferedReader br = new BufferedReader(new FileReader(edgeFile));
-                    br.readLine(); // Again, first line is column names, not data.
-
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        processEdge(new EdgeData(line));
+                    try (BufferedReader br = new BufferedReader(new FileReader(edgeFile))) {
+                        br.readLine(); // Again, first line is column names, not data.
+                        
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            processEdge(new EdgeData(line));
+                        }
                     }
-                    br.close();
                 } catch (IOException ex) {
                 }
             }
