@@ -1,10 +1,12 @@
 package dk.itu.groupe;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -14,11 +16,14 @@ import java.lang.management.MemoryMXBean;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import javax.swing.AbstractAction;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
 /**
@@ -128,6 +133,58 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     {
         calculateFactor();
         for (EdgeData edge : edges.getEdges(lowX, lowY, highX, highY)) {
+            
+            switch (edge.TYP) {
+                case(1):
+                case(21):
+                case(31):
+                    g.setColor(Color.RED);
+                    break;
+                case(2):
+                case(22):
+                case(32):
+                    g.setColor(Color.GRAY);
+                    break;
+                case(3):
+                case(23):
+                case(33):
+                    g.setColor(Color.YELLOW);
+                    break;
+                case(4):
+                case(5):
+                case(6):
+                case(24):
+                case(25):
+                case(26):
+                case(34):
+                case(35):
+                    g.setColor(Color.GRAY);
+                    break;
+                case(8):
+                case(10):
+                case(28):
+                    g.setColor(Color.LIGHT_GRAY);
+                    break;
+                case(11):
+                    g.setColor(Color.MAGENTA);
+                    break;
+                case(41):
+                case(42):                    
+                case(43):                    
+                case(44):                    
+                case(45):                    
+                case(46):                    
+                case(48):
+                    g.setColor(Color.GREEN);
+                    break;                    
+                case(80):
+                    continue;
+                case(99):
+                    continue;
+                default:
+                    g.setColor(Color.BLACK);
+            }
+            
             int fx = (int) ((nodeMap.get(edge.FNODE).X_COORD - lowX) / factor);
             int fy = getHeight() - (int) ((nodeMap.get(edge.FNODE).Y_COORD - lowY) / factor);
             int lx = (int) ((nodeMap.get(edge.TNODE).X_COORD - lowX) / factor);
@@ -140,39 +197,10 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     public static void main(String[] args) throws IOException
     {
-        final Map loader = new Map();
         
-        JPanel panel = new JPanel();
-        JFrame frame = new JFrame();
-       
-        frame.setLayout(new BorderLayout());
-        frame.add(panel, BorderLayout.SOUTH);
-
-        label = new JLabel("x:" + xTrack + "| y:" + yTrack);
-        panel.add(label);
+       GUI gui = new GUI();
+       gui.gui();
         
-        JButton button = new JButton("Zoom to 100%");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-               loader.reset();   
-            }
-        });
-        panel.add(button);
-        
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().setLayout(new BorderLayout());
-        frame.getContentPane().add(loader, BorderLayout.CENTER);
-        frame.getContentPane().addMouseListener(loader);
-        frame.getContentPane().addMouseMotionListener(loader);
-        
-        frame.pack();
-        frame.repaint();
-        frame.setVisible(true);
-        
-        
-        panel.setVisible(true);
-        frame.getContentPane().add(panel, BorderLayout.SOUTH);
         Timer t = new Timer(1000, new ActionListener()
         {
             @Override
@@ -192,6 +220,46 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         lowY = lowestY_COORD;
         highX = highestX_COORD;
         highY = highestY_COORD;
+        repaint();
+    }
+    public void goUp()
+    {
+        lowY = lowY+(30*factor);
+        highY = highY+(30*factor);
+        repaint();
+    }
+    public void goLeft()
+    {
+        lowX = lowX-(30*factor); 
+        highX = highX+(30*factor); 
+        repaint();
+    }
+    public void goRight()
+    {
+        lowX = lowX+(30*factor); 
+        highX = highX-(30*factor); 
+        repaint();
+    }
+    public void goDown()
+    {
+        lowY = lowY-(30*factor); 
+        highY = highY-(30*factor); 
+        repaint();
+    }
+    public void ZoomIn()
+    {
+        lowX = lowX+(30*factor);
+        lowY = lowY+(30*factor);
+        highX = highX-(30*factor);
+        highY = highY-(30*factor);
+        repaint();
+    }
+    public void ZoomOut()
+    {
+        lowX = lowX-(30*factor);
+        lowY = lowY-(30*factor);
+        highX = highX+(30*factor);
+        highY = highY+(30*factor);
         repaint();
     }
 
