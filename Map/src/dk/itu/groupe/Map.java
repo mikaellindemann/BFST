@@ -139,7 +139,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     public static void main(String[] args) throws IOException
     {
-        Map loader = new Map();
+        final Map loader = new Map();
         
         JPanel panel = new JPanel();
         JFrame frame = new JFrame();
@@ -153,23 +153,24 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent event) {
-               //reset();   
+               loader.reset();   
             }
         });
         panel.add(button);
         
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
-        frame.getContentPane().add(loader);
+        frame.getContentPane().setLayout(new BorderLayout());
+        frame.getContentPane().add(loader, BorderLayout.CENTER);
         frame.getContentPane().addMouseListener(loader);
         frame.getContentPane().addMouseMotionListener(loader);
+        
         frame.pack();
         frame.repaint();
         frame.setVisible(true);
         
         
         panel.setVisible(true);
-        panel.add("south", panel);
+        frame.getContentPane().add(panel, BorderLayout.SOUTH);
         Timer t = new Timer(1000, new ActionListener()
         {
             @Override
@@ -183,7 +184,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         t.start();
     }
 
-    private void reset()
+    public void reset()
     {
         lowX = lowestX_COORD;
         lowY = lowestY_COORD;
