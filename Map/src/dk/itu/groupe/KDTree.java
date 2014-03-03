@@ -8,11 +8,9 @@ import java.util.Set;
  * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
  * Jepsen <mlin@itu.dk>
  */
-public class KDTree
-{
+public class KDTree {
 
-    enum Dimension
-    {
+    enum Dimension {
 
         X, Y
     };
@@ -24,8 +22,7 @@ public class KDTree
     private double xmin, ymin, xmax, ymax;
     private Dimension dim;
 
-    public KDTree(Set<EdgeData> edges)
-    {
+    public KDTree(Set<EdgeData> edges) {
         xmin = ymin = Double.MAX_VALUE;
         xmax = ymax = Double.MIN_VALUE;
         for (EdgeData edge : edges) {
@@ -47,8 +44,9 @@ public class KDTree
             }
         }
 
-        if (edges.size() <= 1) {
+        if (edges.size() <= 100) {
             this.edges = edges;
+            //centerEdge = edges.toArray(new EdgeData[0])[edges.size() / 2];
         } else {
             Set<EdgeData> low = new HashSet<>(), high = new HashSet<>();
             centerEdge = (EdgeData) edges.toArray()[edges.size() / 2];
@@ -74,13 +72,79 @@ public class KDTree
                     }
                 }
             }
-            LOW = new KDTree(low);
-            HIGH = new KDTree(high);
+            if (!low.isEmpty()) {
+                LOW = new KDTree(low);
+            }
+            if (!high.isEmpty()) {
+                HIGH = new KDTree(high);
+            }
         }
     }
 
-    public Set<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh)
-    {
+    public EdgeData nearest(double x, double y) {
+        if (HIGH == null && LOW == null && edges != null) {
+            EdgeData edge = null;
+            double distX = Double.MAX_VALUE;
+            double distY = Double.MAX_VALUE;
+            for (EdgeData e : edges) {
+                if (edge == null) {
+                    edge = e;
+                }
+                NodeData n = Map.nodeMap.get(e.FNODE);
+                if (Math.abs(n.X_COORD - x) < distX &&
+                        Math.abs(n.Y_COORD - y) < distY) {
+                    edge = e;
+                    distX = Math.abs(n.X_COORD - x);
+                    distY = Math.abs(n.Y_COORD - y);
+                }
+            }
+            assert(edge != null);
+            return edge;
+        }
+        if (dim == Dimension.X) {
+            if (x == Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
+                return centerEdge;
+            } else if (x < Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
+                if (LOW == null) {
+                    if (HIGH == null) {
+                        return centerEdge;
+                    }
+                    return HIGH.nearest(x, y);
+                }
+                return LOW.nearest(x, y);
+            } else {
+                if (HIGH == null) {
+                    if (LOW == null) {
+                        return centerEdge;
+                    }
+                    return LOW.nearest(x, y);
+                }
+                return HIGH.nearest(x, y);
+            }
+        } else {
+            if (y == Map.nodeMap.get(centerEdge.FNODE).Y_COORD) {
+                return centerEdge;
+            } else if (y < Map.nodeMap.get(centerEdge.FNODE).Y_COORD) {
+                if (LOW == null) {
+                    if (HIGH == null) {
+                        return centerEdge;
+                    }
+                    return HIGH.nearest(x, y);
+                }
+                return LOW.nearest(x, y);
+            } else {
+                if (HIGH == null) {
+                    if (LOW == null) {
+                        return centerEdge;
+                    }
+                    return LOW.nearest(x, y);
+                }
+                return HIGH.nearest(x, y);
+            }
+        }
+    }
+
+    public Set<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
         if (dim == Dimension.X) {
             if (xHigh < xmin || xLow > xmax) {
                 return empty;
@@ -94,10 +158,26 @@ public class KDTree
         if (centerEdge == null) {
             return edges;
         } else {
-            Set<EdgeData> edgeSet = LOW.getEdges(xLow, yLow, xHigh, yHigh);
-            edgeSet.add(centerEdge);
+            Set<EdgeData> edgeSet = new HashSet<>();
+            if (LOW != null) {
+                edgeSet.addAll(LOW.getEdges(xLow, yLow, xHigh, yHigh));
 
-            edgeSet.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
+                if (centerEdge != null) {
+                    edgeSet.add(centerEdge);
+
+                    if (HIGH != null) {
+                        edgeSet.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
+                    }
+                }
+            } else if (HIGH != null) {
+                if (centerEdge != null) {
+                    edgeSet.add(centerEdge);
+                    edgeSet.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
+                }
+                else {
+                    edgeSet.add(centerEdge);
+                }
+            }
             return edgeSet;
         }
     }

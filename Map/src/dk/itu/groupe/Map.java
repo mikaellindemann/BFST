@@ -27,12 +27,11 @@ import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
 /**
- * 
+ *
  * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
  * Jepsen <mlin@itu.dk>
  */
-public class Map extends JComponent implements MouseListener, MouseMotionListener
-{
+public class Map extends JComponent implements MouseListener, MouseMotionListener {
 
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
@@ -40,13 +39,14 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     private final static int highestX_COORD = 892658;
     private final static int lowestY_COORD = 6049914;
     private final static int highestY_COORD = 6402050;
-    private static JLabel label;
     private static String xTrack;
     private static String yTrack;
 
     // Bounds of the window.
     private double lowX, lowY, highX, highY;
     private double factor;
+
+    private static GUI gui;
 
     private MouseEvent pressed, released;
 
@@ -63,8 +63,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
      */
     static HashMap<Integer, NodeData> nodeMap;
 
-    public Map() throws IOException
-    {
+    public Map() throws IOException {
         String dir = "./data/";
 
         lowX = lowestX_COORD;
@@ -81,17 +80,14 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         // For that, we need to inherit from KrakLoader and override
         // processNode and processEdge. We do that with an 
         // anonymous class. 
-        KrakLoader loader = new KrakLoader()
-        {
+        KrakLoader loader = new KrakLoader() {
             @Override
-            public void processNode(NodeData nd)
-            {
+            public void processNode(NodeData nd) {
                 nodeMap.put(nd.KDV, nd);
             }
 
             @Override
-            public void processEdge(EdgeData ed)
-            {
+            public void processEdge(EdgeData ed) {
                 //edgeList.add(ed);
                 edgeSet.add(ed);
             }
@@ -108,13 +104,11 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public Dimension getPreferredSize()
-    {
+    public Dimension getPreferredSize() {
         return new Dimension(1300, 700);
     }
 
-    private void calculateFactor()
-    {
+    private void calculateFactor() {
         // This factor determines how big the Map will be drawn.
         factor = (highX - lowX) / getWidth();
         if ((highY - lowY) / getHeight() > factor) {
@@ -129,62 +123,61 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void paintComponent(Graphics g)
-    {
+    public void paintComponent(Graphics g) {
         calculateFactor();
         for (EdgeData edge : edges.getEdges(lowX, lowY, highX, highY)) {
-            
+
             switch (edge.TYP) {
-                case(1):
-                case(21):
-                case(31):
+                case (1):
+                case (21):
+                case (31):
                     g.setColor(Color.RED);
                     break;
-                case(2):
-                case(22):
-                case(32):
+                case (2):
+                case (22):
+                case (32):
                     g.setColor(Color.GRAY);
                     break;
-                case(3):
-                case(23):
-                case(33):
+                case (3):
+                case (23):
+                case (33):
                     g.setColor(Color.YELLOW);
                     break;
-                case(4):
-                case(5):
-                case(6):
-                case(24):
-                case(25):
-                case(26):
-                case(34):
-                case(35):
+                case (4):
+                case (5):
+                case (6):
+                case (24):
+                case (25):
+                case (26):
+                case (34):
+                case (35):
                     g.setColor(Color.GRAY);
                     break;
-                case(8):
-                case(10):
-                case(28):
+                case (8):
+                case (10):
+                case (28):
                     g.setColor(Color.LIGHT_GRAY);
                     break;
-                case(11):
+                case (11):
                     g.setColor(Color.MAGENTA);
                     break;
-                case(41):
-                case(42):                    
-                case(43):                    
-                case(44):                    
-                case(45):                    
-                case(46):                    
-                case(48):
+                case (41):
+                case (42):
+                case (43):
+                case (44):
+                case (45):
+                case (46):
+                case (48):
                     g.setColor(Color.GREEN);
-                    break;                    
-                case(80):
+                    break;
+                case (80):
                     continue;
-                case(99):
+                case (99):
                     continue;
                 default:
                     g.setColor(Color.BLACK);
             }
-            
+
             int fx = (int) ((nodeMap.get(edge.FNODE).X_COORD - lowX) / factor);
             int fy = getHeight() - (int) ((nodeMap.get(edge.FNODE).Y_COORD - lowY) / factor);
             int lx = (int) ((nodeMap.get(edge.TNODE).X_COORD - lowX) / factor);
@@ -195,17 +188,14 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         System.gc();
     }
 
-    public static void main(String[] args) throws IOException
-    {
-        
-       GUI gui = new GUI();
-       gui.gui();
-        
-        Timer t = new Timer(1000, new ActionListener()
-        {
+    public static void main(String[] args) throws IOException {
+
+        gui = new GUI();
+        gui.gui();
+
+        Timer t = new Timer(1000, new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e)
-            {
+            public void actionPerformed(ActionEvent e) {
                 MemoryMXBean mxbean = ManagementFactory.getMemoryMXBean();
                 System.out.printf("Heap memory usage: %d MB\r",
                         mxbean.getHeapMemoryUsage().getUsed() / (1000000));
@@ -214,57 +204,55 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         t.start();
     }
 
-    public void reset()
-    {
+    public void reset() {
         lowX = lowestX_COORD;
         lowY = lowestY_COORD;
         highX = highestX_COORD;
         highY = highestY_COORD;
         repaint();
     }
-    public void goUp()
-    {
-        lowY = lowY+(30*factor);
-        highY = highY+(30*factor);
-        repaint();
-    }
-    public void goLeft()
-    {
-        lowX = lowX-(30*factor); 
-        highX = highX+(30*factor); 
-        repaint();
-    }
-    public void goRight()
-    {
-        lowX = lowX+(30*factor); 
-        highX = highX-(30*factor); 
-        repaint();
-    }
-    public void goDown()
-    {
-        lowY = lowY-(30*factor); 
-        highY = highY-(30*factor); 
-        repaint();
-    }
-    public void ZoomIn()
-    {
-        lowX = lowX+(30*factor);
-        lowY = lowY+(30*factor);
-        highX = highX-(30*factor);
-        highY = highY-(30*factor);
-        repaint();
-    }
-    public void ZoomOut()
-    {
-        lowX = lowX-(30*factor);
-        lowY = lowY-(30*factor);
-        highX = highX+(30*factor);
-        highY = highY+(30*factor);
+
+    public void goUp() {
+        lowY = lowY + (30 * factor);
+        highY = highY + (30 * factor);
         repaint();
     }
 
-    private void zoomRect(double startX, double startY, double stopX, double stopY)
-    {
+    public void goLeft() {
+        lowX = lowX - (30 * factor);
+        highX = highX + (30 * factor);
+        repaint();
+    }
+
+    public void goRight() {
+        lowX = lowX + (30 * factor);
+        highX = highX - (30 * factor);
+        repaint();
+    }
+
+    public void goDown() {
+        lowY = lowY - (30 * factor);
+        highY = highY - (30 * factor);
+        repaint();
+    }
+
+    public void ZoomIn() {
+        lowX = lowX + (30 * factor);
+        lowY = lowY + (30 * factor);
+        highX = highX - (30 * factor);
+        highY = highY - (30 * factor);
+        repaint();
+    }
+
+    public void ZoomOut() {
+        lowX = lowX - (30 * factor);
+        lowY = lowY - (30 * factor);
+        highX = highX + (30 * factor);
+        highY = highY + (30 * factor);
+        repaint();
+    }
+
+    private void zoomRect(double startX, double startY, double stopX, double stopY) {
         if (startX < stopX && startY < stopY) {
             //throw new UnsupportedOperationException("Not yet implemented");
             /*System.out.println("Pressed startXY: " + startX + " " + startY);
@@ -285,36 +273,34 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     //Tracks exact position of mouse pointer
-    private void trackMouse(double xTrack, double yTrack)
-    {
+    private void trackMouse(double xTrack, double yTrack) {
         double mapX = xTrack * factor + lowX;
         double mapY = (getHeight() - yTrack) * factor + lowY;
         //System.out.println("x:" + xTrack + "| y:" + yTrack);
         String x = "" + (Math.round(mapX * 10) / 10.0);
         String y = "" + (Math.round(mapY * 10) / 10.0);
-        label.setText("x:" + x + "| y:" + y);
+        String pointer = edges.nearest(mapX, mapY).VEJNAVN;
+        if (pointer != null) {
+            gui.label.setText(pointer);
+        }
     }
 
     @Override
-    public void mouseClicked(MouseEvent me)
-    {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent me)
-    {
-
-    }
-
-    public void mouseOver(final MouseEvent me)
-    {
+    public void mouseClicked(MouseEvent me) {
 
     }
 
     @Override
-    public void mousePressed(MouseEvent me)
-    {
+    public void mouseEntered(MouseEvent me) {
+
+    }
+
+    public void mouseOver(final MouseEvent me) {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent me) {
         //Right click to reset.
         if (me.getButton() == 3) {
             reset();
@@ -324,8 +310,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void mouseReleased(MouseEvent me)
-    {
+    public void mouseReleased(MouseEvent me) {
         if (me.getButton() == 1) {
             released = me;
 
@@ -336,20 +321,17 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void mouseExited(MouseEvent me)
-    {
+    public void mouseExited(MouseEvent me) {
 
     }
 
     @Override
-    public void mouseDragged(MouseEvent e)
-    {
+    public void mouseDragged(MouseEvent e) {
 
     }
 
     @Override
-    public void mouseMoved(MouseEvent me)
-    {
+    public void mouseMoved(MouseEvent me) {
         trackMouse(me.getX(), me.getY());
     }
 }
