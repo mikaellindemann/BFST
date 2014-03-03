@@ -1,12 +1,10 @@
 package dk.itu.groupe;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -14,16 +12,9 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import javax.swing.AbstractAction;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
+import java.util.LinkedList;
+import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
 /**
@@ -35,12 +26,10 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
-    private final static int lowestX_COORD = 442254;
-    private final static int highestX_COORD = 892658;
-    private final static int lowestY_COORD = 6049914;
-    private final static int highestY_COORD = 6402050;
-    private static String xTrack;
-    private static String yTrack;
+    private final static double lowestX_COORD = 442254.35659;
+    private final static double highestX_COORD = 892658.21706;
+    private final static double lowestY_COORD = 6049914.43018;
+    private final static double highestY_COORD = 6402050.98297;
 
     // Bounds of the window.
     private double lowX, lowY, highX, highY;
@@ -75,7 +64,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         // ArrayLists.
         //final List<EdgeData> edgeList = new ArrayList<>();
         nodeMap = new HashMap<>();
-        final Set<EdgeData> edgeSet = new HashSet<>();
+        final List<EdgeData> edgeList = new LinkedList<>();
 
         // For that, we need to inherit from KrakLoader and override
         // processNode and processEdge. We do that with an 
@@ -88,8 +77,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
             @Override
             public void processEdge(EdgeData ed) {
-                //edgeList.add(ed);
-                edgeSet.add(ed);
+                edgeList.add(ed);
+                
             }
         };
 
@@ -100,7 +89,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         loader.load(dir + "kdv_node_unload.txt",
                 dir + "kdv_unload.txt");
 
-        edges = new KDTree(edgeSet);
+        edges = new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
     }
 
     @Override

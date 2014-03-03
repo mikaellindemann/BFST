@@ -1,7 +1,7 @@
 package dk.itu.groupe;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -15,108 +15,72 @@ public class KDTree {
         X, Y
     };
 
-    private final Set<EdgeData> empty = new HashSet<>();
+    private final List<EdgeData> empty = new LinkedList<>();
     private KDTree HIGH, LOW;
-    private Set<EdgeData> edges;
-    private EdgeData centerEdge;
-    private double xmin, ymin, xmax, ymax;
-    private Dimension dim;
+    private final EdgeData centerEdge;
+    private final double xmin, ymin, xmax, ymax;
+    private final Dimension dim;
 
-    public KDTree(Set<EdgeData> edges) {
-        xmin = ymin = Double.MAX_VALUE;
-        xmax = ymax = Double.MIN_VALUE;
-        for (EdgeData edge : edges) {
-            NodeData firstNode = Map.nodeMap.get(edge.FNODE);
-            NodeData lastNode = Map.nodeMap.get(edge.TNODE);
+    public KDTree(List<EdgeData> edges, double xMin, double yMin, double xMax, double yMax) {
+        xmin = xMin;
+        ymin = yMin;
+        xmax = xMax;
+        ymax = yMax;
 
-            // Set xmin, xmax, ymin and ymax.
-            for (NodeData nd : new NodeData[]{firstNode, lastNode}) {
-                if (nd.X_COORD < xmin) {
-                    xmin = nd.X_COORD;
-                } else if (nd.X_COORD > xmax) {
-                    xmax = nd.X_COORD;
-                }
-                if (nd.Y_COORD < ymin) {
-                    ymin = nd.Y_COORD;
-                } else if (nd.Y_COORD > ymax) {
-                    ymax = nd.Y_COORD;
+        int size = edges.size();
+
+        List<EdgeData> low = new LinkedList<>(), high = new LinkedList<>();
+        centerEdge = (EdgeData) edges.toArray()[edges.size() / 2];
+        edges.remove(centerEdge);
+        if (ymax - ymin > xmax - xmin) {
+            dim = Dimension.X;
+            // Put the right elements where it belongs.
+            while (!edges.isEmpty()) {
+                EdgeData edge = edges.remove(0);
+                if (Map.nodeMap.get(edge.FNODE).X_COORD < Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
+                    low.add(edge);
+                } else {
+                    high.add(edge);
                 }
             }
-        }
-
-        if (edges.size() <= 100) {
-            this.edges = edges;
-            //centerEdge = edges.toArray(new EdgeData[0])[edges.size() / 2];
         } else {
-            Set<EdgeData> low = new HashSet<>(), high = new HashSet<>();
-            centerEdge = (EdgeData) edges.toArray()[edges.size() / 2];
-            edges.remove(centerEdge);
-            if (ymax - ymin < xmax - xmin) {
-                dim = Dimension.X;
-                // Put the right elements where it belongs.
-                for (EdgeData edge : edges) {
-                    if (Map.nodeMap.get(edge.FNODE).X_COORD < Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
-                        low.add(edge);
-                    } else {
-                        high.add(edge);
-                    }
+            dim = Dimension.Y;
+            // Put the right elements where it belongs.
+            while (!edges.isEmpty()) {
+                EdgeData edge = edges.remove(0);
+                if (Map.nodeMap.get(edge.FNODE).Y_COORD < Map.nodeMap.get(centerEdge.FNODE).Y_COORD) {
+                    low.add(edge);
+                } else {
+                    high.add(edge);
                 }
-            } else {
-                dim = Dimension.Y;
-                // Put the right elements where it belongs.
-                for (EdgeData edge : edges) {
-                    if (Map.nodeMap.get(edge.FNODE).Y_COORD < Map.nodeMap.get(centerEdge.FNODE).Y_COORD) {
-                        low.add(edge);
-                    } else {
-                        high.add(edge);
-                    }
-                }
-            }
-            if (!low.isEmpty()) {
-                LOW = new KDTree(low);
-            }
-            if (!high.isEmpty()) {
-                HIGH = new KDTree(high);
             }
         }
+        assert (edges.isEmpty());
+        assert (size == high.size() + 1 + low.size());
+        NodeData c = Map.nodeMap.get(centerEdge.FNODE);
+        if (!low.isEmpty()) {
+            LOW = new KDTree(low, xmin, ymin, c.X_COORD, c.Y_COORD);
+        }
+        if (!high.isEmpty()) {
+            HIGH = new KDTree(high, c.X_COORD, c.Y_COORD, xmax, ymax);
+        }
+
     }
 
     public EdgeData nearest(double x, double y) {
-        if (HIGH == null && LOW == null && edges != null) {
-            EdgeData edge = null;
-            double distX = Double.MAX_VALUE;
-            double distY = Double.MAX_VALUE;
-            for (EdgeData e : edges) {
-                if (edge == null) {
-                    edge = e;
-                }
-                NodeData n = Map.nodeMap.get(e.FNODE);
-                if (Math.abs(n.X_COORD - x) < distX &&
-                        Math.abs(n.Y_COORD - y) < distY) {
-                    edge = e;
-                    distX = Math.abs(n.X_COORD - x);
-                    distY = Math.abs(n.Y_COORD - y);
-                }
-            }
-            assert(edge != null);
-            return edge;
+        if (HIGH == null && LOW == null) {
+            return centerEdge;
         }
         if (dim == Dimension.X) {
             if (x == Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
                 return centerEdge;
             } else if (x < Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
                 if (LOW == null) {
-                    if (HIGH == null) {
-                        return centerEdge;
-                    }
                     return HIGH.nearest(x, y);
                 }
                 return LOW.nearest(x, y);
             } else {
                 if (HIGH == null) {
-                    if (LOW == null) {
-                        return centerEdge;
-                    }
                     return LOW.nearest(x, y);
                 }
                 return HIGH.nearest(x, y);
@@ -126,59 +90,49 @@ public class KDTree {
                 return centerEdge;
             } else if (y < Map.nodeMap.get(centerEdge.FNODE).Y_COORD) {
                 if (LOW == null) {
-                    if (HIGH == null) {
-                        return centerEdge;
-                    }
-                    return HIGH.nearest(x, y);
+                    return centerEdge;
                 }
                 return LOW.nearest(x, y);
             } else {
                 if (HIGH == null) {
-                    if (LOW == null) {
-                        return centerEdge;
-                    }
-                    return LOW.nearest(x, y);
+                    return centerEdge;
                 }
                 return HIGH.nearest(x, y);
             }
         }
     }
 
-    public Set<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
+    public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
+        //Fix this code!
         if (dim == Dimension.X) {
-            if (xHigh < xmin || xLow > xmax) {
+            if (yHigh + 50000 < ymin || yLow - 50000 > ymax) {
                 return empty;
             }
         } else {
-            if (yHigh < ymin || yLow > ymax) {
+            if (xHigh + 50000 < xmin || xLow - 50000 > xmax) {
                 return empty;
             }
         }
 
-        if (centerEdge == null) {
-            return edges;
-        } else {
-            Set<EdgeData> edgeSet = new HashSet<>();
-            if (LOW != null) {
-                edgeSet.addAll(LOW.getEdges(xLow, yLow, xHigh, yHigh));
+        List<EdgeData> edgeList = new LinkedList<>();
+        if (LOW != null) {
+            edgeList.addAll(LOW.getEdges(xLow, yLow, xHigh, yHigh));
 
-                if (centerEdge != null) {
-                    edgeSet.add(centerEdge);
+            if (centerEdge != null) {
+                edgeList.add(centerEdge);
 
-                    if (HIGH != null) {
-                        edgeSet.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
-                    }
-                }
-            } else if (HIGH != null) {
-                if (centerEdge != null) {
-                    edgeSet.add(centerEdge);
-                    edgeSet.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
-                }
-                else {
-                    edgeSet.add(centerEdge);
+                if (HIGH != null) {
+                    edgeList.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
                 }
             }
-            return edgeSet;
+        } else if (HIGH != null) {
+            if (centerEdge != null) {
+                edgeList.add(centerEdge);
+                edgeList.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
+            }
+        } else {
+            edgeList.add(centerEdge);
         }
+        return edgeList;
     }
 }
