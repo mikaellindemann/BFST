@@ -33,27 +33,52 @@ public abstract class KrakLoader {
      * @throws IOException if there is a problem reading data or the files dont
      * exist
      */
-    public void load(String nodeFile, String edgeFile) throws IOException {
-        /* Nodes. */
-        BufferedReader br;
-        br = new BufferedReader(new FileReader(nodeFile));
-        br.readLine(); // First line is column names, not data.
+    public void load(final String nodeFile, final String edgeFile) throws IOException {
+        Thread n = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    /* Nodes. */
+                    BufferedReader br;
+                    br = new BufferedReader(new FileReader(nodeFile));
+                    br.readLine(); // First line is column names, not data.
 
-        String line;
-        while ((line = br.readLine()) != null) {
-            processNode(new NodeData(line));
-        }
-        br.close();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        processNode(new NodeData(line));
+                    }
+                    br.close();
+                } catch (IOException ex) {
+                }
+            }
+        });
 
-        /* Edges. */
-        br = new BufferedReader(new FileReader(edgeFile));
-        br.readLine(); // Again, first line is column names, not data.
+        Thread e = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    /* Edges. */
+                    BufferedReader br = new BufferedReader(new FileReader(edgeFile));
+                    br.readLine(); // Again, first line is column names, not data.
 
-        while ((line = br.readLine()) != null) {
-            processEdge(new EdgeData(line));
-        }
-        br.close();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        processEdge(new EdgeData(line));
+                    }
+                    br.close();
+                } catch (IOException ex) {
+                }
+            }
+        });
 
+        n.start();
+        e.start();
+        
+        try {
+            n.join();
+            e.join();
+        } catch (InterruptedException ex) {}
+        
         DataLine.resetInterner();
         System.gc();
     }
@@ -65,12 +90,12 @@ public abstract class KrakLoader {
     public static void main(String[] args) throws IOException {
         String dir = "../data/";
 
-		// For this example, we'll simply load the raw data into
+        // For this example, we'll simply load the raw data into
         // ArrayLists.
         final ArrayList<NodeData> nodes = new ArrayList<NodeData>();
         final ArrayList<EdgeData> edges = new ArrayList<EdgeData>();
 
-		// For that, we need to inherit from KrakLoader and override
+        // For that, we need to inherit from KrakLoader and override
         // processNode and processEdge. We do that with an 
         // anonymous class. 
         KrakLoader loader = new KrakLoader() {
@@ -87,7 +112,7 @@ public abstract class KrakLoader {
             }
         };
 
-		// If your machine slows to a crawl doing inputting, try
+        // If your machine slows to a crawl doing inputting, try
         // uncommenting this. 
         // Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         // Invoke the loader class.
