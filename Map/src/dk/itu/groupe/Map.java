@@ -3,7 +3,6 @@ package dk.itu.groupe;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -18,6 +17,7 @@ import java.util.Set;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -35,6 +35,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     private final static int highestX_COORD = 892658;
     private final static int lowestY_COORD = 6049914;
     private final static int highestY_COORD = 6402050;
+    private static JLabel label;
     private static String xTrack;
     private static String yTrack;
 
@@ -147,7 +148,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         frame.setLayout(new BorderLayout());
         frame.add(panel, BorderLayout.SOUTH);
 
-        panel.add(new Label("x:" + xTrack + "| y:" + yTrack));
+        label = new JLabel("x:" + xTrack + "| y:" + yTrack);
+        panel.add(label);
         
         JButton button = new JButton("Zoom to 100%");
         button.addActionListener(new ActionListener() {
@@ -217,7 +219,12 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     //Tracks exact position of mouse pointer
     private void trackMouse(double xTrack, double yTrack)
     {
+        double mapX = xTrack * factor + lowX;
+        double mapY = (getHeight() - yTrack) * factor + lowY;
         //System.out.println("x:" + xTrack + "| y:" + yTrack);
+        String x = "" + (Math.round(mapX * 10) / 10.0);
+        String y = "" + (Math.round(mapY * 10) / 10.0);
+        label.setText("x:" + x + "| y:" + y);
     }
 
     @Override

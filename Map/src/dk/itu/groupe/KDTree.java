@@ -47,7 +47,7 @@ public class KDTree
             }
         }
 
-        if (edges.size() <= 1000) {
+        if (edges.size() <= 1) {
             this.edges = edges;
         } else {
             Set<EdgeData> low = new HashSet<>(), high = new HashSet<>();
