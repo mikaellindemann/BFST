@@ -1,10 +1,14 @@
 package dk.itu.groupe;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 
 /**
@@ -34,11 +38,12 @@ public abstract class KrakLoader {
      * exist
      */
     public void load(final String nodeFile, final String edgeFile) throws IOException {
+        
         Thread n = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    try (BufferedReader br = new BufferedReader(new FileReader(nodeFile))) {
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nodeFile), Charset.forName("UTF-8")))) {
                         br.readLine(); // First line is column names, not data.
                         
                         String line;
@@ -55,7 +60,7 @@ public abstract class KrakLoader {
             @Override
             public void run() {
                 try {
-                    try (BufferedReader br = new BufferedReader(new FileReader(edgeFile))) {
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(edgeFile), Charset.forName("ISO-8859-15")))) {
                         br.readLine(); // Again, first line is column names, not data.
                         
                         String line;
