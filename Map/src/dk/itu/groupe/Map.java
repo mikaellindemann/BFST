@@ -3,7 +3,6 @@ package dk.itu.groupe;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -191,7 +190,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
                     (fy > 0 && fy < getHeight()) || (ly > 0 && ly < getHeight())){
                 drawnEdges.add(edge);
             }
-            
             g.drawLine(fx, fy, lx, ly);
         }
     }
