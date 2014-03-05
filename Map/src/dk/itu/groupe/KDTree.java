@@ -89,14 +89,45 @@ public class KDTree {
 
     }
 
+    /**
+     * Returns the nearest edge.
+     * @param x The x-coordinate to look at.
+     * @param y The y-coordinate to look at.
+     * @return The edge that are nearest to the coordinates.
+     */
+    public EdgeData getNearest(double x, double y) {
+        List<EdgeData> es = getEdges(x, y, x, y);
+        System.out.println(es.size());
+        double dist = 10;
+        EdgeData nearest = null;
+        for (EdgeData edge : es) {
+            double  d = edge.line.ptSegDist(x, y);
+            if (d < dist) {
+                dist = d;
+                nearest = edge;
+            }
+        }
+        return nearest;
+    }
+    
+    /**
+     * Returns the edges with the four parameters as a bounding rectangle.
+     * 
+     * It actually adds a little more to the distance.
+     * @param xLow The left x-coordinate
+     * @param yLow The bottom y-coordinate
+     * @param xHigh The right x-coordinate
+     * @param yHigh The top y-coordinate.
+     * @return A list of edgedata containing the edges that are inside the rectangle.
+     */
     public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
         //Fix this code!
         if (dim == Dimension.X) {
-            if (yHigh < ymin || yLow > ymax) {
+            if (xHigh + 100 < xmin || xLow - 100 > xmax) {
                 return empty;
             }
         } else {
-            if (xHigh < xmin || xLow > xmax) {
+            if (yHigh + 100 < ymin || yLow - 100 > ymax) {
                 return empty;
             }
         }

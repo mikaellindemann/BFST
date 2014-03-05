@@ -52,8 +52,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
      * TNODE-fields.
      */
     static HashMap<Integer, NodeData> nodeMap;
-    
-    private List<EdgeData> drawnEdges;
 
     public Map() {
         String dir = "./data/";
@@ -126,10 +124,9 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     @Override
     public void paintComponent(Graphics g) {
-        drawnEdges = new LinkedList<>();
         calculateFactor();
-        for (EdgeData edge : edges.getEdges(lowX, lowY, highX, highY)) {
-
+        List<EdgeData> edgess = edges.getEdges(lowX, lowY, highX, highY);
+        for (EdgeData edge : edgess) {
             switch (edge.TYP) {
                 case (1):
                 case (21):
@@ -186,10 +183,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             int lx = (int) ((edge.line.getX2() - lowX) / factor);
             int ly = getHeight() - (int) ((edge.line.getY2() - lowY) / factor);
 
-            if (((fx > 0 && fx < getWidth()) || (lx > 0 && lx < getWidth())) &&
-                    (fy > 0 && fy < getHeight()) || (ly > 0 && ly < getHeight())){
-                drawnEdges.add(edge);
-            }
             g.drawLine(fx, fy, lx, ly);
         }
     }
@@ -346,15 +339,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         double mapX = me.getX() * factor + lowX;
         double mapY = (getHeight() - me.getY()) * factor + lowY;
         
-        double dist = 10;
-        EdgeData near = null;
-        for (EdgeData edge : drawnEdges) {
-            double d = edge.line.ptSegDist(mapX, mapY);
-            if (d < dist) {
-                near = edge;
-                dist = d;
-            }
-        }
+        EdgeData near = edges.getNearest(mapX, mapY);
         if (near != null) {
             String pointer = near.VEJNAVN;
             gui.label.setText(pointer);
