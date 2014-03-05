@@ -3,6 +3,7 @@ package dk.itu.groupe;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -33,7 +34,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     // Bounds of the window.
     private double lowX, lowY, highX, highY;
-    private double factor;
+    private static double factor;
 
     private static GUI gui;
 
@@ -78,7 +79,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             @Override
             public void processEdge(EdgeData ed) {
                 edgeList.add(ed);
-                
+
             }
         };
 
@@ -94,7 +95,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(1300, 700);
+        return new Dimension(1000, 600);
     }
 
     private void calculateFactor() {
@@ -108,11 +109,11 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             System.err.println("high: (" + highX + ", " + highY + ")");
             System.err.println("Window: (" + getWidth() + ", " + getHeight() + ")");
         }
-        //System.out.println(factor);
     }
 
     @Override
     public void paintComponent(Graphics g) {
+        assert(g instanceof Graphics2D);
         calculateFactor();
         for (EdgeData edge : edges.getEdges(lowX, lowY, highX, highY)) {
 
@@ -167,14 +168,13 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
                     g.setColor(Color.BLACK);
             }
 
-            int fx = (int) ((nodeMap.get(edge.FNODE).X_COORD - lowX) / factor);
-            int fy = getHeight() - (int) ((nodeMap.get(edge.FNODE).Y_COORD - lowY) / factor);
-            int lx = (int) ((nodeMap.get(edge.TNODE).X_COORD - lowX) / factor);
-            int ly = getHeight() - (int) ((nodeMap.get(edge.TNODE).Y_COORD - lowY) / factor);
+            int fx = (int) ((edge.line.getX1() - lowX) / factor);
+            int fy = getHeight() - (int) ((edge.line.getY1() - lowY) / factor);
+            int lx = (int) ((edge.line.getX2() - lowX) / factor);
+            int ly = getHeight() - (int) ((edge.line.getY2() - lowY) / factor);
 
             g.drawLine(fx, fy, lx, ly);
         }
-        System.gc();
     }
 
     public static void main(String[] args) throws IOException {
@@ -202,27 +202,35 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     public void goUp() {
-        lowY = lowY + (30 * factor);
-        highY = highY + (30 * factor);
-        repaint();
+        if (highY < highestY_COORD) {
+            lowY = lowY + (30 * factor);
+            highY = highY + (30 * factor);
+            repaint();
+        }
     }
 
     public void goLeft() {
-        lowX = lowX - (30 * factor);
-        highX = highX - (30 * factor);
-        repaint();
+        if (lowX > lowestX_COORD) {
+            lowX = lowX - (30 * factor);
+            highX = highX - (30 * factor);
+            repaint();
+        }
     }
 
     public void goRight() {
-        lowX = lowX + (30 * factor);
-        highX = highX + (30 * factor);
-        repaint();
+        if (highX < highestX_COORD) {
+            lowX = lowX + (30 * factor);
+            highX = highX + (30 * factor);
+            repaint();
+        }
     }
 
     public void goDown() {
-        lowY = lowY - (30 * factor);
-        highY = highY - (30 * factor);
-        repaint();
+        if (lowY > lowestY_COORD) {
+            lowY = lowY - (30 * factor);
+            highY = highY - (30 * factor);
+            repaint();
+        }
     }
 
     public void ZoomIn() {
@@ -231,6 +239,10 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         highX = highX - (30 * factor);
         highY = highY - (30 * factor);
         repaint();
+    }
+
+    public static double getFactor() {
+        return factor;
     }
 
     public void ZoomOut() {
@@ -242,23 +254,31 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     private void zoomRect(double startX, double startY, double stopX, double stopY) {
-        if (startX < stopX && startY < stopY) {
+        if (startX > stopX) {
+            double tmp = startX;
+            startX = stopX;
+            stopX = tmp;
+        }
+        if (startY > stopY) {
+            double tmp = startY;
+            startY = stopY;
+            stopY = tmp;
+        }
             //throw new UnsupportedOperationException("Not yet implemented");
             /*System.out.println("Pressed startXY: " + startX + " " + startY);
-             System.out.println("Pressed stopXY: " + stopX + " " + stopY);
+         System.out.println("Pressed stopXY: " + stopX + " " + stopY);
 
-             System.out.println("Pressed high: " + highX + " " + highY);
-             System.out.println("Pressed low: " + lowX + " " + lowY);*/
+         System.out.println("Pressed high: " + highX + " " + highY);
+         System.out.println("Pressed low: " + lowX + " " + lowY);*/
 
-            highX = (lowX + (stopX * factor));
-            highY = (lowY + ((getHeight() - startY) * factor));
-            lowX = (lowX + (startX * factor));
-            lowY = (lowY + ((getHeight() - stopY) * factor));
-            repaint();
+        highX = (lowX + (stopX * factor));
+        highY = (lowY + ((getHeight() - startY) * factor));
+        lowX = (lowX + (startX * factor));
+        lowY = (lowY + ((getHeight() - stopY) * factor));
+        repaint();
 
-            /*System.out.println("Pressed high: " + highX + " " + highY);
-             System.out.println("Pressed low: " + lowX + " " + lowY);*/
-        }
+        /*System.out.println("Pressed high: " + highX + " " + highY);
+         System.out.println("Pressed low: " + lowX + " " + lowY);*/
     }
 
     //Tracks exact position of mouse pointer
@@ -268,6 +288,17 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         //System.out.println("x:" + xTrack + "| y:" + yTrack);
         String x = "" + (Math.round(mapX * 10) / 10.0);
         String y = "" + (Math.round(mapY * 10) / 10.0);
+        
+        /*String p = null;
+        double d = Double.MAX_VALUE;
+        for (EdgeData edge : edges.getEdges(mapX, mapY, mapX, mapY)) {
+            double dist = Math.abs(edge.line.ptLineDist(mapX, mapY));
+            if (dist < d) {
+                p = edge.VEJNAVN;
+                d = dist;
+            }
+        }*/
+        
         String pointer = edges.nearest(mapX, mapY).VEJNAVN;
         if (pointer != null) {
             gui.label.setText(pointer);
