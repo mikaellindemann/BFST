@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
 /**
@@ -34,7 +35,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     // Bounds of the window.
     private double lowX, lowY, highX, highY;
-    private static double factor;
+    private double factor;
 
     private static GUI gui;
 
@@ -52,8 +53,10 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
      * TNODE-fields.
      */
     static HashMap<Integer, NodeData> nodeMap;
+    
+    private List<EdgeData> drawnEdges;
 
-    public Map() throws IOException {
+    public Map() {
         String dir = "./data/";
 
         lowX = lowestX_COORD;
@@ -79,7 +82,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             @Override
             public void processEdge(EdgeData ed) {
                 edgeList.add(ed);
-
             }
         };
 
@@ -87,10 +89,22 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         // uncommenting this. 
         // Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         // Invoke the loader class.
-        loader.load(dir + "kdv_node_unload.txt",
-                dir + "kdv_unload.txt");
+        try {
+            loader.load(dir + "kdv_node_unload.txt",
+                    dir + "kdv_unload.txt");
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "An unexpected error has occured.\nThis program will exit.",
+                    "Error loading",
+                    JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace(System.err);
+            System.exit(300);
+        }
 
         edges = new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
+        nodeMap = null;
+        System.gc();
     }
 
     @Override
@@ -113,7 +127,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     @Override
     public void paintComponent(Graphics g) {
-        assert(g instanceof Graphics2D);
+        drawnEdges = new LinkedList<>();
         calculateFactor();
         for (EdgeData edge : edges.getEdges(lowX, lowY, highX, highY)) {
 
@@ -173,6 +187,11 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             int lx = (int) ((edge.line.getX2() - lowX) / factor);
             int ly = getHeight() - (int) ((edge.line.getY2() - lowY) / factor);
 
+            if (((fx > 0 && fx < getWidth()) || (lx > 0 && lx < getWidth())) &&
+                    (fy > 0 && fy < getHeight()) || (ly > 0 && ly < getHeight())){
+                drawnEdges.add(edge);
+            }
+            
             g.drawLine(fx, fy, lx, ly);
         }
     }
@@ -241,10 +260,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    public static double getFactor() {
-        return factor;
-    }
-
     public void ZoomOut() {
         lowX = lowX - (30 * factor);
         lowY = lowY - (30 * factor);
@@ -264,7 +279,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             startY = stopY;
             stopY = tmp;
         }
-            //throw new UnsupportedOperationException("Not yet implemented");
+        //throw new UnsupportedOperationException("Not yet implemented");
             /*System.out.println("Pressed startXY: " + startX + " " + startY);
          System.out.println("Pressed stopXY: " + stopX + " " + stopY);
 
@@ -279,30 +294,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
         /*System.out.println("Pressed high: " + highX + " " + highY);
          System.out.println("Pressed low: " + lowX + " " + lowY);*/
-    }
-
-    //Tracks exact position of mouse pointer
-    private void trackMouse(double xTrack, double yTrack) {
-        double mapX = xTrack * factor + lowX;
-        double mapY = (getHeight() - yTrack) * factor + lowY;
-        //System.out.println("x:" + xTrack + "| y:" + yTrack);
-        String x = "" + (Math.round(mapX * 10) / 10.0);
-        String y = "" + (Math.round(mapY * 10) / 10.0);
-        
-        /*String p = null;
-        double d = Double.MAX_VALUE;
-        for (EdgeData edge : edges.getEdges(mapX, mapY, mapX, mapY)) {
-            double dist = Math.abs(edge.line.ptLineDist(mapX, mapY));
-            if (dist < d) {
-                p = edge.VEJNAVN;
-                d = dist;
-            }
-        }*/
-        
-        String pointer = edges.nearest(mapX, mapY).VEJNAVN;
-        if (pointer != null) {
-            gui.label.setText(pointer);
-        }
     }
 
     @Override
@@ -352,6 +343,23 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     @Override
     public void mouseMoved(MouseEvent me) {
-        trackMouse(me.getX(), me.getY());
+        double mapX = me.getX() * factor + lowX;
+        double mapY = (getHeight() - me.getY()) * factor + lowY;
+        
+        double dist = 10;
+        EdgeData near = null;
+        for (EdgeData edge : drawnEdges) {
+            double d = edge.line.ptSegDist(mapX, mapY);
+            if (d < dist) {
+                near = edge;
+                dist = d;
+            }
+        }
+        if (near != null) {
+            String pointer = near.VEJNAVN;
+            gui.label.setText(pointer);
+        } else {
+            gui.label.setText("");
+        }
     }
 }
