@@ -97,7 +97,6 @@ public class KDTree {
      */
     public EdgeData getNearest(double x, double y) {
         List<EdgeData> es = getEdges(x, y, x, y);
-        System.out.println(es.size());
         double dist = 10;
         EdgeData nearest = null;
         for (EdgeData edge : es) {

@@ -23,11 +23,11 @@ import javax.swing.KeyStroke;
  *
  * @author Peter
  */
-public final class GUI extends JComponent {
+public class GUI extends JComponent {
 
     JLabel label;
-    private JPanel panel, remotePanel, remoteLayoutLeft, remoteLayoutRight;
-    private JFrame frame;
+    private final JPanel panel, remotePanel, remoteLayoutLeft, remoteLayoutRight;
+    private final JFrame frame;
     private final Map loader = new Map();
     private JButton button, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
     
@@ -82,7 +82,7 @@ public final class GUI extends JComponent {
         frame.setVisible(true);
     }
     
-    public void buttons() {
+    private void buttons() {
         
         button = new JButton("Show entire map");
         buttonUp = new JButton("Go up(↑)");
@@ -106,7 +106,7 @@ public final class GUI extends JComponent {
         });
     }
 
-    public void buttonbinds() {
+    private void buttonbinds() {
                 //Add button function
         buttonUp.addActionListener(new ActionListener() {
             @Override
@@ -156,7 +156,7 @@ public final class GUI extends JComponent {
         });        
     }
     
-    public void keybinds() {
+    private void keybinds() {
         //Add keybind function
         buttonUp.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "buttonUp");
         buttonUp.getActionMap().put("buttonUp", new AbstractAction() {
