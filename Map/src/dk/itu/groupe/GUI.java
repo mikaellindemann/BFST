@@ -25,39 +25,39 @@ import javax.swing.KeyStroke;
  * @author Peter
  */
 public class GUI extends JComponent {
-    
+
     JLabel label;
-    private String yTrack;
-    private String xTrack;
-    
-    public void gui() throws IOException {
-        
+    private JPanel panel, remotePanel, remoteLayoutLeft, remoteLayoutRight;
+    private JFrame frame;
+
+    public void gui() {
+        frame = new JFrame();
         final Map loader = new Map();
+
+        panel = new JPanel();
+        remotePanel = new JPanel();
+        remoteLayoutLeft = new JPanel();
+        remoteLayoutRight = new JPanel();
         
-        JPanel panel = new JPanel();
-        JPanel remotePanel = new JPanel();
-        JPanel remoteLayoutLeft = new JPanel();
-        JPanel remoteLayoutRight = new JPanel();
-        JFrame frame = new JFrame();
-        
+
         frame.setLayout(new BorderLayout());
         frame.add(panel, BorderLayout.SOUTH);
         frame.add(remotePanel, BorderLayout.EAST);
         remoteLayoutLeft.setLayout(new BoxLayout(remoteLayoutLeft, BoxLayout.Y_AXIS));
         remoteLayoutRight.setLayout(new BoxLayout(remoteLayoutRight, BoxLayout.Y_AXIS));
-        
+
         remoteLayoutLeft.setMinimumSize(new Dimension(100, 120));
         remoteLayoutLeft.setPreferredSize(new Dimension(100, 120));
-        
+
         remoteLayoutRight.setMinimumSize(new Dimension(100, 120));
         remoteLayoutRight.setPreferredSize(new Dimension(100, 120));
-        
-        label = new JLabel("x:" + xTrack + "| y:" + yTrack);
+
+        label = new JLabel("");
         panel.add(label);
-        
+
         remotePanel.add(remoteLayoutLeft);
         remotePanel.add(remoteLayoutRight);
-        
+
         JButton button = new JButton("Show entire map");
         button.addActionListener(new ActionListener() {
             @Override
@@ -65,7 +65,7 @@ public class GUI extends JComponent {
                 loader.reset();
             }
         });
-        
+
         JButton buttonUp = new JButton("Go up(↑)");
         buttonUp.setMaximumSize(new Dimension(100, 40));
 
@@ -85,7 +85,7 @@ public class GUI extends JComponent {
                 loader.goUp();
             }
         });
-        
+
         JButton buttonLeft = new JButton("Go left(←)");
         buttonLeft.setMaximumSize(new Dimension(100, 40));
 
@@ -105,7 +105,7 @@ public class GUI extends JComponent {
                 loader.goLeft();
             }
         });
-        
+
         JButton buttonRight = new JButton("Go right(→)");
         buttonRight.setMaximumSize(new Dimension(100, 40));
 
@@ -125,7 +125,7 @@ public class GUI extends JComponent {
                 loader.goRight();
             }
         });
-        
+
         JButton buttonDown = new JButton("Go down(↓)");
         buttonDown.setMaximumSize(new Dimension(100, 40));
 
@@ -145,7 +145,7 @@ public class GUI extends JComponent {
                 loader.goDown();
             }
         });
-        
+
         JButton buttonZoomIn = new JButton("Zoom in(+)");
         buttonZoomIn.setMaximumSize(new Dimension(100, 40));
 
@@ -165,7 +165,7 @@ public class GUI extends JComponent {
                 loader.ZoomIn();
             }
         });
-        
+
         JButton buttonZoomOut = new JButton("Zoom out(-)");
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
 
@@ -192,21 +192,18 @@ public class GUI extends JComponent {
         remoteLayoutRight.add(buttonRight);
         remoteLayoutLeft.add(buttonZoomIn);
         remoteLayoutRight.add(buttonZoomOut);
-        
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
         frame.getContentPane().add(loader, BorderLayout.CENTER);
         frame.getContentPane().addMouseListener(loader);
         frame.getContentPane().addMouseMotionListener(loader);
-        
+
         frame.getContentPane().add(remotePanel, BorderLayout.EAST);
         frame.getContentPane().add(panel, BorderLayout.SOUTH);
-        
+
         frame.pack();
         frame.repaint();
         frame.setVisible(true);
-        
-        
-        
     }
 }
