@@ -1,5 +1,7 @@
 package dk.itu.groupe;
 
+import java.awt.geom.Line2D;
+
 /**
  * Represents the raw data from a line in kdv_unload.txt.
  */
@@ -38,7 +40,9 @@ public class EdgeData {
     public final int VEJNR;
     public final String AENDR_DATO;
     public final int TJEK_ID;
+    public final Line2D line; 
 
+    @Override
     public String toString() {
         return FNODE + ","
                 + TNODE + ","
@@ -110,5 +114,14 @@ public class EdgeData {
         VEJNR = dl.getInt();
         AENDR_DATO = dl.getString();
         TJEK_ID = dl.getInt();
-    }
+        
+        NodeData fN = Map.nodeMap.get(FNODE);
+        NodeData tN = Map.nodeMap.get(TNODE);
+        
+        this.line = new Line2D.Double(
+                fN.X_COORD, 
+                fN.Y_COORD, 
+                tN.X_COORD, 
+                tN.Y_COORD);
+    } 
 }
