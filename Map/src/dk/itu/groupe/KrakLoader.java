@@ -2,9 +2,7 @@ package dk.itu.groupe;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -38,14 +36,14 @@ public abstract class KrakLoader {
      * exist
      */
     public void load(final String nodeFile, final String edgeFile) throws IOException {
-        
+
         Thread n = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nodeFile), Charset.forName("UTF-8")))) {
                         br.readLine(); // First line is column names, not data.
-                        
+
                         String line;
                         while ((line = br.readLine()) != null) {
                             processNode(new NodeData(line));
@@ -62,7 +60,7 @@ public abstract class KrakLoader {
                 try {
                     try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(edgeFile), Charset.forName("ISO-8859-15")))) {
                         br.readLine(); // Again, first line is column names, not data.
-                        
+
                         String line;
                         while ((line = br.readLine()) != null) {
                             processEdge(new EdgeData(line));
@@ -72,15 +70,20 @@ public abstract class KrakLoader {
                 }
             }
         });
-
         n.start();
-        e.start();
-        
+
         try {
             n.join();
+        } catch (InterruptedException ex) {
+        }
+
+        e.start();
+
+        try {
             e.join();
-        } catch (InterruptedException ex) {}
-        
+        } catch (InterruptedException ex) {
+        }
+
         DataLine.resetInterner();
         System.gc();
     }
