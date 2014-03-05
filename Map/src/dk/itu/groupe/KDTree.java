@@ -37,7 +37,7 @@ public class KDTree {
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
                 EdgeData edge = edges.remove(0);
-                if (Map.nodeMap.get(edge.FNODE).X_COORD < Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
+                if (edge.line.getX1() < centerEdge.line.getX1()) {
                     low.add(edge);
                 } else {
                     high.add(edge);
@@ -48,7 +48,7 @@ public class KDTree {
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
                 EdgeData edge = edges.remove(0);
-                if (Map.nodeMap.get(edge.FNODE).Y_COORD < Map.nodeMap.get(centerEdge.FNODE).Y_COORD) {
+                if (edge.line.getY1() < centerEdge.line.getY1()) {
                     low.add(edge);
                 } else {
                     high.add(edge);
@@ -57,14 +57,13 @@ public class KDTree {
         }
         assert (edges.isEmpty());
         assert (size == high.size() + 1 + low.size());
-        NodeData c = Map.nodeMap.get(centerEdge.FNODE);
         double[] lowBounds = new double[4], highBounds = new double[4];
         if (dim == Dimension.X) {
             lowBounds[0] = xmin;
             lowBounds[1] = ymin;
             lowBounds[2] = centerEdge.line.getX1();
             lowBounds[3] = ymax;
-            
+
             highBounds[0] = centerEdge.line.getX1();
             highBounds[1] = ymin;
             highBounds[2] = xmax;
@@ -74,13 +73,13 @@ public class KDTree {
             lowBounds[1] = ymin;
             lowBounds[2] = xmax;
             lowBounds[3] = centerEdge.line.getY1();
-            
+
             highBounds[0] = xmin;
             highBounds[1] = centerEdge.line.getY1();
             highBounds[2] = xmax;
             highBounds[3] = ymax;
         }
-        
+
         if (!low.isEmpty()) {
             LOW = new KDTree(low, lowBounds[0], lowBounds[1], lowBounds[2], lowBounds[3]);
         }
@@ -90,49 +89,14 @@ public class KDTree {
 
     }
 
-    public EdgeData nearest(double x, double y) {
-        if (HIGH == null && LOW == null) {
-            return centerEdge;
-        }
-        if (dim == Dimension.X) {
-            if (x == Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
-                return centerEdge;
-            } else if (x < Map.nodeMap.get(centerEdge.FNODE).X_COORD) {
-                if (LOW == null) {
-                    return HIGH.nearest(x, y);
-                }
-                return LOW.nearest(x, y);
-            } else {
-                if (HIGH == null) {
-                    return LOW.nearest(x, y);
-                }
-                return HIGH.nearest(x, y);
-            }
-        } else {
-            if (y == Map.nodeMap.get(centerEdge.FNODE).Y_COORD) {
-                return centerEdge;
-            } else if (y < Map.nodeMap.get(centerEdge.FNODE).Y_COORD) {
-                if (LOW == null) {
-                    return centerEdge;
-                }
-                return LOW.nearest(x, y);
-            } else {
-                if (HIGH == null) {
-                    return centerEdge;
-                }
-                return HIGH.nearest(x, y);
-            }
-        }
-    }
-
     public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
         //Fix this code!
         if (dim == Dimension.X) {
-            if (yHigh + Map.getFactor() * 1000 < ymin || yLow - Map.getFactor() * 1000 > ymax) {
+            if (yHigh < ymin || yLow > ymax) {
                 return empty;
             }
         } else {
-            if (xHigh + Map.getFactor() * 1000 < xmin || xLow - Map.getFactor() * 1000 > xmax) {
+            if (xHigh < xmin || xLow > xmax) {
                 return empty;
             }
         }
