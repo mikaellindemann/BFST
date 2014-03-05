@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -23,7 +25,7 @@ import javax.swing.Timer;
  * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
  * Jepsen <mlin@itu.dk>
  */
-public class Map extends JComponent implements MouseListener, MouseMotionListener {
+public class Map extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener {
 
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
@@ -40,6 +42,9 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     private MouseEvent pressed, released;
 
+    // mouse position
+    private double mapX, mapY;
+    
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
      */
@@ -258,6 +263,27 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
+    private void zoomScrollIn(double mapX, double mapY) {
+        System.out.println(mapX + " " + mapY);
+        System.out.println((mapX-lowX) + " " + (highX-mapX));
+        
+        lowX = lowX + (60 * factor);
+        lowY = lowY + (60 * factor);
+        highX = highX - (60 * factor);
+        highY = highY - (60 * factor);
+        repaint();        
+    }    
+
+    private void zoomScrollOut(double mapX, double mapY) {
+        
+        
+        lowX = lowX - (30 * factor);
+        lowY = lowY - (30 * factor);
+        highX = highX + (30 * factor);
+        highY = highY + (30 * factor);
+        repaint();        
+    }
+
     private void zoomRect(double startX, double startY, double stopX, double stopY) {
         if (startX > stopX) {
             double tmp = startX;
@@ -268,7 +294,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             double tmp = startY;
             startY = stopY;
             stopY = tmp;
-        }
+        }        
         //throw new UnsupportedOperationException("Not yet implemented");
             /*System.out.println("Pressed startXY: " + startX + " " + startY);
          System.out.println("Pressed stopXY: " + stopX + " " + stopY);
@@ -287,9 +313,19 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void mouseClicked(MouseEvent me) {
-
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        if(e.getWheelRotation() < 0) {
+           zoomScrollIn(mapX, mapY); 
+        } else {
+           zoomScrollOut(mapX, mapY);
+        }
     }
+            
+    @Override
+    public void mouseClicked(MouseEvent me) {
+    
+    }
+    
 
     @Override
     public void mouseEntered(MouseEvent me) {
@@ -335,8 +371,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     @Override
     public void mouseMoved(MouseEvent me) {
-        double mapX = me.getX() * factor + lowX;
-        double mapY = (getHeight() - me.getY()) * factor + lowY;
+        mapX = me.getX() * factor + lowX;
+        mapY = (getHeight() - me.getY()) * factor + lowY;
         
         EdgeData near = edges.getNearest(mapX, mapY);
         if (near != null) {

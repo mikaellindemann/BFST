@@ -73,6 +73,7 @@ public class GUI extends JComponent {
         frame.getContentPane().add(loader, BorderLayout.CENTER);
         frame.getContentPane().addMouseListener(loader);
         frame.getContentPane().addMouseMotionListener(loader);
+        frame.getContentPane().addMouseWheelListener(loader);
 
         frame.getContentPane().add(remotePanel, BorderLayout.EAST);
         frame.getContentPane().add(panel, BorderLayout.SOUTH);
