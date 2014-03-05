@@ -322,7 +322,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     public void mouseReleased(MouseEvent me) {
         if (me.getButton() == 1) {
             released = me;
-            if (pressed.getX() == released.getY() && pressed.getY() == released.getY()) {
+            if (pressed.getX() == released.getX() && pressed.getY() == released.getY()) {
                 return;
             }
             zoomRect(pressed.getX(), pressed.getY(), released.getX(), released.getY());
