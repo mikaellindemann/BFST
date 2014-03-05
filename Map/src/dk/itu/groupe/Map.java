@@ -190,7 +190,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     public static void main(String[] args) throws IOException {
 
         gui = new GUI();
-        gui.gui();
 
         Timer t = new Timer(1000, new ActionListener() {
             @Override
