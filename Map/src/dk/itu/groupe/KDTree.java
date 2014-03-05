@@ -58,11 +58,34 @@ public class KDTree {
         assert (edges.isEmpty());
         assert (size == high.size() + 1 + low.size());
         NodeData c = Map.nodeMap.get(centerEdge.FNODE);
+        double[] lowBounds = new double[4], highBounds = new double[4];
+        if (dim == Dimension.X) {
+            lowBounds[0] = xmin;
+            lowBounds[1] = ymin;
+            lowBounds[2] = centerEdge.line.getX1();
+            lowBounds[3] = ymax;
+            
+            highBounds[0] = centerEdge.line.getX1();
+            highBounds[1] = ymin;
+            highBounds[2] = xmax;
+            highBounds[3] = ymax;
+        } else {
+            lowBounds[0] = xmin;
+            lowBounds[1] = ymin;
+            lowBounds[2] = xmax;
+            lowBounds[3] = centerEdge.line.getY1();
+            
+            highBounds[0] = xmin;
+            highBounds[1] = centerEdge.line.getY1();
+            highBounds[2] = xmax;
+            highBounds[3] = ymax;
+        }
+        
         if (!low.isEmpty()) {
-            LOW = new KDTree(low, xmin, ymin, c.X_COORD, c.Y_COORD);
+            LOW = new KDTree(low, lowBounds[0], lowBounds[1], lowBounds[2], lowBounds[3]);
         }
         if (!high.isEmpty()) {
-            HIGH = new KDTree(high, c.X_COORD, c.Y_COORD, xmax, ymax);
+            HIGH = new KDTree(high, highBounds[0], highBounds[1], highBounds[2], highBounds[3]);
         }
 
     }
@@ -105,11 +128,11 @@ public class KDTree {
     public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
         //Fix this code!
         if (dim == Dimension.X) {
-            if (yHigh + 50000 < ymin || yLow - 50000 > ymax) {
+            if (yHigh + Map.getFactor() * 1000 < ymin || yLow - Map.getFactor() * 1000 > ymax) {
                 return empty;
             }
         } else {
-            if (xHigh + 50000 < xmin || xLow - 50000 > xmax) {
+            if (xHigh + Map.getFactor() * 1000 < xmin || xLow - Map.getFactor() * 1000 > xmax) {
                 return empty;
             }
         }
