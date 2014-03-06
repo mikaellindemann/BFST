@@ -40,11 +40,12 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     private static GUI gui;
 
-    private MouseEvent pressed, released;
+    private MouseEvent pressed, released, dragged;
 
     // mouse position
     private double mapX, mapY;
-    
+    private double mapXPressed, mapYPressed;
+
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
      */
@@ -189,6 +190,25 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             int ly = getHeight() - (int) ((edge.line.getY2() - lowY) / factor);
 
             g.drawLine(fx, fy, lx, ly);
+            if (dragged != null && pressed != null) {
+                g.setColor(Color.BLACK);
+
+                int x1 = pressed.getX();
+                int x2 = dragged.getX();
+                int y1 = pressed.getY();
+                int y2 = dragged.getY();
+
+                double x = Math.abs(x2 - x1) / (double) getWidth();
+                double y = Math.abs(y2 - y1) / (double) getHeight();
+
+                if (x > y) {
+                    int side = (int) ((x2 - x1) / ((double) getWidth() / getHeight()));
+                    g.drawRect(x1, y1, x2 - x1, side);
+                } else {
+                    int side = (int) ((y2 - y1) * ((double) getWidth() / getHeight()));
+                    g.drawRect(x1, y1, side, y2 - y1);
+                }
+            }
         }
     }
 
@@ -265,67 +285,67 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     private void zoomScrollIn(double mapX, double mapY) {
         System.out.println(mapX + " " + mapY);
-        System.out.println((mapX-lowX) + " " + (highX-mapX));
-        
+        System.out.println((mapX - lowX) + " " + (highX - mapX));
+
         lowX = lowX + (60 * factor);
         lowY = lowY + (60 * factor);
         highX = highX - (60 * factor);
         highY = highY - (60 * factor);
-        repaint();        
-    }    
+        repaint();
+    }
 
     private void zoomScrollOut(double mapX, double mapY) {
-        
-        
         lowX = lowX - (30 * factor);
         lowY = lowY - (30 * factor);
         highX = highX + (30 * factor);
         highY = highY + (30 * factor);
-        repaint();        
+        repaint();
     }
 
-    private void zoomRect(double startX, double startY, double stopX, double stopY) {
-        if (startX > stopX) {
-            double tmp = startX;
-            startX = stopX;
-            stopX = tmp;
+    private void zoomRect() {
+        double xFactor = Math.abs((mapX - mapXPressed) / (double) getWidth());
+        double yFactor = Math.abs((mapYPressed - mapY) / (double) getHeight());
+
+        double xLeft = mapXPressed, xRight = mapX;
+        double yUp = mapYPressed, yDown = mapY;
+
+        if (xLeft > xRight) {
+            double tmp = xRight;
+            xRight = xLeft;
+            xLeft = tmp;
         }
-        if (startY > stopY) {
-            double tmp = startY;
-            startY = stopY;
-            stopY = tmp;
-        }        
-        //throw new UnsupportedOperationException("Not yet implemented");
-            /*System.out.println("Pressed startXY: " + startX + " " + startY);
-         System.out.println("Pressed stopXY: " + stopX + " " + stopY);
+        if (yDown > yUp) {
+            double tmp = yUp;
+            yUp = yDown;
+            yDown = tmp;
+        }
 
-         System.out.println("Pressed high: " + highX + " " + highY);
-         System.out.println("Pressed low: " + lowX + " " + lowY);*/
+        lowX = xLeft;
+        highY = yUp;
 
-        highX = (lowX + (stopX * factor));
-        highY = (lowY + ((getHeight() - startY) * factor));
-        lowX = (lowX + (startX * factor));
-        lowY = (lowY + ((getHeight() - stopY) * factor));
+        if (xFactor > yFactor) {
+            highX = xRight;
+            lowY = highY - (mapX - mapXPressed) / ((double) getWidth() / (double) getHeight());
+        } else {
+            lowY = yDown;
+            highX = (highY - lowY) * ((double) getWidth() / (double) getHeight());
+        }
         repaint();
-
-        /*System.out.println("Pressed high: " + highX + " " + highY);
-         System.out.println("Pressed low: " + lowX + " " + lowY);*/
     }
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        if(e.getWheelRotation() < 0) {
-           zoomScrollIn(mapX, mapY); 
+        if (e.getWheelRotation() < 0) {
+            zoomScrollIn(mapX, mapY);
         } else {
-           zoomScrollOut(mapX, mapY);
+            zoomScrollOut(mapX, mapY);
         }
     }
-            
+
     @Override
     public void mouseClicked(MouseEvent me) {
-    
+
     }
-    
 
     @Override
     public void mouseEntered(MouseEvent me) {
@@ -342,6 +362,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         if (me.getButton() == 3) {
             reset();
         } else {
+            mapXPressed = me.getX() * factor + lowX;
+            mapYPressed = (getHeight() - me.getY()) * factor + lowY;
             pressed = me;
         }
     }
@@ -351,11 +373,13 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         if (me.getButton() == 1) {
             released = me;
             if (pressed.getX() == released.getX() && pressed.getY() == released.getY()) {
+                released = null;
+                pressed = null;
                 return;
             }
-            zoomRect(pressed.getX(), pressed.getY(), released.getX(), released.getY());
-            pressed = null;
+            zoomRect();
             released = null;
+            pressed = null;
         }
     }
 
@@ -365,15 +389,21 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void mouseDragged(MouseEvent e) {
+    public void mouseDragged(MouseEvent me) {
+        setMouseMapCoordinates(me);
+        dragged = me;
+        repaint();
+    }
 
+    private void setMouseMapCoordinates(MouseEvent me) {
+        mapX = me.getX() * factor + lowX;
+        mapY = (getHeight() - me.getY()) * factor + lowY;
     }
 
     @Override
     public void mouseMoved(MouseEvent me) {
-        mapX = me.getX() * factor + lowX;
-        mapY = (getHeight() - me.getY()) * factor + lowY;
-        
+        setMouseMapCoordinates(me);
+
         EdgeData near = edges.getNearest(mapX, mapY);
         if (near != null) {
             String pointer = near.VEJNAVN;
