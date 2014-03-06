@@ -25,7 +25,8 @@ import javax.swing.Timer;
  * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
  * Jepsen <mlin@itu.dk>
  */
-public class Map extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener {
+public class Map extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener
+{
 
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
@@ -42,7 +43,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     private MouseEvent pressed, released, dragged;
 
-    // mouse position
+    // mouse positions
     private double mapX, mapY;
     private double mapXPressed, mapYPressed;
 
@@ -56,10 +57,12 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
      *
      * This way we can get the specified NodeData from the EdgeDatas FNODE and
      * TNODE-fields.
+     * This map is erased at the end of the constructor.
      */
     static HashMap<Integer, NodeData> nodeMap;
 
-    public Map() {
+    public Map()
+    {
         String dir = "./data/";
 
         lowX = lowestX_COORD;
@@ -76,14 +79,17 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         // For that, we need to inherit from KrakLoader and override
         // processNode and processEdge. We do that with an 
         // anonymous class. 
-        KrakLoader loader = new KrakLoader() {
+        KrakLoader loader = new KrakLoader()
+        {
             @Override
-            public void processNode(NodeData nd) {
+            public void processNode(NodeData nd)
+            {
                 nodeMap.put(nd.KDV, nd);
             }
 
             @Override
-            public void processEdge(EdgeData ed) {
+            public void processEdge(EdgeData ed)
+            {
                 edgeList.add(ed);
             }
         };
@@ -111,11 +117,18 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public Dimension getPreferredSize() {
-        return new Dimension(1000, 600);
+    public Dimension getPreferredSize()
+    {
+        int height = 650;
+        int width = (int) (height * (highestX_COORD - lowestX_COORD) / (highestY_COORD - lowestY_COORD));
+        return new Dimension(width, height);
     }
 
-    private void calculateFactor() {
+    /**
+     * Calculates the factor that is used to calculate where the roads should be drawn.
+     */
+    private void calculateFactor()
+    {
         // This factor determines how big the Map will be drawn.
         factor = (highX - lowX) / getWidth();
         if ((highY - lowY) / getHeight() > factor) {
@@ -129,7 +142,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void paintComponent(Graphics g) {
+    public void paintComponent(Graphics g)
+    {
         calculateFactor();
         List<EdgeData> edgess = edges.getEdges(lowX, lowY, highX, highY);
         for (EdgeData edge : edgess) {
@@ -212,22 +226,27 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         }
     }
 
-    public static void main(String[] args) throws IOException {
-
-        gui = new GUI();
-
-        Timer t = new Timer(1000, new ActionListener() {
+    public static void main(String[] args) throws IOException
+    {
+        Timer t = new Timer(1000, new ActionListener()
+        {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e)
+            {
                 MemoryMXBean mxbean = ManagementFactory.getMemoryMXBean();
                 System.out.printf("Heap memory usage: %d MB\r",
                         mxbean.getHeapMemoryUsage().getUsed() / (1000000));
             }
         });
         t.start();
+        gui = new GUI();
     }
 
-    public void reset() {
+    /**
+     * Sets the maps coordinates to the initial value (Show all Denmark).
+     */
+    public void reset()
+    {
         lowX = lowestX_COORD;
         lowY = lowestY_COORD;
         highX = highestX_COORD;
@@ -235,7 +254,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    public void goUp() {
+    public void goUp()
+    {
         if (highY < highestY_COORD) {
             lowY = lowY + (30 * factor);
             highY = highY + (30 * factor);
@@ -243,7 +263,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         }
     }
 
-    public void goLeft() {
+    public void goLeft()
+    {
         if (lowX > lowestX_COORD) {
             lowX = lowX - (30 * factor);
             highX = highX - (30 * factor);
@@ -251,7 +272,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         }
     }
 
-    public void goRight() {
+    public void goRight()
+    {
         if (highX < highestX_COORD) {
             lowX = lowX + (30 * factor);
             highX = highX + (30 * factor);
@@ -259,7 +281,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         }
     }
 
-    public void goDown() {
+    public void goDown()
+    {
         if (lowY > lowestY_COORD) {
             lowY = lowY - (30 * factor);
             highY = highY - (30 * factor);
@@ -267,23 +290,32 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         }
     }
 
-    public void ZoomIn() {
+    /**
+     * Zooms in the map.
+     */
+    public void zoomIn()
+    {
         lowX = lowX + (30 * factor);
-        lowY = lowY + (30 * factor);
         highX = highX - (30 * factor);
         highY = highY - (30 * factor);
+        lowY = highY - (highX - lowX) / ((double) getWidth() / (double) getHeight());
         repaint();
     }
 
-    public void ZoomOut() {
+    /**
+     * Zooms out on the map.
+     */
+    public void zoomOut()
+    {
         lowX = lowX - (30 * factor);
-        lowY = lowY - (30 * factor);
         highX = highX + (30 * factor);
         highY = highY + (30 * factor);
+        lowY = highY - (highX - lowX) / ((double) getWidth() / (double) getHeight());
         repaint();
     }
 
-    private void zoomScrollIn(double mapX, double mapY) {
+    private void zoomScrollIn(double mapX, double mapY)
+    {
         System.out.println(mapX + " " + mapY);
         System.out.println((mapX - lowX) + " " + (highX - mapX));
 
@@ -294,7 +326,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    private void zoomScrollOut(double mapX, double mapY) {
+    private void zoomScrollOut(double mapX, double mapY)
+    {
         lowX = lowX - (30 * factor);
         lowY = lowY - (30 * factor);
         highX = highX + (30 * factor);
@@ -302,7 +335,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    private void zoomRect() {
+    private void zoomRect()
+    {
         double xFactor = Math.abs((mapX - mapXPressed) / (double) getWidth());
         double yFactor = Math.abs((mapYPressed - mapY) / (double) getHeight());
 
@@ -334,7 +368,9 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
+    public void mouseWheelMoved(MouseWheelEvent e)
+    {
+        // My mouse zooms out no matter what /Mikael.
         if (e.getWheelRotation() < 0) {
             zoomScrollIn(mapX, mapY);
         } else {
@@ -343,21 +379,20 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void mouseClicked(MouseEvent me) {
+    public void mouseClicked(MouseEvent me)
+    {
 
     }
 
     @Override
-    public void mouseEntered(MouseEvent me) {
-
-    }
-
-    public void mouseOver(final MouseEvent me) {
+    public void mouseEntered(MouseEvent me)
+    {
 
     }
 
     @Override
-    public void mousePressed(MouseEvent me) {
+    public void mousePressed(MouseEvent me)
+    {
         //Right click to reset.
         if (me.getButton() == 3) {
             reset();
@@ -369,7 +404,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void mouseReleased(MouseEvent me) {
+    public void mouseReleased(MouseEvent me)
+    {
         if (me.getButton() == 1) {
             released = me;
             if (pressed.getX() == released.getX() && pressed.getY() == released.getY()) {
@@ -384,32 +420,41 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     }
 
     @Override
-    public void mouseExited(MouseEvent me) {
+    public void mouseExited(MouseEvent me)
+    {
 
     }
 
     @Override
-    public void mouseDragged(MouseEvent me) {
+    public void mouseDragged(MouseEvent me)
+    {
         setMouseMapCoordinates(me);
         dragged = me;
         repaint();
     }
 
-    private void setMouseMapCoordinates(MouseEvent me) {
+    /**
+     * Saves the map-coordinates corresponding to the mouseclick-event.
+     *
+     * @param me A MouseEvent containing information about onscreen-coordinates.
+     */
+    private void setMouseMapCoordinates(MouseEvent me)
+    {
         mapX = me.getX() * factor + lowX;
         mapY = (getHeight() - me.getY()) * factor + lowY;
     }
 
     @Override
-    public void mouseMoved(MouseEvent me) {
+    public void mouseMoved(MouseEvent me)
+    {
         setMouseMapCoordinates(me);
 
         EdgeData near = edges.getNearest(mapX, mapY);
         if (near != null) {
             String pointer = near.VEJNAVN;
-            gui.label.setText(pointer);
+            gui.roadName.setText(pointer);
         } else {
-            gui.label.setText("");
+            gui.roadName.setText("");
         }
     }
 }

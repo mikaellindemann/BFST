@@ -122,11 +122,11 @@ public class KDTree {
     public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
         //Fix this code!
         if (dim == Dimension.X) {
-            if (xHigh + 100 < xmin || xLow - 100 > xmax) {
+            if (xHigh + 1000 < xmin || xLow - 1000 > xmax) {
                 return empty;
             }
         } else {
-            if (yHigh + 100 < ymin || yLow - 100 > ymax) {
+            if (yHigh + 1000 < ymin || yLow - 1000 > ymax) {
                 return empty;
             }
         }

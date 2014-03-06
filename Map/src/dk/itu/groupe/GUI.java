@@ -7,6 +7,7 @@ package dk.itu.groupe;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -23,192 +24,192 @@ import javax.swing.KeyStroke;
  *
  * @author Peter
  */
-public class GUI extends JComponent {
+public class GUI extends JComponent
+{
 
-    JLabel label;
-    private final JPanel panel, remotePanel, remoteLayoutLeft, remoteLayoutRight;
+    JLabel roadName;
+    private final JPanel remotePanel, remoteLayoutLeft, remoteLayoutRight;
     private final JFrame frame;
-    private final Map loader = new Map();
-    private JButton button, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
-    
-    public GUI() {
-        frame = new JFrame();
-        panel = new JPanel();
-        remotePanel = new JPanel();
-        remoteLayoutLeft = new JPanel();
-        remoteLayoutRight = new JPanel();
+    private final Map map;
+    private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
+
+    public GUI()
+    {
+        // Loads the entire map.
+        map = new Map();
         
+        // Creates buttons and their listeners.
+        buttons();
 
-        frame.getContentPane().setLayout(new BorderLayout());
-        frame.getContentPane().add(panel, BorderLayout.SOUTH);
-        frame.getContentPane().add(remotePanel, BorderLayout.EAST);
-        remoteLayoutLeft.setLayout(new BoxLayout(remoteLayoutLeft, BoxLayout.Y_AXIS));
+        roadName = new JLabel("");
+
+        // The rest of this constructor creates panels and sets layout for the
+        // frame that is created at the bottom.
+        remoteLayoutRight = new JPanel();
         remoteLayoutRight.setLayout(new BoxLayout(remoteLayoutRight, BoxLayout.Y_AXIS));
+        remoteLayoutRight.setMinimumSize(new Dimension(120, 120));
+        //remoteLayoutRight.setPreferredSize(new Dimension(100, 120));
+        remoteLayoutRight.add(buttonDown);
+        remoteLayoutRight.add(buttonRight);
+        remoteLayoutRight.add(buttonZoomOut);
 
-        remoteLayoutLeft.setMinimumSize(new Dimension(100, 120));
-        remoteLayoutLeft.setPreferredSize(new Dimension(100, 120));
+        remoteLayoutLeft = new JPanel();
+        remoteLayoutLeft.setLayout(new BoxLayout(remoteLayoutLeft, BoxLayout.Y_AXIS));
+        remoteLayoutLeft.setMinimumSize(new Dimension(120, 120));
+        //remoteLayoutLeft.setPreferredSize(new Dimension(100, 150));
+        remoteLayoutLeft.add(buttonUp);
+        remoteLayoutLeft.add(buttonLeft);
+        remoteLayoutLeft.add(buttonZoomIn);
+        remoteLayoutLeft.add(buttonShowAll);
+        remoteLayoutLeft.add(roadName);
 
-        remoteLayoutRight.setMinimumSize(new Dimension(100, 120));
-        remoteLayoutRight.setPreferredSize(new Dimension(100, 120));
-
-        label = new JLabel("");
-        panel.add(label);
-
+        remotePanel = new JPanel(new GridLayout(0, 2));
         remotePanel.add(remoteLayoutLeft);
         remotePanel.add(remoteLayoutRight);
 
-        buttons();
-        keybinds();
-        buttonbinds();
-        panel.add(button);
-        remoteLayoutLeft.add(buttonUp);
-        remoteLayoutRight.add(buttonDown);
-        remoteLayoutLeft.add(buttonLeft);
-        remoteLayoutRight.add(buttonRight);
-        remoteLayoutLeft.add(buttonZoomIn);
-        remoteLayoutRight.add(buttonZoomOut);
-
+        frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
-        frame.getContentPane().add(loader, BorderLayout.CENTER);
-        frame.getContentPane().addMouseListener(loader);
-        frame.getContentPane().addMouseMotionListener(loader);
-        frame.getContentPane().addMouseWheelListener(loader);
-
+        frame.getContentPane().add(map, BorderLayout.CENTER);
         frame.getContentPane().add(remotePanel, BorderLayout.EAST);
-        frame.getContentPane().add(panel, BorderLayout.SOUTH);
-
+        frame.getContentPane().addMouseListener(map);
+        frame.getContentPane().addMouseMotionListener(map);
+        frame.getContentPane().addMouseWheelListener(map);
         frame.pack();
         frame.repaint();
         frame.setVisible(true);
     }
-    
-    private void buttons() {
-        
-        button = new JButton("Show entire map");
+
+    private void buttons()
+    {
+        buttonShowAll = new JButton("Show entire map");
+        buttonShowAll.setMaximumSize(new Dimension(100, 40));
+        buttonShowAll.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                map.reset();
+            }
+        });
+
         buttonUp = new JButton("Go up(↑)");
         buttonUp.setMaximumSize(new Dimension(100, 40));
+        buttonUp.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "buttonUp");
+        buttonUp.getActionMap().put("buttonUp", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                map.goUp();
+            }
+        });
+        buttonUp.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                map.goUp();
+            }
+        });
+
         buttonRight = new JButton("Go right(→)");
         buttonRight.setMaximumSize(new Dimension(100, 40));
+        buttonRight.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "buttonRight");
+        buttonRight.getActionMap().put("buttonRight", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                map.goRight();
+            }
+        });
+        buttonRight.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                map.goRight();
+            }
+        });
+
         buttonLeft = new JButton("Go left(←)");
         buttonLeft.setMaximumSize(new Dimension(100, 40));
+        buttonLeft.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "buttonLeft");
+        buttonLeft.getActionMap().put("buttonLeft", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                map.goLeft();
+            }
+        });
+        buttonLeft.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                map.goLeft();
+            }
+        });
+
         buttonDown = new JButton("Go down(↓)");
         buttonDown.setMaximumSize(new Dimension(100, 40));
+        buttonDown.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "buttonDown");
+        buttonDown.getActionMap().put("buttonDown", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                map.goDown();
+            }
+        });
+        buttonDown.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                map.goDown();
+            }
+        });
+
         buttonZoomIn = new JButton("Zoom in(+)");
         buttonZoomIn.setMaximumSize(new Dimension(100, 40));
+        buttonZoomIn.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), "buttonZoomIn");
+        buttonZoomIn.getActionMap().put("buttonZoomIn", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                map.zoomIn();
+            }
+        });
+        buttonZoomIn.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                map.zoomIn();
+            }
+        });
+
         buttonZoomOut = new JButton("Zoom out(-)");
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
-        
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                loader.reset();
-            }
-        });
-    }
-
-    private void buttonbinds() {
-                //Add button function
-        buttonUp.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                loader.goUp();
-            }
-        });
-        
-        //Add button function
-        buttonLeft.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                loader.goLeft();
-            }
-        });
-
-        //Add button function
-        buttonRight.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                loader.goRight();
-            }
-        });
-
-        //Add button function
-        buttonDown.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                loader.goDown();
-            }
-        });
-
-        //Add button function
-        buttonZoomIn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                loader.ZoomIn();
-            }
-        });
-        
-        //Add button function
-        buttonZoomOut.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                loader.ZoomOut();
-            }
-        });        
-    }
-    
-    private void keybinds() {
-        //Add keybind function
-        buttonUp.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "buttonUp");
-        buttonUp.getActionMap().put("buttonUp", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loader.goUp();
-            }
-        });
-        
-        //Add keybind function
-        buttonLeft.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "buttonLeft");
-        buttonLeft.getActionMap().put("buttonLeft", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loader.goLeft();
-            }
-        });
-        
-        //Add keybind function
-        buttonRight.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "buttonRight");
-        buttonRight.getActionMap().put("buttonRight", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loader.goRight();
-            }
-        });
-
-        //Add keybind function
-        buttonDown.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "buttonDown");
-        buttonDown.getActionMap().put("buttonDown", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loader.goDown();
-            }
-        });
-
-        //Add keybind function
-        buttonZoomIn.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), "buttonZoomIn");
-        buttonZoomIn.getActionMap().put("buttonZoomIn", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loader.ZoomIn();
-            }
-        });
-        
-        //Add keybind function
         buttonZoomOut.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), "buttonZoomOut");
-        buttonZoomOut.getActionMap().put("buttonZoomOut", new AbstractAction() {
+        buttonZoomOut.getActionMap().put("buttonZoomOut", new AbstractAction()
+        {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                loader.ZoomOut();
+            public void actionPerformed(ActionEvent e)
+            {
+                map.zoomOut();
+            }
+        });
+        buttonZoomOut.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent event)
+            {
+                map.zoomOut();
             }
         });
     }
