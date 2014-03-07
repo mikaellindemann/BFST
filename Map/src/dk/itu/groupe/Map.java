@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.Timer;
 
 /**
@@ -27,7 +28,6 @@ import javax.swing.Timer;
  */
 public class Map extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener
 {
-
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
     private final static double lowestX_COORD = 442254.35659;
@@ -46,7 +46,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     private double mapXPressed, mapYPressed;
 
     private static GUI gui;
-
+    
     private MouseEvent pressed, released, dragged;
 
     /**
@@ -122,7 +122,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     public Dimension getPreferredSize()
     {
         double ratio = (highestX_COORD - lowestX_COORD) / (highestY_COORD - lowestY_COORD);
-        int height = 600;
+        int height = 670;
         int width = (int) (height * ratio);
         
         return new Dimension(width, height);
@@ -320,22 +320,22 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    private void zoomScrollIn(double mapX, double mapY, double lsp, double dsp, double rsp, double usp) 
+    private void zoomScrollIn(double lsp, double dsp, double rsp, double usp) 
     {
         lowX = lowX + (60 * lsp * factor);
         highX = highX - (60 * rsp * factor);
         highY = highY - (60 * usp * factor);
         lowY = (highY - (highX - lowX) / ((double) getWidth() / (double) getHeight()));
-        repaint();        
+        repaint();
     }    
 
-    private void zoomScrollOut(double mapX, double mapY, double lsp, double dsp, double rsp, double usp) 
+    private void zoomScrollOut(double lsp, double dsp, double rsp, double usp) 
     {
         lowX = lowX - (60 * lsp* factor);
         highX = highX + (60 * rsp * factor);
         highY = highY + (60 * usp * factor);
         lowY = (highY - (highX - lowX) / ((double) getWidth() / (double) getHeight()));
-        repaint();        
+        repaint();
     }
 
     private void zoomRect()
@@ -372,7 +372,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        updatePointer(e.getX(), e.getY());
+        setMouseMapCoordinates(e.getX(), e.getY());
         // Only zoom if the mouse is within the actual map
         if (mapX < highX && mapX > lowX && mapY < highY && mapY > lowY) {
             // calculate the ratio of the distances from the mouse to the edges (up, down, left, right)
@@ -385,9 +385,10 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             double dsp = ds/(ds+us);
             double usp = us/(ds+us);
             if(e.getWheelRotation() < 0) {
-                zoomScrollIn(mapX, mapY, lsp, dsp, rsp, usp); 
+                zoomScrollIn(lsp, dsp, rsp, usp);
+                
             } else {
-                zoomScrollOut(mapX, mapY, lsp, dsp, rsp, usp);
+                zoomScrollOut(lsp, dsp, rsp, usp);
             }
         }
     }
@@ -442,23 +443,12 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     @Override
     public void mouseDragged(MouseEvent me)
     {
-        setMouseMapCoordinates(me);
+        setMouseMapCoordinates(me.getX(), me.getY());
         dragged = me;
         repaint();
     }
 
-    /**
-     * Saves the map-coordinates corresponding to the mouseclick-event.
-     *
-     * @param me A MouseEvent containing information about onscreen-coordinates.
-     */
-    private void setMouseMapCoordinates(MouseEvent me)
-    {
-        mapX = me.getX() * factor + lowX;
-        mapY = (getHeight() - me.getY()) * factor + lowY;
-    }
-
-    private void updatePointer(int x, int y) 
+    private void setMouseMapCoordinates(int x, int y) 
     {
         mapX = x * factor + lowX;
         mapY = (getHeight() - y) * factor + lowY;
@@ -467,14 +457,18 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     @Override
     public void mouseMoved(MouseEvent me)
     {
-        setMouseMapCoordinates(me);
-
+        setMouseMapCoordinates(me.getX(), me.getY());
+        updateRoadName();
+    }
+    
+    private void updateRoadName()
+    {
         EdgeData near = edges.getNearest(mapX, mapY);
         if (near != null) {
             String pointer = near.VEJNAVN;
             gui.roadName.setText(pointer);
         } else {
-            gui.roadName.setText("");
+            gui.roadName.setText(" ");
         }
     }
 }
