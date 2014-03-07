@@ -6,19 +6,22 @@
 package dk.itu.groupe;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
-import javax.swing.BoxLayout;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import javax.swing.border.BevelBorder;
 
 /**
  *
@@ -28,7 +31,8 @@ public class GUI extends JComponent
 {
 
     JLabel roadName;
-    private final JPanel remotePanel, remoteLayoutLeft, remoteLayoutRight;
+    private final JPanel remotePanel, keyPad;
+    private JPanel flowPanel;
     private final JFrame frame;
     private final Map map;
     private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
@@ -37,41 +41,39 @@ public class GUI extends JComponent
     {
         // Loads the entire map.
         map = new Map();
-        
+        map.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1, true));
+
         // Creates buttons and their listeners.
         buttons();
+        roadName = new JLabel(" ");
+        keyPad = new JPanel(new GridLayout(0, 3));
+        keyPad.add(buttonZoomIn);
+        keyPad.add(buttonUp);
+        keyPad.add(buttonZoomOut);
+        keyPad.add(buttonLeft);
+        keyPad.add(buttonDown);
+        keyPad.add(buttonRight);
 
-        roadName = new JLabel("");
+        remotePanel = new JPanel(new GridLayout(0, 1));
+        flowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        flowPanel.add(keyPad);
+        remotePanel.add(flowPanel);
+        flowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        flowPanel.add(buttonShowAll);
+        remotePanel.add(flowPanel);
+        flowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        flowPanel.add(roadName);
+        remotePanel.add(flowPanel);
 
-        // The rest of this constructor creates panels and sets layout for the
-        // frame that is created at the bottom.
-        remoteLayoutRight = new JPanel();
-        remoteLayoutRight.setLayout(new BoxLayout(remoteLayoutRight, BoxLayout.Y_AXIS));
-        remoteLayoutRight.setMinimumSize(new Dimension(120, 120));
-        //remoteLayoutRight.setPreferredSize(new Dimension(100, 120));
-        remoteLayoutRight.add(buttonDown);
-        remoteLayoutRight.add(buttonRight);
-        remoteLayoutRight.add(buttonZoomOut);
-
-        remoteLayoutLeft = new JPanel();
-        remoteLayoutLeft.setLayout(new BoxLayout(remoteLayoutLeft, BoxLayout.Y_AXIS));
-        remoteLayoutLeft.setMinimumSize(new Dimension(120, 120));
-        //remoteLayoutLeft.setPreferredSize(new Dimension(100, 150));
-        remoteLayoutLeft.add(buttonUp);
-        remoteLayoutLeft.add(buttonLeft);
-        remoteLayoutLeft.add(buttonZoomIn);
-        remoteLayoutLeft.add(buttonShowAll);
-        remoteLayoutLeft.add(roadName);
-
-        remotePanel = new JPanel(new GridLayout(0, 2));
-        remotePanel.add(remoteLayoutLeft);
-        remotePanel.add(remoteLayoutRight);
+        flowPanel = new JPanel(new FlowLayout());
+        flowPanel.setPreferredSize(new Dimension(320, 300));
+        flowPanel.add(remotePanel);
 
         frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
+        frame.getContentPane().add(flowPanel, BorderLayout.EAST);
         frame.getContentPane().add(map, BorderLayout.CENTER);
-        frame.getContentPane().add(remotePanel, BorderLayout.EAST);
         frame.getContentPane().addMouseListener(map);
         frame.getContentPane().addMouseMotionListener(map);
         frame.getContentPane().addMouseWheelListener(map);
@@ -93,7 +95,7 @@ public class GUI extends JComponent
             }
         });
 
-        buttonUp = new JButton("Go up(↑)");
+        buttonUp = new JButton("↑");
         buttonUp.setMaximumSize(new Dimension(100, 40));
         buttonUp.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "buttonUp");
         buttonUp.getActionMap().put("buttonUp", new AbstractAction()
@@ -113,7 +115,7 @@ public class GUI extends JComponent
             }
         });
 
-        buttonRight = new JButton("Go right(→)");
+        buttonRight = new JButton("→");
         buttonRight.setMaximumSize(new Dimension(100, 40));
         buttonRight.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "buttonRight");
         buttonRight.getActionMap().put("buttonRight", new AbstractAction()
@@ -133,7 +135,7 @@ public class GUI extends JComponent
             }
         });
 
-        buttonLeft = new JButton("Go left(←)");
+        buttonLeft = new JButton("←");
         buttonLeft.setMaximumSize(new Dimension(100, 40));
         buttonLeft.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "buttonLeft");
         buttonLeft.getActionMap().put("buttonLeft", new AbstractAction()
@@ -153,7 +155,7 @@ public class GUI extends JComponent
             }
         });
 
-        buttonDown = new JButton("Go down(↓)");
+        buttonDown = new JButton("↓");
         buttonDown.setMaximumSize(new Dimension(100, 40));
         buttonDown.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "buttonDown");
         buttonDown.getActionMap().put("buttonDown", new AbstractAction()
@@ -173,7 +175,7 @@ public class GUI extends JComponent
             }
         });
 
-        buttonZoomIn = new JButton("Zoom in(+)");
+        buttonZoomIn = new JButton("+");
         buttonZoomIn.setMaximumSize(new Dimension(100, 40));
         buttonZoomIn.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), "buttonZoomIn");
         buttonZoomIn.getActionMap().put("buttonZoomIn", new AbstractAction()
@@ -193,7 +195,7 @@ public class GUI extends JComponent
             }
         });
 
-        buttonZoomOut = new JButton("Zoom out(-)");
+        buttonZoomOut = new JButton("-");
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
         buttonZoomOut.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), "buttonZoomOut");
         buttonZoomOut.getActionMap().put("buttonZoomOut", new AbstractAction()
