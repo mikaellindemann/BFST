@@ -6,7 +6,6 @@
 package dk.itu.groupe;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -14,14 +13,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import javax.swing.border.BevelBorder;
 
 /**
  *
@@ -41,7 +38,7 @@ public class GUI extends JComponent
     {
         // Loads the entire map.
         map = new Map();
-        map.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1, true));
+        //map.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1, true));
 
         // Creates buttons and their listeners.
         buttons();
@@ -71,6 +68,7 @@ public class GUI extends JComponent
 
         frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setGlassPane(new Canvas(map, map.getPreferredSize().width, map.getPreferredSize().height, frame.getBackground()));
         frame.getContentPane().setLayout(new BorderLayout());
         frame.getContentPane().add(flowPanel, BorderLayout.EAST);
         frame.getContentPane().add(map, BorderLayout.CENTER);

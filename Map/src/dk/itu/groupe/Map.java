@@ -3,6 +3,8 @@ package dk.itu.groupe;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -10,6 +12,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -17,7 +20,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 /**
@@ -27,6 +32,7 @@ import javax.swing.Timer;
  */
 public class Map extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener
 {
+
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
     private final static double lowestX_COORD = 442254.35659;
@@ -39,14 +45,16 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     private double factor;
     private double ratioX;
     private double ratioY;
-    
+
     // mouse positions
     private double mapX, mapY;
     private double mapXPressed, mapYPressed;
 
     private static GUI gui;
-    
+
     private MouseEvent pressed, released, dragged;
+
+    private BufferedImage image;
 
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
@@ -57,8 +65,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
      * A HashMap that links a NodeData's KDV-number to the NodeData itself.
      *
      * This way we can get the specified NodeData from the EdgeDatas FNODE and
-     * TNODE-fields.
-     * This map is erased at the end of the constructor.
+     * TNODE-fields. This map is erased at the end of the constructor.
      */
     static HashMap<Integer, NodeData> nodeMap;
 
@@ -132,19 +139,20 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         t.start();
         gui = new GUI();
     }
-        
+
     @Override
     public Dimension getPreferredSize()
     {
         double ratio = (highestX_COORD - lowestX_COORD) / (highestY_COORD - lowestY_COORD);
         int height = 670;
         int width = (int) (height * ratio);
-        
+
         return new Dimension(width, height);
     }
 
     /**
-     * Calculates the factor that is used to calculate where the roads should be drawn.
+     * Calculates the factor that is used to calculate where the roads should be
+     * drawn.
      */
     private void calculateFactor()
     {
@@ -165,6 +173,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     @Override
     public void paintComponent(Graphics g)
     {
+        image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gB = image.createGraphics();
         calculateFactor();
         List<EdgeData> edgess = edges.getEdges(lowX, lowY, highX, highY);
         for (EdgeData edge : edgess) {
@@ -172,17 +182,17 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
                 case (1):
                 case (21):
                 case (31):
-                    g.setColor(Color.RED);
+                    gB.setColor(Color.RED);
                     break;
                 case (2):
                 case (22):
                 case (32):
-                    g.setColor(Color.GRAY);
+                    gB.setColor(Color.GRAY);
                     break;
                 case (3):
                 case (23):
                 case (33):
-                    g.setColor(Color.YELLOW);
+                    gB.setColor(Color.YELLOW);
                     break;
                 case (4):
                 case (5):
@@ -192,15 +202,15 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
                 case (26):
                 case (34):
                 case (35):
-                    g.setColor(Color.GRAY);
+                    gB.setColor(Color.GRAY);
                     break;
                 case (8):
                 case (10):
                 case (28):
-                    g.setColor(Color.LIGHT_GRAY);
+                    gB.setColor(Color.LIGHT_GRAY);
                     break;
                 case (11):
-                    g.setColor(Color.BLUE);
+                    gB.setColor(Color.BLUE);
                     break;
                 case (41):
                 case (42):
@@ -209,14 +219,14 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
                 case (45):
                 case (46):
                 case (48):
-                    g.setColor(Color.GREEN);
+                    gB.setColor(Color.GREEN);
                     break;
                 case (80):
                     continue;
                 case (99):
                     continue;
                 default:
-                    g.setColor(Color.BLACK);
+                    gB.setColor(Color.BLACK);
             }
 
             int fx = (int) ((edge.line.getX1() - lowX) / factor);
@@ -224,27 +234,9 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             int lx = (int) ((edge.line.getX2() - lowX) / factor);
             int ly = getHeight() - (int) ((edge.line.getY2() - lowY) / factor);
 
-            g.drawLine(fx, fy, lx, ly);
-            if (dragged != null && pressed != null) {
-                g.setColor(Color.BLACK);
-
-                int x1 = pressed.getX();
-                int x2 = dragged.getX();
-                int y1 = pressed.getY();
-                int y2 = dragged.getY();
-
-                double x = Math.abs(x2 - x1) / (double) getWidth();
-                double y = Math.abs(y2 - y1) / (double) getHeight();
-
-                if (x > y) {
-                    int side = (int) ((x2 - x1) / ((double) getWidth() / getHeight()));
-                    g.drawRect(x1, y1, x2 - x1, side);
-                } else {
-                    int side = (int) ((y2 - y1) * ((double) getWidth() / getHeight()));
-                    g.drawRect(x1, y1, side, y2 - y1);
-                }
-            }
+            gB.drawLine(fx, fy, lx, ly);
         }
+        g.drawImage(image, 0, 0, null);
     }
 
     /**
@@ -319,28 +311,29 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    private void zoomScrollIn(double lsp, double dsp, double rsp, double usp) 
+    private void zoomScrollIn(double lsp, double dsp, double rsp, double usp)
     {
         lowX = lowX + (60 * lsp * factor);
         highX = highX - (60 * rsp * factor);
         highY = highY - (60 * usp * factor);
         lowY = (highY - (highX - lowX) / ((double) getWidth() / (double) getHeight()));
         repaint();
-    }    
+    }
 
-    private void zoomScrollOut(double lsp, double dsp, double rsp, double usp) 
+    private void zoomScrollOut(double lsp, double dsp, double rsp, double usp)
     {
-        lowX = lowX - (60 * lsp* factor);
+        lowX = lowX - (60 * lsp * factor);
         highX = highX + (60 * rsp * factor);
         highY = highY + (60 * usp * factor);
         lowY = (highY - (highX - lowX) / ((double) getWidth() / (double) getHeight()));
         repaint();
     }
 
-    private void zoomRect() {
+    private void zoomRect()
+    {
         double x2 = mapX, x1 = mapXPressed;
         double y2 = mapY, y1 = mapYPressed;
-        
+
         if (x1 > x2) {
             double tmp = x1;
             x1 = x2;
@@ -363,28 +356,27 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             lowY = y2;
             highX = lowX + (highY - lowY) * ratio;
         }
-        System.out.println("low: " + lowX + ", " + lowY);
-        System.out.println("high " + highX + ", " + highY);
         repaint();
     }
 
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
+    public void mouseWheelMoved(MouseWheelEvent e)
+    {
         setMouseMapCoordinates(e.getX(), e.getY());
         // Only zoom if the mouse is within the actual map
         if (mapX < highX && mapX > lowX && mapY < highY && mapY > lowY) {
             // calculate the ratio of the distances from the mouse to the edges (up, down, left, right)
-            double ls = mapX-lowX;
-            double rs = highX-mapX;
-            double lsp = ls/(ls+rs);
-            double rsp = rs/(ls+rs);
-            double ds = mapY-lowY;
-            double us = highY-mapY;
-            double dsp = ds/(ds+us);
-            double usp = us/(ds+us);
-            if(e.getWheelRotation() < 0) {
+            double ls = mapX - lowX;
+            double rs = highX - mapX;
+            double lsp = ls / (ls + rs);
+            double rsp = rs / (ls + rs);
+            double ds = mapY - lowY;
+            double us = highY - mapY;
+            double dsp = ds / (ds + us);
+            double usp = us / (ds + us);
+            if (e.getWheelRotation() < 0) {
                 zoomScrollIn(lsp, dsp, rsp, usp);
-                
+
             } else {
                 zoomScrollOut(lsp, dsp, rsp, usp);
             }
@@ -429,6 +421,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             zoomRect();
             released = null;
             pressed = null;
+            ((JFrame) getTopLevelAncestor()).getGlassPane().setVisible(false);
         }
     }
 
@@ -443,22 +436,35 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     {
         setMouseMapCoordinates(me.getX(), me.getY());
         dragged = me;
-        repaint();
+        Canvas canvas = (Canvas) ((JFrame) getTopLevelAncestor()).getGlassPane();
+
+        if (pressed != null) {
+            int x1 = pressed.getX();
+            int x2 = dragged.getX();
+            int y1 = pressed.getY();
+            int y2 = dragged.getY();
+
+            Point one = SwingUtilities.convertPoint(this, x1, y1, canvas);
+            Point two = SwingUtilities.convertPoint(this, x2, y2, canvas);
+            canvas.setCoordinates(one.x, one.y, two.x, two.y);
+            canvas.setVisible(true);
+            canvas.repaint();
+        }
     }
 
-    private void setMouseMapCoordinates(int x, int y) 
+    private void setMouseMapCoordinates(int x, int y)
     {
         mapX = x * factor + lowX;
         mapY = (getHeight() - y) * factor + lowY;
     }
-    
+
     @Override
     public void mouseMoved(MouseEvent me)
     {
         setMouseMapCoordinates(me.getX(), me.getY());
         updateRoadName();
     }
-    
+
     private void updateRoadName()
     {
         EdgeData near = edges.getNearest(mapX, mapY);
@@ -468,5 +474,10 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         } else {
             gui.roadName.setText(" ");
         }
+    }
+
+    public BufferedImage getImage()
+    {
+        return image;
     }
 }
