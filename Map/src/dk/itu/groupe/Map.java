@@ -185,7 +185,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
                     g.setColor(Color.LIGHT_GRAY);
                     break;
                 case (11):
-                    g.setColor(Color.BLACK);
+                    g.setColor(Color.BLUE);
                     break;
                 case (41):
                 case (42):
