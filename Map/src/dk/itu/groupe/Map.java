@@ -18,7 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.Timer;
 
 /**
@@ -338,35 +337,34 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    private void zoomRect()
-    {
-        double xFactor = Math.abs((mapX - mapXPressed) / (double) getWidth());
-        double yFactor = Math.abs((mapYPressed - mapY) / (double) getHeight());
-
-        double xLeft = mapXPressed, xRight = mapX;
-        double yUp = mapYPressed, yDown = mapY;
-
-        if (xLeft > xRight) {
-            double tmp = xRight;
-            xRight = xLeft;
-            xLeft = tmp;
+    private void zoomRect() {
+        double x2 = mapX, x1 = mapXPressed;
+        double y2 = mapY, y1 = mapYPressed;
+        
+        if (x1 > x2) {
+            double tmp = x1;
+            x1 = x2;
+            x2 = tmp;
         }
-        if (yDown > yUp) {
-            double tmp = yUp;
-            yUp = yDown;
-            yDown = tmp;
+        if (y2 > y1) {
+            double tmp = y1;
+            y1 = y2;
+            y2 = tmp;
         }
-
-        lowX = xLeft;
-        highY = yUp;
-
-        if (xFactor > yFactor) {
-            highX = xRight;
-            lowY = highY - (mapX - mapXPressed) / ((double) getWidth() / (double) getHeight());
+        double ratio = (double) getWidth() / (double) getHeight();
+        lowX = x1;
+        highY = y1;
+        if (Math.abs(x2 - x1) / getWidth() > Math.abs(y1 - y2) / getHeight()) {
+            // This is buggy
+            highX = x2;
+            lowY = (highY - (highX - lowX) / ratio);
         } else {
-            lowY = yDown;
-            highX = (highY - lowY) * ((double) getWidth() / (double) getHeight());
+            // This should work
+            lowY = y2;
+            highX = lowX + (highY - lowY) * ratio;
         }
+        System.out.println("low: " + lowX + ", " + lowY);
+        System.out.println("high " + highX + ", " + highY);
         repaint();
     }
 
