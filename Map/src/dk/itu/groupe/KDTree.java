@@ -1,7 +1,5 @@
 package dk.itu.groupe;
 
-import java.awt.Color;
-import java.awt.Graphics;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -25,6 +23,15 @@ public class KDTree
     private final double xmin, ymin, xmax, ymax;
     private final Dimension dim;
 
+    /**
+     * Creates the KDTree-structure until there are no more elements.
+     *
+     * @param edges A list of edges that should be spread out on the tree.
+     * @param xMin The left x-coordinate.
+     * @param yMin The bottom y-coordinate.
+     * @param xMax The right x-coordinate.
+     * @param yMax The top y-coordinate.
+     */
     public KDTree(List<EdgeData> edges, double xMin, double yMin, double xMax, double yMax)
     {
         xmin = xMin;
@@ -104,7 +111,7 @@ public class KDTree
     public EdgeData getNearest(double x, double y)
     {
         List<EdgeData> es = getEdges(x, y, x, y);
-        double dist = 10;
+        double dist = 12;
         EdgeData nearest = null;
         for (EdgeData edge : es) {
             double d = edge.line.ptSegDist(x, y);

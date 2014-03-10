@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package dk.itu.groupe;
 
 import java.awt.BorderLayout;
@@ -22,7 +17,8 @@ import javax.swing.KeyStroke;
 
 /**
  *
- * @author Peter
+ * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
+ * Jepsen <mlin@itu.dk>
  */
 public class GUI extends JComponent
 {
@@ -68,7 +64,6 @@ public class GUI extends JComponent
 
         frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setGlassPane(new Canvas(map, map.getPreferredSize().width, map.getPreferredSize().height, frame.getBackground()));
         frame.getContentPane().setLayout(new BorderLayout());
         frame.getContentPane().add(flowPanel, BorderLayout.EAST);
         frame.getContentPane().add(map, BorderLayout.CENTER);
@@ -76,10 +71,14 @@ public class GUI extends JComponent
         frame.getContentPane().addMouseMotionListener(map);
         frame.getContentPane().addMouseWheelListener(map);
         frame.pack();
+        frame.setGlassPane(new GlassPane(map));
         frame.repaint();
         frame.setVisible(true);
     }
 
+    /**
+     * Creates buttons and assigns functions to buttons and keys.
+     */
     private void buttons()
     {
         buttonShowAll = new JButton("Show entire map");

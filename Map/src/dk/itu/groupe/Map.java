@@ -124,7 +124,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         System.gc();
     }
 
-    public static void main(String[] args) throws IOException
+    public static void main(String[] args)
     {
         Timer t = new Timer(1000, new ActionListener()
         {
@@ -436,7 +436,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     {
         setMouseMapCoordinates(me.getX(), me.getY());
         dragged = me;
-        Canvas canvas = (Canvas) ((JFrame) getTopLevelAncestor()).getGlassPane();
+        GlassPane canvas = (GlassPane) ((JFrame) getTopLevelAncestor()).getGlassPane();
 
         if (pressed != null) {
             int x1 = pressed.getX();
@@ -446,7 +446,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
             Point one = SwingUtilities.convertPoint(this, x1, y1, canvas);
             Point two = SwingUtilities.convertPoint(this, x2, y2, canvas);
-            canvas.setCoordinates(one.x, one.y, two.x, two.y);
+            canvas.setCoordinates(one, two);
             canvas.setVisible(true);
             canvas.repaint();
         }
