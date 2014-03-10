@@ -1,5 +1,7 @@
 package dk.itu.groupe;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -8,9 +10,11 @@ import java.util.List;
  * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
  * Jepsen <mlin@itu.dk>
  */
-public class KDTree {
+public class KDTree
+{
 
-    enum Dimension {
+    enum Dimension
+    {
 
         X, Y
     };
@@ -21,7 +25,8 @@ public class KDTree {
     private final double xmin, ymin, xmax, ymax;
     private final Dimension dim;
 
-    public KDTree(List<EdgeData> edges, double xMin, double yMin, double xMax, double yMax) {
+    public KDTree(List<EdgeData> edges, double xMin, double yMin, double xMax, double yMax)
+    {
         xmin = xMin;
         ymin = yMin;
         xmax = xMax;
@@ -32,7 +37,7 @@ public class KDTree {
         List<EdgeData> low = new LinkedList<>(), high = new LinkedList<>();
         centerEdge = (EdgeData) edges.toArray()[edges.size() / 2];
         edges.remove(centerEdge);
-        if (ymax - ymin > xmax - xmin) {
+        if (ymax - ymin < xmax - xmin) {
             dim = Dimension.X;
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
@@ -91,16 +96,18 @@ public class KDTree {
 
     /**
      * Returns the nearest edge.
+     *
      * @param x The x-coordinate to look at.
      * @param y The y-coordinate to look at.
      * @return The edge that are nearest to the coordinates.
      */
-    public EdgeData getNearest(double x, double y) {
+    public EdgeData getNearest(double x, double y)
+    {
         List<EdgeData> es = getEdges(x, y, x, y);
         double dist = 10;
         EdgeData nearest = null;
         for (EdgeData edge : es) {
-            double  d = edge.line.ptSegDist(x, y);
+            double d = edge.line.ptSegDist(x, y);
             if (d < dist) {
                 dist = d;
                 nearest = edge;
@@ -108,18 +115,21 @@ public class KDTree {
         }
         return nearest;
     }
-    
+
     /**
      * Returns the edges with the four parameters as a bounding rectangle.
-     * 
+     *
      * It actually adds a little more to the distance.
+     *
      * @param xLow The left x-coordinate
      * @param yLow The bottom y-coordinate
      * @param xHigh The right x-coordinate
      * @param yHigh The top y-coordinate.
-     * @return A list of edgedata containing the edges that are inside the rectangle.
+     * @return A list of edgedata containing the edges that are inside the
+     * rectangle.
      */
-    public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh) {
+    public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh)
+    {
         //Fix this code!
         if (dim == Dimension.X) {
             if (xHigh + 1000 < xmin || xLow - 1000 > xmax) {
