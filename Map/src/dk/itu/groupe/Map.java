@@ -311,20 +311,20 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    private void zoomScrollIn(double lsp, double dsp, double rsp, double usp)
+    private void zoomScrollIn(double usp, double dsp, double lsp, double rsp) 
     {
-        lowX = lowX + (60 * lsp * factor);
-        highX = highX - (60 * rsp * factor);
-        highY = highY - (60 * usp * factor);
+        lowX = lowX + (60 * lsp * ratioX);
+        highX = highX - (60 * rsp * ratioX);
+        highY = highY - (60 * usp * ratioY);
         lowY = (highY - (highX - lowX) / ((double) getWidth() / (double) getHeight()));
         repaint();
     }
 
-    private void zoomScrollOut(double lsp, double dsp, double rsp, double usp)
+    private void zoomScrollOut(double usp, double dsp, double lsp, double rsp) 
     {
-        lowX = lowX - (60 * lsp * factor);
-        highX = highX + (60 * rsp * factor);
-        highY = highY + (60 * usp * factor);
+        lowX = lowX - (60 * lsp * ratioX);
+        highX = highX + (60 * rsp * ratioX);
+        highY = highY + (60 * usp * ratioY);
         lowY = (highY - (highX - lowX) / ((double) getWidth() / (double) getHeight()));
         repaint();
     }
@@ -366,19 +366,19 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         // Only zoom if the mouse is within the actual map
         if (mapX < highX && mapX > lowX && mapY < highY && mapY > lowY) {
             // calculate the ratio of the distances from the mouse to the edges (up, down, left, right)
-            double ls = mapX - lowX;
-            double rs = highX - mapX;
-            double lsp = ls / (ls + rs);
-            double rsp = rs / (ls + rs);
-            double ds = mapY - lowY;
-            double us = highY - mapY;
-            double dsp = ds / (ds + us);
-            double usp = us / (ds + us);
-            if (e.getWheelRotation() < 0) {
-                zoomScrollIn(lsp, dsp, rsp, usp);
-
+            double ls = mapX-lowX;
+            double rs = highX-mapX;
+            double lsp = ls/(ls+rs);
+            double rsp = rs/(ls+rs);
+            double ds = mapY-lowY;
+            double us = highY-mapY;
+            double dsp = ds/(ds+us);
+            double usp = us/(ds+us);
+            if(e.getWheelRotation() < 0) {
+                zoomScrollIn(usp, dsp, lsp, rsp);
+                
             } else {
-                zoomScrollOut(lsp, dsp, rsp, usp);
+                zoomScrollOut(usp, dsp, lsp, rsp);
             }
         }
     }
