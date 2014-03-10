@@ -118,6 +118,22 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         System.gc();
     }
 
+    public static void main(String[] args) throws IOException
+    {
+        Timer t = new Timer(1000, new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                MemoryMXBean mxbean = ManagementFactory.getMemoryMXBean();
+                System.out.printf("Heap memory usage: %d MB\r",
+                        mxbean.getHeapMemoryUsage().getUsed() / (1000000));
+            }
+        });
+        t.start();
+        gui = new GUI();
+    }
+        
     @Override
     public Dimension getPreferredSize()
     {
@@ -230,22 +246,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
                 }
             }
         }
-    }
-
-    public static void main(String[] args) throws IOException
-    {
-        Timer t = new Timer(1000, new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                MemoryMXBean mxbean = ManagementFactory.getMemoryMXBean();
-                System.out.printf("Heap memory usage: %d MB\r",
-                        mxbean.getHeapMemoryUsage().getUsed() / (1000000));
-            }
-        });
-        t.start();
-        gui = new GUI();
     }
 
     /**
