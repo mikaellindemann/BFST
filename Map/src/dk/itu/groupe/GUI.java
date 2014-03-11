@@ -108,7 +108,8 @@ public class GUI extends JComponent
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                map.goUp();
+                map.goUp(30);
+                map.repaint();
             }
         });
         buttonUp.addActionListener(new ActionListener()
@@ -116,7 +117,8 @@ public class GUI extends JComponent
             @Override
             public void actionPerformed(ActionEvent event)
             {
-                map.goUp();
+                map.goUp(30);
+                map.repaint();
             }
         });
 
@@ -128,7 +130,8 @@ public class GUI extends JComponent
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                map.goRight();
+                map.goRight(30);
+                map.repaint();
             }
         });
         buttonRight.addActionListener(new ActionListener()
@@ -136,7 +139,8 @@ public class GUI extends JComponent
             @Override
             public void actionPerformed(ActionEvent event)
             {
-                map.goRight();
+                map.goRight(30);
+                map.repaint();
             }
         });
 
@@ -148,7 +152,8 @@ public class GUI extends JComponent
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                map.goLeft();
+                map.goLeft(30);
+                map.repaint();
             }
         });
         buttonLeft.addActionListener(new ActionListener()
@@ -156,7 +161,8 @@ public class GUI extends JComponent
             @Override
             public void actionPerformed(ActionEvent event)
             {
-                map.goLeft();
+                map.goLeft(30);
+                map.repaint();
             }
         });
 
@@ -168,7 +174,8 @@ public class GUI extends JComponent
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                map.goDown();
+                map.goDown(30);
+                map.repaint();
             }
         });
         buttonDown.addActionListener(new ActionListener()
@@ -176,7 +183,8 @@ public class GUI extends JComponent
             @Override
             public void actionPerformed(ActionEvent event)
             {
-                map.goDown();
+                map.goDown(30);
+                map.repaint();
             }
         });
 

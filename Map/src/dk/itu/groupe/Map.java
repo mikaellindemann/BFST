@@ -259,54 +259,51 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    public void goUp()
+    public void goUp(int distance)
     {
         if (highY < highestY_COORD) {
-            lowY = lowY + (30 * factor);
-            highY = highY + (30 * factor);
-            repaint();
+            lowY = lowY + (distance * factor);
+            highY = highY + (distance * factor);
         }
     }
 
-    public void goLeft()
+    public void goLeft(int distance)
     {
         if (lowX > lowestX_COORD) {
-            lowX = lowX - (30 * factor);
-            highX = highX - (30 * factor);
-            repaint();
+            lowX = lowX - (distance * factor);
+            highX = highX - (distance * factor);
         }
     }
 
-    public void goRight()
+    public void goRight(int distance)
     {
         if (highX < highestX_COORD) {
-            lowX = lowX + (30 * factor);
-            highX = highX + (30 * factor);
-            repaint();
+            lowX = lowX + (distance * factor);
+            highX = highX + (distance * factor);
         }
     }
 
-    public void goDown()
+    public void goDown(int distance)
     {
         if (lowY > lowestY_COORD) {
-            lowY = lowY - (30 * factor);
-            highY = highY - (30 * factor);
-            repaint();
+            lowY = lowY - (distance * factor);
+            highY = highY - (distance * factor);
         }
     }
 
     public void moveMap(int x, int y)
     {
         if (x > 0) {
-            goRight();
+            goRight(x);
         } else {
-            goLeft();
+            goLeft(-x);
         }
         if (y > 0) {
-            goDown();
+            goDown(y);
         } else {
-            goUp();
+            goUp(-y);
         }
+        repaint();
     }
 
     /**
@@ -427,6 +424,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             mapXPressed = me.getX() * factor + lowX;
             mapYPressed = (getHeight() - me.getY()) * factor + lowY;
             pressed = me;
+            dragged = me;
         }
     }
 
@@ -443,6 +441,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
             zoomRect();
             released = null;
             pressed = null;
+            dragged = null;
             ((JFrame) getTopLevelAncestor()).getGlassPane().setVisible(false);
         }
     }
@@ -457,6 +456,11 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     public void mouseDragged(MouseEvent me)
     {
         setMouseMapCoordinates(me.getX(), me.getY());
+        if (mouse == MouseTool.MOVE) {
+            if (pressed != null) {
+                moveMap(dragged.getX() - me.getX(), dragged.getY() - me.getY());
+            }
+        }
         dragged = me;
         if (mouse == MouseTool.ZOOM) {
             if (pressed != null) {
@@ -466,10 +470,6 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
                 canvas.setCoordinates(one, two);
                 canvas.setVisible(true);
                 canvas.repaint();
-            }
-        } else if (mouse == MouseTool.MOVE) {
-            if (pressed != null) {
-                moveMap(dragged.getX() - pressed.getX(), dragged.getY() - pressed.getY());
             }
         }
     }
@@ -507,7 +507,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     {
         this.mouse = mouse;
     }
-    
+
     public MouseTool getMouse()
     {
         return mouse;
