@@ -53,8 +53,8 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     private static GUI gui;
 
     private MouseEvent pressed, released, dragged;
-
     private BufferedImage image;
+    private MouseTool mouse;
 
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
@@ -77,6 +77,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         lowY = lowestY_COORD;
         highX = highestX_COORD;
         highY = highestY_COORD;
+        mouse = MouseTool.ZOOM;
 
         // For this example, we'll simply load the raw data into
         // ArrayLists.
@@ -126,17 +127,24 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
 
     public static void main(String[] args)
     {
-        Timer t = new Timer(1000, new ActionListener()
+        (new Thread(new Runnable()
         {
             @Override
-            public void actionPerformed(ActionEvent e)
+            public void run()
             {
-                MemoryMXBean mxbean = ManagementFactory.getMemoryMXBean();
-                System.out.printf("Heap memory usage: %d MB\r",
-                        mxbean.getHeapMemoryUsage().getUsed() / (1000000));
+                Timer t = new Timer(1000, new ActionListener()
+                {
+                    @Override
+                    public void actionPerformed(ActionEvent e)
+                    {
+                        MemoryMXBean mxbean = ManagementFactory.getMemoryMXBean();
+                        System.out.printf("Heap memory usage: %d MB\r",
+                                mxbean.getHeapMemoryUsage().getUsed() / (1000000));
+                    }
+                });
+                t.start();
             }
-        });
-        t.start();
+        })).start();
         gui = new GUI();
     }
 
@@ -287,6 +295,20 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         }
     }
 
+    public void moveMap(int x, int y)
+    {
+        if (x > 0) {
+            goRight();
+        } else {
+            goLeft();
+        }
+        if (y > 0) {
+            goDown();
+        } else {
+            goUp();
+        }
+    }
+
     /**
      * Zooms in the map.
      */
@@ -311,7 +333,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    private void zoomScrollIn(double usp, double dsp, double lsp, double rsp) 
+    private void zoomScrollIn(double usp, double dsp, double lsp, double rsp)
     {
         lowX = lowX + (60 * lsp * ratioX);
         highX = highX - (60 * rsp * ratioX);
@@ -320,7 +342,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         repaint();
     }
 
-    private void zoomScrollOut(double usp, double dsp, double lsp, double rsp) 
+    private void zoomScrollOut(double usp, double dsp, double lsp, double rsp)
     {
         lowX = lowX - (60 * lsp * ratioX);
         highX = highX + (60 * rsp * ratioX);
@@ -366,17 +388,17 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
         // Only zoom if the mouse is within the actual map
         if (mapX < highX && mapX > lowX && mapY < highY && mapY > lowY) {
             // calculate the ratio of the distances from the mouse to the edges (up, down, left, right)
-            double ls = mapX-lowX;
-            double rs = highX-mapX;
-            double lsp = ls/(ls+rs);
-            double rsp = rs/(ls+rs);
-            double ds = mapY-lowY;
-            double us = highY-mapY;
-            double dsp = ds/(ds+us);
-            double usp = us/(ds+us);
-            if(e.getWheelRotation() < 0) {
+            double ls = mapX - lowX;
+            double rs = highX - mapX;
+            double lsp = ls / (ls + rs);
+            double rsp = rs / (ls + rs);
+            double ds = mapY - lowY;
+            double us = highY - mapY;
+            double dsp = ds / (ds + us);
+            double usp = us / (ds + us);
+            if (e.getWheelRotation() < 0) {
                 zoomScrollIn(usp, dsp, lsp, rsp);
-                
+
             } else {
                 zoomScrollOut(usp, dsp, lsp, rsp);
             }
@@ -411,7 +433,7 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     @Override
     public void mouseReleased(MouseEvent me)
     {
-        if (me.getButton() == 1) {
+        if (me.getButton() == 1 && mouse == MouseTool.ZOOM) {
             released = me;
             if (pressed.getX() == released.getX() && pressed.getY() == released.getY()) {
                 released = null;
@@ -436,19 +458,19 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     {
         setMouseMapCoordinates(me.getX(), me.getY());
         dragged = me;
-        GlassPane canvas = (GlassPane) ((JFrame) getTopLevelAncestor()).getGlassPane();
-
-        if (pressed != null) {
-            int x1 = pressed.getX();
-            int x2 = dragged.getX();
-            int y1 = pressed.getY();
-            int y2 = dragged.getY();
-
-            Point one = SwingUtilities.convertPoint(this, x1, y1, canvas);
-            Point two = SwingUtilities.convertPoint(this, x2, y2, canvas);
-            canvas.setCoordinates(one, two);
-            canvas.setVisible(true);
-            canvas.repaint();
+        if (mouse == MouseTool.ZOOM) {
+            if (pressed != null) {
+                GlassPane canvas = (GlassPane) ((JFrame) getTopLevelAncestor()).getGlassPane();
+                Point one = SwingUtilities.convertPoint(this, pressed.getPoint(), canvas);
+                Point two = SwingUtilities.convertPoint(this, dragged.getPoint(), canvas);
+                canvas.setCoordinates(one, two);
+                canvas.setVisible(true);
+                canvas.repaint();
+            }
+        } else if (mouse == MouseTool.MOVE) {
+            if (pressed != null) {
+                moveMap(dragged.getX() - pressed.getX(), dragged.getY() - pressed.getY());
+            }
         }
     }
 
@@ -479,5 +501,15 @@ public class Map extends JComponent implements MouseListener, MouseMotionListene
     public BufferedImage getImage()
     {
         return image;
+    }
+
+    public void setMouse(MouseTool mouse)
+    {
+        this.mouse = mouse;
+    }
+    
+    public MouseTool getMouse()
+    {
+        return mouse;
     }
 }

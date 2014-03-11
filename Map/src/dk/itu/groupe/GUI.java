@@ -8,11 +8,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.KeyStroke;
 
 /**
@@ -29,6 +31,8 @@ public class GUI extends JComponent
     private final JFrame frame;
     private final Map map;
     private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
+    private JRadioButton mouseMove, mouseZoom;
+    private ButtonGroup mouse;
 
     public GUI()
     {
@@ -56,6 +60,10 @@ public class GUI extends JComponent
         remotePanel.add(flowPanel);
         flowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         flowPanel.add(roadName);
+        remotePanel.add(flowPanel);
+        flowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        flowPanel.add(mouseZoom);
+        flowPanel.add(mouseMove);
         remotePanel.add(flowPanel);
 
         flowPanel = new JPanel(new FlowLayout());
@@ -211,5 +219,26 @@ public class GUI extends JComponent
                 map.zoomOut();
             }
         });
+        
+        mouseZoom = new JRadioButton("Zoom", true);
+        mouseZoom.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                map.setMouse(MouseTool.ZOOM);
+            }
+        });
+        
+        mouseMove = new JRadioButton("Move", false);
+        mouseMove.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                map.setMouse(MouseTool.MOVE);
+            }
+        });
+        
+        mouse = new ButtonGroup();
+        mouse.add(mouseZoom);
+        mouse.add(mouseMove);
     }
 }
