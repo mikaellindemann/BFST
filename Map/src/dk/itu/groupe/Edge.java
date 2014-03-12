@@ -1,18 +1,16 @@
 package dk.itu.groupe;
 
 import java.awt.geom.Line2D;
+import java.util.HashMap;
 
 /**
  * Represents the raw data from a line in kdv_unload.txt.
  */
-public class EdgeData {
-
-    public final int FNODE;
-    public final int TNODE;
+public class Edge
+{
     public final double LENGTH;
     public final int DAV_DK;
-    public final int DAV_DK_ID;
-    public final int TYP;
+    private RoadType TYPE = null;
     public final String VEJNAVN;
     public final int FROMLEFT;
     public final int TOLEFT;
@@ -22,14 +20,8 @@ public class EdgeData {
     public final String TOLEFT_BOGSTAV;
     public final String FROMRIGHT_BOGSTAV;
     public final String TORIGHT_BOGSTAV;
-    public final int V_SOGNENR;
-    public final int H_SOGNENR;
     public final int V_POSTNR;
     public final int H_POSTNR;
-    public final int KOMMUNENR;
-    public final int VEJKODE;
-    public final int SUBNET;
-    public final String RUTENR;
     public final int FRAKOERSEL;
     public final int ZONE;
     public final int SPEED;
@@ -37,19 +29,14 @@ public class EdgeData {
     public final String ONE_WAY;
     public final String F_TURN;
     public final String T_TURN;
-    public final int VEJNR;
-    public final String AENDR_DATO;
-    public final int TJEK_ID;
-    public final Line2D line; 
+    public final Line2D line;
 
     @Override
-    public String toString() {
-        return FNODE + ","
-                + TNODE + ","
-                + String.format("%.5f,", LENGTH)
+    public String toString()
+    {
+        return String.format("%.5f,", LENGTH)
                 + DAV_DK + ","
-                + DAV_DK_ID + ","
-                + TYP + ","
+                + TYPE + ","
                 + "'" + VEJNAVN + "',"
                 + FROMLEFT + ","
                 + TOLEFT + ","
@@ -58,35 +45,33 @@ public class EdgeData {
                 + "'" + FROMLEFT_BOGSTAV + "',"
                 + "'" + TOLEFT_BOGSTAV + "',"
                 + "'" + FROMRIGHT_BOGSTAV + "',"
-                + "'" + TORIGHT_BOGSTAV + "',"
-                + V_SOGNENR + ","
-                + H_SOGNENR + ","
+                + "'" + TORIGHT_BOGSTAV + ","
                 + V_POSTNR + ","
-                + H_POSTNR + ","
-                + KOMMUNENR + ","
-                + VEJKODE + ","
-                + SUBNET + ","
-                + "'" + RUTENR + "',"
+                + H_POSTNR + "',"
                 + FRAKOERSEL + ","
                 + ZONE + ","
                 + SPEED + ","
                 + String.format("%.3f,", DRIVETIME)
                 + "'" + ONE_WAY + "',"
                 + "'" + F_TURN + "',"
-                + "'" + T_TURN + "',"
-                + (VEJNR == -1 ? "**********," : VEJNR + ",")
-                + "'" + AENDR_DATO + "',"
-                + TJEK_ID;
+                + "'" + T_TURN;
     }
 
-    public EdgeData(String line) {
+    public Edge(String line, HashMap<Integer, Node> nodeMap)
+    {
         DataLine dl = new DataLine(line);
-        FNODE = dl.getInt();
-        TNODE = dl.getInt();
+        int FNODE = dl.getInt();
+        int TNODE = dl.getInt();
         LENGTH = dl.getDouble();
         DAV_DK = dl.getInt();
-        DAV_DK_ID = dl.getInt();
-        TYP = dl.getInt();
+        dl.getInt();
+        int typ = dl.getInt();
+        for (RoadType rt : RoadType.values()) {
+            if (rt.getTypeNumber() == typ) {
+                TYPE = rt;
+                break;
+            }
+        }
         VEJNAVN = dl.getString();
         FROMLEFT = dl.getInt();
         TOLEFT = dl.getInt();
@@ -96,14 +81,14 @@ public class EdgeData {
         TOLEFT_BOGSTAV = dl.getString();
         FROMRIGHT_BOGSTAV = dl.getString();
         TORIGHT_BOGSTAV = dl.getString();
-        V_SOGNENR = dl.getInt();
-        H_SOGNENR = dl.getInt();
+        dl.getInt();
+        dl.getInt();
         V_POSTNR = dl.getInt();
         H_POSTNR = dl.getInt();
-        KOMMUNENR = dl.getInt();
-        VEJKODE = dl.getInt();
-        SUBNET = dl.getInt();
-        RUTENR = dl.getString();
+        dl.getInt();
+        dl.getInt();
+        dl.getInt();
+        dl.getString();
         FRAKOERSEL = dl.getInt();
         ZONE = dl.getInt();
         SPEED = dl.getInt();
@@ -111,17 +96,22 @@ public class EdgeData {
         ONE_WAY = dl.getString();
         F_TURN = dl.getString();
         T_TURN = dl.getString();
-        VEJNR = dl.getInt();
-        AENDR_DATO = dl.getString();
-        TJEK_ID = dl.getInt();
-        
-        NodeData fN = Map.nodeMap.get(FNODE);
-        NodeData tN = Map.nodeMap.get(TNODE);
-        
+        dl.getInt();
+        dl.getString();
+        dl.getInt();
+
+        Node fN = nodeMap.get(FNODE);
+        Node tN = nodeMap.get(TNODE);
+
         this.line = new Line2D.Double(
-                fN.X_COORD, 
-                fN.Y_COORD, 
-                tN.X_COORD, 
+                fN.X_COORD,
+                fN.Y_COORD,
+                tN.X_COORD,
                 tN.Y_COORD);
-    } 
+    }
+
+    public RoadType getType()
+    {
+        return TYPE;
+    }
 }

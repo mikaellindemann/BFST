@@ -8,6 +8,7 @@ package dk.itu.groupe;
  * Jepsen <mlin@itu.dk>
  */
 public enum RoadType {
+    UNKNOWN(0),
     HIGHWAY(1), 
     EXPRESSWAY(2), 
     PRIMARY_ROUTE(3), 
@@ -31,12 +32,13 @@ public enum RoadType {
     OTHER_EXIT(35),
     HIGHWAY_TUNNEL(41),
     EXPRESSWAY_TUNNEL(42),
-    PRIMARY_ROAD_TUNNEL(43),
-    SECONDARY_ROAD_TUNNEL(44),
+    PRIMARY_ROUTE_TUNNEL(43),
+    SECONDARY_ROUTE_TUNNEL(44),
     OTHER_ROAD_TUNNEL(45),
     SMALL_ROAD_TUNNEL(46),
     PATH_TUNNEL(48),
     FERRY(80),
+    ALSO_UNKNOWN(95),
     EXACT_LOCATION_UNKNOWN(99);
     
     private final int typeNumber;

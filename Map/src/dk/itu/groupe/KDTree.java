@@ -17,9 +17,9 @@ public class KDTree
         X, Y
     };
 
-    private final List<EdgeData> empty = new LinkedList<>();
+    private final List<Edge> empty = new LinkedList<>();
     private KDTree HIGH, LOW;
-    private final EdgeData centerEdge;
+    private final Edge centerEdge;
     private final double xmin, ymin, xmax, ymax;
     private final Dimension dim;
 
@@ -32,7 +32,7 @@ public class KDTree
      * @param xMax The right x-coordinate.
      * @param yMax The top y-coordinate.
      */
-    public KDTree(List<EdgeData> edges, double xMin, double yMin, double xMax, double yMax)
+    public KDTree(List<Edge> edges, double xMin, double yMin, double xMax, double yMax)
     {
         xmin = xMin;
         ymin = yMin;
@@ -41,14 +41,13 @@ public class KDTree
 
         int size = edges.size();
 
-        List<EdgeData> low = new LinkedList<>(), high = new LinkedList<>();
-        centerEdge = (EdgeData) edges.toArray()[edges.size() / 2];
-        edges.remove(centerEdge);
+        List<Edge> low = new LinkedList<>(), high = new LinkedList<>();
+        centerEdge = edges.remove(edges.size() / 2);
         if (ymax - ymin < xmax - xmin) {
             dim = Dimension.X;
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
-                EdgeData edge = edges.remove(0);
+                Edge edge = edges.remove(0);
                 if (edge.line.getX1() < centerEdge.line.getX1()) {
                     low.add(edge);
                 } else {
@@ -59,7 +58,7 @@ public class KDTree
             dim = Dimension.Y;
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
-                EdgeData edge = edges.remove(0);
+                Edge edge = edges.remove(0);
                 if (edge.line.getY1() < centerEdge.line.getY1()) {
                     low.add(edge);
                 } else {
@@ -108,12 +107,12 @@ public class KDTree
      * @param y The y-coordinate to look at.
      * @return The edge that are nearest to the coordinates.
      */
-    public EdgeData getNearest(double x, double y)
+    public Edge getNearest(double x, double y)
     {
-        List<EdgeData> es = getEdges(x, y, x, y);
+        List<Edge> es = getEdges(x, y, x, y);
         double dist = 12;
-        EdgeData nearest = null;
-        for (EdgeData edge : es) {
+        Edge nearest = null;
+        for (Edge edge : es) {
             double d = edge.line.ptSegDist(x, y);
             if (d < dist) {
                 dist = d;
@@ -135,7 +134,7 @@ public class KDTree
      * @return A list of edgedata containing the edges that are inside the
      * rectangle.
      */
-    public List<EdgeData> getEdges(double xLow, double yLow, double xHigh, double yHigh)
+    public List<Edge> getEdges(double xLow, double yLow, double xHigh, double yHigh)
     {
         //Fix this code!
         if (dim == Dimension.X) {
@@ -148,7 +147,7 @@ public class KDTree
             }
         }
 
-        List<EdgeData> edgeList = new LinkedList<>();
+        List<Edge> edgeList = new LinkedList<>();
         if (LOW != null) {
             edgeList.addAll(LOW.getEdges(xLow, yLow, xHigh, yHigh));
 

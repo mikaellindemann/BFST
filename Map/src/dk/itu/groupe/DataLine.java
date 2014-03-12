@@ -15,12 +15,15 @@ import java.util.HashMap;
  *
  * Søren Debois 2014: Moved Peter Sestoft's manual string interning here.
  */
-public class DataLine {
+public class DataLine
+{
 
-    private static HashMap<String, String> interner
-            = new HashMap<String, String>();
+    private static HashMap<String, String> interner = new HashMap<>();
+    private final String line;
+    private int next;
 
-    private String intern(String s) {
+    private String intern(String s)
+    {
         String interned = interner.get(s);
         if (interned != null) {
             return interned;
@@ -34,30 +37,23 @@ public class DataLine {
      * Reset the interner map. This may conserve space if not all strings in the
      * input data set are used.
      */
-    public static void resetInterner() {
-        interner = new HashMap<String, String>();
+    public static void resetInterner()
+    {
+        interner = new HashMap<>();
     }
 
-    private final String line;
-    int next;
-
-    public DataLine(String line) {
+    public DataLine(String line)
+    {
         this.line = line;
         next = 0;
-    }
-
-    /**
-     * Returns true if there are more tokens, and false otherwise
-     */
-    public boolean hasMore() {
-        return next < line.length();
     }
 
     /**
      * Returns the next token. If apostrophes surround the token, they overrule
      * commas, and the token is returned without the apostrophes
      */
-    private String nextToken() {
+    private String nextToken()
+    {
         if (line.charAt(next) != '\'') {
             int comma = line.indexOf(',', next);
             String token;
@@ -85,8 +81,11 @@ public class DataLine {
 
     /**
      * Attempts to parse the next token as an integer
+     *
+     * @return
      */
-    public int getInt() {
+    public int getInt()
+    {
         String s = nextToken();
         try {
             return Integer.parseInt(s);
@@ -100,8 +99,11 @@ public class DataLine {
 
     /**
      * Attempts to parse the next token as a double
+     *
+     * @return
      */
-    public double getDouble() {
+    public double getDouble()
+    {
         String s = nextToken();
         try {
             return Double.parseDouble(s);
@@ -115,15 +117,8 @@ public class DataLine {
      *
      * @return
      */
-    public String getString() {
+    public String getString()
+    {
         return intern(nextToken());
-    }
-
-    /**
-     * Discard the current token
-     *
-     */
-    public void discard() {
-        nextToken();
     }
 }
