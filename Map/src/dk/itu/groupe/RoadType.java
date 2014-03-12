@@ -1,5 +1,3 @@
-
-
 package dk.itu.groupe;
 
 /**
@@ -7,12 +5,14 @@ package dk.itu.groupe;
  * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
  * Jepsen <mlin@itu.dk>
  */
-public enum RoadType {
+public enum RoadType
+{
+
     UNKNOWN(0),
-    HIGHWAY(1), 
-    EXPRESSWAY(2), 
-    PRIMARY_ROUTE(3), 
-    SECONDARY_ROUTE(4), 
+    HIGHWAY(1),
+    EXPRESSWAY(2),
+    PRIMARY_ROUTE(3),
+    SECONDARY_ROUTE(4),
     ROAD(5),
     OTHER_ROAD(6),
     PATH(8),
@@ -40,17 +40,16 @@ public enum RoadType {
     FERRY(80),
     ALSO_UNKNOWN(95),
     EXACT_LOCATION_UNKNOWN(99);
-    
+
     private final int typeNumber;
-    
+
     private RoadType(int typeNumber)
     {
         this.typeNumber = typeNumber;
     }
 
-    public int getTypeNumber() {
+    public int getTypeNumber()
+    {
         return typeNumber;
     }
-    
-    
 }

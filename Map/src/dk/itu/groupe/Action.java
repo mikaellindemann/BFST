@@ -2,7 +2,8 @@ package dk.itu.groupe;
 
 /**
  *
- * @author Mikael
+ * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
+ * Jepsen <mlin@itu.dk>
  */
 public enum Action
 {

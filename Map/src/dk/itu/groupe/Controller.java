@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package dk.itu.groupe;
 
 import java.awt.Point;
@@ -23,7 +18,8 @@ import javax.swing.Timer;
 
 /**
  *
- * @author Mikael
+ * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
+ * Jepsen <mlin@itu.dk>
  */
 public class Controller implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener
 {
