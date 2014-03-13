@@ -9,6 +9,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
 
@@ -17,7 +19,12 @@ import javax.swing.JFrame;
  * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
  * Jepsen <mlin@itu.dk>
  */
-public class Controller implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener
+public class Controller implements 
+        MouseListener, 
+        MouseMotionListener, 
+        MouseWheelListener, 
+        ComponentListener, 
+        WindowStateListener
 {
 
     private final Model model;
@@ -142,19 +149,29 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
     @Override
     public void componentMoved(ComponentEvent e)
     {
-
+        model.setSize(view.getMap().getSize());
+        model.calculateFactor();
+        model.notifyObservers();
     }
 
     @Override
     public void componentShown(ComponentEvent e)
     {
-
+        componentMoved(e);
     }
 
     @Override
     public void componentHidden(ComponentEvent e)
     {
 
+    }
+
+    @Override
+    public void windowStateChanged(WindowEvent e)
+    {
+        model.setSize(view.getMap().getSize());
+        model.calculateFactor();
+        model.notifyObservers();
     }
     
     public static class Listener extends AbstractAction
@@ -215,6 +232,7 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
         model.addObserver(view);
         Controller controller = new Controller(model, view);
         view.addComponentListener(controller);
+        frame.addWindowStateListener(controller);
         frame.setContentPane(view);
         frame.getContentPane().addMouseListener(controller);
         frame.getContentPane().addMouseMotionListener(controller);
