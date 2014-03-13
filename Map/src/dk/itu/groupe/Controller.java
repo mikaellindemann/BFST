@@ -61,7 +61,8 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
             } else {
                 model.zoomScrollOut(usp, dsp, lsp, rsp);
             }
-            model.notifyObservers("");
+            model.calculateFactor();
+            model.notifyObservers();
         }
     }
 
@@ -83,7 +84,8 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
         //Right click to reset.
         if (me.getButton() == 3) {
             model.reset();
-            model.notifyObservers("");
+            model.calculateFactor();
+            model.notifyObservers();
         } else {
             model.setPressed(me);
             model.setDragged(me);
@@ -105,7 +107,8 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
             model.setReleased(null);
             model.setDragged(null);
             model.zoomRect();
-            model.notifyObservers("");
+            model.calculateFactor();
+            model.notifyObservers();
         }
     }
 
@@ -125,25 +128,7 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
             }
         }
         model.setDragged(me);
-        model.notifyObservers("");
-    }
-
-    public static void main(String[] args)
-    {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        Model model = new Model();
-        View view = new View(model);
-        model.addObserver(view);
-        Controller controller = new Controller(model, view);
-        view.addComponentListener(controller);
-        frame.setContentPane(view);
-        frame.getContentPane().addMouseListener(controller);
-        frame.getContentPane().addMouseMotionListener(controller);
-        frame.getContentPane().addMouseWheelListener(controller);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        frame.pack();
-        frame.setVisible(true);
+        model.notifyObservers();
     }
 
     @Override
@@ -151,7 +136,7 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
     {
         model.setSize(view.getMap().getSize());
         model.calculateFactor();
-        model.notifyObservers("");
+        model.notifyObservers();
     }
 
     @Override
@@ -215,7 +200,26 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
                     model.setMouse(MouseTool.ZOOM);
                     return;
             }
-            model.notifyObservers("");
+            model.calculateFactor();
+            model.notifyObservers();
         }
+    }
+    
+    public static void main(String[] args)
+    {
+        JFrame frame = new JFrame();
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        Model model = new Model();
+        View view = new View(model);
+        model.addObserver(view);
+        Controller controller = new Controller(model, view);
+        view.addComponentListener(controller);
+        frame.setContentPane(view);
+        frame.getContentPane().addMouseListener(controller);
+        frame.getContentPane().addMouseMotionListener(controller);
+        frame.getContentPane().addMouseWheelListener(controller);
+        frame.pack();
+        frame.setVisible(true);
     }
 }

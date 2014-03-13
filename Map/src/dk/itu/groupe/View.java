@@ -146,7 +146,7 @@ public class View extends JComponent implements Observer
     @Override
     public void update(Observable o, Object arg)
     {
-        if (arg.equals("updateRoadname")) {
+        if (arg != null && arg.equals("updateRoadname")) {
             roadName.setText(model.getRoadname());
         } else {
             map.repaint();
@@ -192,7 +192,7 @@ public class View extends JComponent implements Observer
             } else {
                 image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D gB = image.createGraphics();
-                model.calculateFactor();
+                //model.calculateFactor();
                 Point.Double topLeft = model.getTopLeft(), bottomRight = model.getBottomRight();
                 for (Edge edge : model.getEdges(topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)) {
                     switch (edge.getType()) {
