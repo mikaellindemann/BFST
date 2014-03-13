@@ -54,27 +54,26 @@ public class View extends JComponent implements Observer
         keyPad.add(buttonDown);
         keyPad.add(buttonRight);
 
-        remotePanel = new JPanel(new GridLayout(0, 1));
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        remotePanel = new JPanel(new FlowLayout());
+        flowPanel = new JPanel(new FlowLayout());
         flowPanel.add(keyPad);
         remotePanel.add(flowPanel);
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        flowPanel = new JPanel(new FlowLayout());
         flowPanel.add(buttonShowAll);
         remotePanel.add(flowPanel);
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        flowPanel.add(roadName);
-        remotePanel.add(flowPanel);
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        flowPanel = new JPanel(new GridLayout(2, 0));
         flowPanel.add(mouseZoom);
         flowPanel.add(mouseMove);
         remotePanel.add(flowPanel);
-
         flowPanel = new JPanel(new FlowLayout());
-        flowPanel.setPreferredSize(new Dimension(320, 300));
+        flowPanel.add(roadName);
+        remotePanel.add(flowPanel);
+
+        flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
         flowPanel.add(remotePanel);
 
         setLayout(new BorderLayout());
-        add(flowPanel, BorderLayout.EAST);
+        add(flowPanel, BorderLayout.SOUTH);
         add(map, BorderLayout.CENTER);
     }
 
@@ -85,55 +84,49 @@ public class View extends JComponent implements Observer
     {
         buttonShowAll = new JButton("Show entire map");
         buttonShowAll.setMaximumSize(new Dimension(100, 40));
-        buttonShowAll.addActionListener(new Controller.Listener(model, Action.RESET));
+        buttonShowAll.addActionListener(Action.RESET.getListener(model));
 
         buttonUp = new JButton("↑");
         buttonUp.setMaximumSize(new Dimension(100, 40));
-        buttonUp.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "buttonUp");
-        Controller.Listener l = new Controller.Listener(model, Action.UP);
-        buttonUp.getActionMap().put("buttonUp", l);
-        buttonUp.addActionListener(l);
+        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "buttonUp");
+        getActionMap().put("buttonUp", Action.UP.getListener(model));
+        buttonUp.addActionListener(Action.UP.getListener(model));
 
         buttonRight = new JButton("→");
         buttonRight.setMaximumSize(new Dimension(100, 40));
-        buttonRight.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "buttonRight");
-        l = new Controller.Listener(model, Action.RIGHT);
-        buttonRight.getActionMap().put("buttonRight", l);
-        buttonRight.addActionListener(l);
+        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "buttonRight");
+        getActionMap().put("buttonRight", Action.RIGHT.getListener(model));
+        buttonRight.addActionListener(Action.RIGHT.getListener(model));
 
         buttonLeft = new JButton("←");
         buttonLeft.setMaximumSize(new Dimension(100, 40));
-        buttonLeft.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "buttonLeft");
-        l = new Controller.Listener(model, Action.LEFT);
-        buttonLeft.getActionMap().put("buttonLeft", l);
-        buttonLeft.addActionListener(l);
+        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "buttonLeft");
+        getActionMap().put("buttonLeft", Action.LEFT.getListener(model));
+        buttonLeft.addActionListener(Action.LEFT.getListener(model));
 
         buttonDown = new JButton("↓");
         buttonDown.setMaximumSize(new Dimension(100, 40));
-        buttonDown.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "buttonDown");
-        l = new Controller.Listener(model, Action.DOWN);
-        buttonDown.getActionMap().put("buttonDown", l);
-        buttonDown.addActionListener(l);
+        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "buttonDown");
+        getActionMap().put("buttonDown", Action.DOWN.getListener(model));
+        buttonDown.addActionListener(Action.DOWN.getListener(model));
 
         buttonZoomIn = new JButton("+");
         buttonZoomIn.setMaximumSize(new Dimension(100, 40));
-        buttonZoomIn.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), "buttonZoomIn");
-        l = new Controller.Listener(model, Action.ZOOM_IN);
-        buttonZoomIn.getActionMap().put("buttonZoomIn", l);
-        buttonZoomIn.addActionListener(l);
+        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), "buttonZoomIn");
+        getActionMap().put("buttonZoomIn", Action.ZOOM_IN.getListener(model));
+        buttonZoomIn.addActionListener(Action.ZOOM_IN.getListener(model));
 
         buttonZoomOut = new JButton("-");
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
-        buttonZoomOut.getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), "buttonZoomOut");
-        l = new Controller.Listener(model, Action.ZOOM_OUT);
-        buttonZoomOut.getActionMap().put("buttonZoomOut", l);
-        buttonZoomOut.addActionListener(l);
+        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), "buttonZoomOut");
+        getActionMap().put("buttonZoomOut", Action.ZOOM_OUT.getListener(model));
+        buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
 
         mouseZoom = new JRadioButton("Zoom", true);
-        mouseZoom.addActionListener(new Controller.Listener(model, Action.MOUSE_ZOOM));
+        mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
 
         mouseMove = new JRadioButton("Move", false);
-        mouseMove.addActionListener(new Controller.Listener(model, Action.MOUSE_MOVE));
+        mouseMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
 
         mouse = new ButtonGroup();
         mouse.add(mouseZoom);
@@ -183,7 +176,7 @@ public class View extends JComponent implements Observer
                 }
                 g.setClip(0, 0, getWidth(), getHeight());
 
-                g.drawImage(image, 0, 0, getBackground(), null);
+                g.drawImage(image, 0, 0, Color.WHITE, null);
                 g.setColor(Color.BLACK);
 
                 double x = Math.abs(x2 - x1) / (double) getWidth();
@@ -261,7 +254,7 @@ public class View extends JComponent implements Observer
 
                     gB.drawLine(fx, fy, lx, ly);
                 }
-                g.drawImage(image, 0, 0, null);
+                g.drawImage(image, 0, 0, Color.WHITE, null);
             }
         }
 

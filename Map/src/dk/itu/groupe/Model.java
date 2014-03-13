@@ -98,7 +98,7 @@ public class Model extends Observable
         }
         DataLine.resetInterner();
         edges = new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
-        height = 670;
+        height = 600;
         width = (int) (height * (highestX_COORD - lowestX_COORD) / (highestY_COORD - lowestY_COORD));
     }
 
@@ -132,7 +132,6 @@ public class Model extends Observable
         highX = highestX_COORD;
         highY = highestY_COORD;
         setChanged();
-        notifyObservers("reset");
     }
 
     public void goUp(int distance)
@@ -142,7 +141,6 @@ public class Model extends Observable
             highY = highY + (distance * factor);
         }
         setChanged();
-        notifyObservers("goUp");
     }
 
     public void goLeft(int distance)
@@ -152,7 +150,6 @@ public class Model extends Observable
             highX = highX - (distance * factor);
         }
         setChanged();
-        notifyObservers("goLeft");
     }
 
     public void goRight(int distance)
@@ -162,7 +159,6 @@ public class Model extends Observable
             highX = highX + (distance * factor);
         }
         setChanged();
-        notifyObservers("goRight");
     }
 
     public void goDown(int distance)
@@ -172,7 +168,6 @@ public class Model extends Observable
             highY = highY - (distance * factor);
         }
         setChanged();
-        notifyObservers("goDown");
     }
 
     public void moveMap(int x, int y)
@@ -188,7 +183,6 @@ public class Model extends Observable
             goUp(-y);
         }
         setChanged();
-        notifyObservers("moveMap");
     }
 
     /**
@@ -201,7 +195,6 @@ public class Model extends Observable
         highY = highY - (30 * ratioY);
         lowY = (highY - (highX - lowX) / ((double) width / (double) height));
         setChanged();
-        notifyObservers("zoomIn");
     }
 
     /**
@@ -214,7 +207,6 @@ public class Model extends Observable
         highY = highY + (30 * ratioY);
         lowY = (highY - (highX - lowX) / ((double) width / (double) height));
         setChanged();
-        notifyObservers("zoomOut");
     }
 
     public void zoomScrollIn(double usp, double dsp, double lsp, double rsp)
@@ -224,7 +216,6 @@ public class Model extends Observable
         highY = highY - (60 * usp * ratioY);
         lowY = (highY - (highX - lowX) / ((double) width / (double) height));
         setChanged();
-        notifyObservers("zoomScrollIn");
     }
 
     public void zoomScrollOut(double usp, double dsp, double lsp, double rsp)
@@ -234,7 +225,6 @@ public class Model extends Observable
         highY = highY + (60 * usp * ratioY);
         lowY = (highY - (highX - lowX) / ((double) width / (double) height));
         setChanged();
-        notifyObservers("zoomScrollOut");
     }
 
     public void zoomRect()
@@ -265,7 +255,6 @@ public class Model extends Observable
             highX = lowX + (highY - lowY) * ratio;
         }
         setChanged();
-        notifyObservers("zoomRect");
     }
 
     public void setMouseMapCoordinates(int x, int y)
@@ -283,14 +272,12 @@ public class Model extends Observable
             roadname = " ";
         }
         setChanged();
-        notifyObservers("updateRoadname");
     }
 
     public void setMouse(MouseTool mouse)
     {
         this.mouse = mouse;
         setChanged();
-        notifyObservers("setMouse");
     }
 
     public MouseTool getMouse()
@@ -312,7 +299,6 @@ public class Model extends Observable
     {
         width = d.width;
         height = d.height;
-        notifyObservers("setSize");
     }
 
     public List<Edge> getEdges(double xLow, double yLow, double xHigh, double yHigh)
@@ -356,14 +342,12 @@ public class Model extends Observable
     {
         this.released = released;
         setChanged();
-        notifyObservers("setReleased");
     }
 
     public void setDragged(MouseEvent dragged)
     {
         this.dragged = dragged;
         setChanged();
-        notifyObservers("setDragged");
     }
 
     public static double getLowestX_COORD()

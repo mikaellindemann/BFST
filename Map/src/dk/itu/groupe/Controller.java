@@ -2,7 +2,6 @@ package dk.itu.groupe;
 
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
@@ -10,11 +9,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
-import javax.swing.Timer;
 
 /**
  *
@@ -38,6 +34,7 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
     {
         model.setMouseMapCoordinates(me.getX(), me.getY());
         model.updateRoadname();
+        model.notifyObservers("updateRoadname");
     }
 
     @Override
@@ -64,6 +61,7 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
             } else {
                 model.zoomScrollOut(usp, dsp, lsp, rsp);
             }
+            model.notifyObservers("");
         }
     }
 
@@ -85,6 +83,7 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
         //Right click to reset.
         if (me.getButton() == 3) {
             model.reset();
+            model.notifyObservers("");
         } else {
             model.setPressed(me);
             model.setDragged(me);
@@ -106,6 +105,7 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
             model.setReleased(null);
             model.setDragged(null);
             model.zoomRect();
+            model.notifyObservers("");
         }
     }
 
@@ -125,33 +125,11 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
             }
         }
         model.setDragged(me);
-        if (model.getMouse() == MouseTool.ZOOM) {
-            if (model.getPressed() != null) {
-                view.repaint();
-            }
-        }
+        model.notifyObservers("");
     }
 
     public static void main(String[] args)
     {
-        (new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                Timer t = new Timer(1000, new ActionListener()
-                {
-                    @Override
-                    public void actionPerformed(ActionEvent e)
-                    {
-                        MemoryMXBean mxbean = ManagementFactory.getMemoryMXBean();
-                        System.out.printf("Heap memory usage: %d MB\r",
-                                mxbean.getHeapMemoryUsage().getUsed() / (1000000));
-                    }
-                });
-                t.start();
-            }
-        })).start();
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Model model = new Model();
@@ -163,6 +141,7 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
         frame.getContentPane().addMouseListener(controller);
         frame.getContentPane().addMouseMotionListener(controller);
         frame.getContentPane().addMouseWheelListener(controller);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.pack();
         frame.setVisible(true);
     }
@@ -172,6 +151,7 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
     {
         model.setSize(view.getMap().getSize());
         model.calculateFactor();
+        model.notifyObservers("");
     }
 
     @Override
@@ -230,11 +210,12 @@ public class Controller implements MouseListener, MouseMotionListener, MouseWhee
                     break;
                 case MOUSE_MOVE:
                     model.setMouse(MouseTool.MOVE);
-                    break;
+                    return;
                 case MOUSE_ZOOM:
                     model.setMouse(MouseTool.ZOOM);
-                    break;
+                    return;
             }
+            model.notifyObservers("");
         }
     }
 }

@@ -44,6 +44,7 @@ public class KDTree
         List<Edge> low = new LinkedList<>(), high = new LinkedList<>();
         centerEdge = edges.remove(edges.size() / 2);
         if (ymax - ymin < xmax - xmin) {
+            // Delta x is gratest.
             dim = Dimension.X;
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
@@ -55,6 +56,7 @@ public class KDTree
                 }
             }
         } else {
+            // Delta y is the same size or greater.
             dim = Dimension.Y;
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
@@ -136,13 +138,12 @@ public class KDTree
      */
     public List<Edge> getEdges(double xLow, double yLow, double xHigh, double yHigh)
     {
-        //Fix this code!
         if (dim == Dimension.X) {
-            if (xHigh + 1000 < xmin || xLow - 1000 > xmax) {
+            if (xHigh + (xHigh - xLow) / 2  < xmin || xLow - (xHigh - xLow) > xmax) {
                 return empty;
             }
         } else {
-            if (yHigh + 1000 < ymin || yLow - 1000 > ymax) {
+            if (yHigh + (yHigh - yLow) < ymin || yLow - (yHigh - yLow) > ymax) {
                 return empty;
             }
         }
