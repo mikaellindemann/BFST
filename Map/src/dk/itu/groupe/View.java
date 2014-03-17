@@ -37,6 +37,7 @@ public class View extends JComponent implements Observer
     private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
     private JRadioButton mouseMove, mouseZoom;
     private ButtonGroup mouse;
+    private final Color BGColor = Color.decode("#457B85");
 
     public View(final Model model)
     {
@@ -57,19 +58,26 @@ public class View extends JComponent implements Observer
         remotePanel = new JPanel(new FlowLayout());
         flowPanel = new JPanel(new FlowLayout());
         flowPanel.add(keyPad);
+        flowPanel.setBackground(BGColor);
         remotePanel.add(flowPanel);
         flowPanel = new JPanel(new FlowLayout());
         flowPanel.add(buttonShowAll);
+        flowPanel.setBackground(BGColor);
         remotePanel.add(flowPanel);
         flowPanel = new JPanel(new GridLayout(2, 0));
         flowPanel.add(mouseZoom);
         flowPanel.add(mouseMove);
+        flowPanel.setBackground(BGColor);
         remotePanel.add(flowPanel);
         flowPanel = new JPanel(new FlowLayout());
         flowPanel.add(roadName);
+        flowPanel.setBackground(BGColor);
         remotePanel.add(flowPanel);
 
         flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+        
+        flowPanel.setBackground(BGColor);
+        remotePanel.setBackground(BGColor);
         flowPanel.add(remotePanel);
 
         setLayout(new BorderLayout());
@@ -124,10 +132,11 @@ public class View extends JComponent implements Observer
 
         mouseZoom = new JRadioButton("Zoom", true);
         mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
+        mouseZoom.setBackground(BGColor);
 
         mouseMove = new JRadioButton("Move", false);
         mouseMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
-
+        mouseMove.setBackground(BGColor);
         mouse = new ButtonGroup();
         mouse.add(mouseZoom);
         mouse.add(mouseMove);
