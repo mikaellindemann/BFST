@@ -11,6 +11,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.BorderFactory;
@@ -21,6 +23,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 
 /**
  *
@@ -41,6 +44,18 @@ public class View extends JComponent implements Observer
     private ButtonGroup mouse;
     private final Color BGColor = Color.decode("#457B85");
     private Rectangle bounds;
+    
+    //Change button color with gradient
+    static void adjustGradient(Color color) {  
+        List list = new ArrayList();  
+        list.add(new Float(0.3F));  
+        list.add(new Float(0));  
+        list.add(color);  
+        list.add(Color.WHITE);  
+        list.add(color.darker().darker());  
+        UIManager.put("Button.gradient", list);
+        UIManager.put("RadioButton.gradient", list);
+    }
 
     public View(final Model model)
     {
@@ -83,6 +98,7 @@ public class View extends JComponent implements Observer
         remotePanel.setBackground(BGColor);
         flowPanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
         flowPanel.add(remotePanel);
+        
 
         setLayout(new BorderLayout());
         add(flowPanel, BorderLayout.SOUTH);
@@ -97,6 +113,7 @@ public class View extends JComponent implements Observer
         buttonShowAll = new JButton("Show entire map");
         buttonShowAll.setMaximumSize(new Dimension(100, 40));
         buttonShowAll.addActionListener(Action.RESET.getListener(model));
+        adjustGradient(Color.ORANGE);
 
         buttonUp = new JButton("↑");
         buttonUp.setMaximumSize(new Dimension(100, 40));
