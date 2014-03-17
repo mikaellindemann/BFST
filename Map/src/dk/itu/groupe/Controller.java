@@ -225,7 +225,7 @@ public class Controller implements
     public static void main(String[] args)
     {
         JFrame frame = new JFrame();
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Model model = new Model();
         View view = new View(model);
@@ -239,5 +239,7 @@ public class Controller implements
         frame.getContentPane().addMouseWheelListener(controller);
         frame.pack();
         frame.setVisible(true);
+        model.reset();
+        model.notifyObservers();
     }
 }

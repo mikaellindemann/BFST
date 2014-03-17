@@ -45,8 +45,8 @@ public class View extends JComponent implements Observer
     private final Color BGColor = Color.decode("#457B85");
     
     //Change button color with gradient
-    static void adjustGradient(Color color) {  
-        List list = new ArrayList();  
+    private void adjustGradient(Color color) {  
+        List<Object> list = new ArrayList<>();  
         list.add(new Float(0.3F));  
         list.add(new Float(0));  
         list.add(color);  

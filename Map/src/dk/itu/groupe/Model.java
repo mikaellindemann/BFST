@@ -50,11 +50,6 @@ public class Model extends Observable
     public Model()
     {
         String dir = "./data/";
-
-        lowX = lowestX_COORD;
-        lowY = lowestY_COORD;
-        highX = highestX_COORD;
-        highY = highestY_COORD;
         mouse = MouseTool.ZOOM;
 
         // For this example, we'll simply load the raw data into
@@ -100,6 +95,7 @@ public class Model extends Observable
         edges = new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
         height = 600;
         width = (int) (height * (highestX_COORD - lowestX_COORD) / (highestY_COORD - lowestY_COORD));
+        reset();
     }
 
     /**
@@ -127,10 +123,14 @@ public class Model extends Observable
      */
     public void reset()
     {
-        lowX = lowestX_COORD;
-        lowY = lowestY_COORD;
-        highX = highestX_COORD;
-        highY = highestY_COORD;
+        lowY = lowestY_COORD / 1.001;
+        highY = highestY_COORD * 1.001;
+        
+        // This padding makes sure that the screen will center the map horizontally.
+        double padding = ((((highY - lowY) / height) * width) - (highestX_COORD - lowestX_COORD)) / 2;
+        lowX = lowestX_COORD - padding;
+        highX = highestX_COORD + padding;
+        
         setChanged();
     }
 
