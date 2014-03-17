@@ -8,10 +8,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.Observable;
 import java.util.Observer;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -38,6 +40,7 @@ public class View extends JComponent implements Observer
     private JRadioButton mouseMove, mouseZoom;
     private ButtonGroup mouse;
     private final Color BGColor = Color.decode("#457B85");
+    private Rectangle bounds;
 
     public View(final Model model)
     {
@@ -78,6 +81,7 @@ public class View extends JComponent implements Observer
         
         flowPanel.setBackground(BGColor);
         remotePanel.setBackground(BGColor);
+        flowPanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
         flowPanel.add(remotePanel);
 
         setLayout(new BorderLayout());
