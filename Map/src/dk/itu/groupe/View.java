@@ -8,7 +8,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Point;
-import java.awt.Rectangle;
+
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -43,7 +43,6 @@ public class View extends JComponent implements Observer
     private JRadioButton mouseMove, mouseZoom;
     private ButtonGroup mouse;
     private final Color BGColor = Color.decode("#457B85");
-    private Rectangle bounds;
     
     //Change button color with gradient
     static void adjustGradient(Color color) {  
