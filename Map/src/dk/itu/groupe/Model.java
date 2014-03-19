@@ -46,29 +46,18 @@ public class Model extends Observable
     private int width, height;
 
     private final SplashScreen splash = SplashScreen.getSplashScreen();
-    private final Graphics2D g = splash.createGraphics();
+    private Graphics2D g;
 
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
      */
     private final KDTree edges;
-
-    private void updateSplash(int percent) throws IllegalArgumentException
-    {
-        if (percent < 0 || percent > 100) {
-            throw new IllegalArgumentException("A percentage is between 0 and 100");
-        }
-        double splashWidth = splash.getSize().width;
-        double splashHeight = splash.getSize().height;
-
-        g.setColor(Color.BLACK);
-        g.drawRect(10, (int) splashHeight - 10, (int) splashWidth - 20, 4);
-        g.fillRect(10, (int) splashHeight - 10, (int) (percent * ((splashWidth - 20) / 100.0)), 5);
-        splash.update();
-    }
-
+    
     public Model()
     {
+        if (splash != null) {
+            g = splash.createGraphics();
+        }
         updateSplash(0);
         String dir = "./res/data/";
         mouse = MouseTool.ZOOM;
@@ -422,5 +411,21 @@ public class Model extends Observable
     public String getRoadname()
     {
         return roadname;
+    }
+    
+    private void updateSplash(int percent) throws IllegalArgumentException
+    {
+        if (percent < 0 || percent > 100) {
+            throw new IllegalArgumentException("A percentage is between 0 and 100");
+        }
+        if (g != null) {
+            double splashWidth = splash.getSize().width;
+            double splashHeight = splash.getSize().height;
+
+            g.setColor(Color.BLACK);
+            g.drawRect(10, (int) splashHeight - 10, (int) splashWidth - 20, 4);
+            g.fillRect(10, (int) splashHeight - 10, (int) (percent * ((splashWidth - 20) / 100.0)), 5);
+            splash.update();
+        }
     }
 }
