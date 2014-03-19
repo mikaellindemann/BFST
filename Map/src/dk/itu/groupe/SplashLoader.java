@@ -37,7 +37,7 @@ public class SplashLoader
             double splashWidth = splash.getSize().width;
             double splashHeight = splash.getSize().height;
 
-            g.setColor(Color.BLACK);
+            g.setColor(Color.LIGHT_GRAY);
             g.drawRect(10, (int) splashHeight - 10, (int) splashWidth - 20, 4);
             g.fillRect(10, (int) splashHeight - 10, (int) (percent * ((splashWidth - 20) / 100.0)), 5);
             splash.update();
