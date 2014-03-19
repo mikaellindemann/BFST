@@ -232,4 +232,4 @@ nb-configuration.xml
 *.war
 *.ear
 /Map/nbproject/private/
-/Map/data/
+/Map/res/data/
