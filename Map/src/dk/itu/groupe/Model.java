@@ -1,9 +1,6 @@
 package dk.itu.groupe;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.SplashScreen;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -34,24 +31,19 @@ public class Model extends Observable
 
     private String roadname;
 
-    private Point pressed, released, dragged;
-    private MouseTool mouse;
+    private Point pressed, dragged;
+    private MouseTool mouseTool;
 
     private int width, height;
-
-    private final SplashScreen splash = SplashScreen.getSplashScreen();
-    private Graphics2D g;
 
     private final KDTree edges;
 
     public Model()
     {
-        if (splash != null) {
-            g = splash.createGraphics();
-        }
-        updateSplash(0);
+        SplashLoader splashLoader = new SplashLoader();
+        splashLoader.updateSplash(0);
         String dir = "./res/data/";
-        mouse = MouseTool.ZOOM;
+        mouseTool = MouseTool.ZOOM;
 
         final HashMap<Integer, Node> nodeMap = new HashMap<>();
         final List<Edge> edgeList = new LinkedList<>();
@@ -70,7 +62,7 @@ public class Model extends Observable
                 edgeList.add(ed);
             }
         };
-        updateSplash(5);
+        splashLoader.updateSplash(5);
         try {
             loader.load(dir + "kdv_node_unload.txt", dir + "kdv_unload.txt", nodeMap);
         } catch (IOException ex) {
@@ -83,32 +75,12 @@ public class Model extends Observable
             System.exit(300);
         }
         DataLine.resetInterner();
-        updateSplash(50);
+        splashLoader.updateSplash(50);
         edges = new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
         height = 600;
         width = (int) (height * (highestX_COORD - lowestX_COORD) / (highestY_COORD - lowestY_COORD));
         reset();
-        updateSplash(100);
-    }
-
-    /**
-     * Calculates the factor that is used to calculate where the roads should be
-     * drawn.
-     */
-    public void calculateFactor()
-    {
-        // This factor determines how big the Map will be drawn.
-        factor = (rightX - leftX) / width;
-        if ((topY - bottomY) / height > factor) {
-            factor = (topY - bottomY) / height;
-        }
-        if (factor == 0) {
-            System.err.println("low: (" + leftX + ", " + bottomY + ")");
-            System.err.println("high: (" + rightX + ", " + topY + ")");
-            System.err.println("Window: (" + width + ", " + height + ")");
-        }
-        ratioX = (rightX - leftX) / width;
-        ratioY = (topY - bottomY) / height;
+        splashLoader.updateSplash(100);
     }
 
     /**
@@ -123,7 +95,7 @@ public class Model extends Observable
         double padding = ((((topY - bottomY) / height) * width) - (highestX_COORD - lowestX_COORD)) / 2;
         leftX = lowestX_COORD - padding;
         rightX = highestX_COORD + padding;
-
+        calculateFactor();
         setChanged();
     }
 
@@ -178,6 +150,7 @@ public class Model extends Observable
         topY = topY - (30 * ratioY);
         bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
         center(x, y);
+        calculateFactor();
         setChanged();
     }
 
@@ -193,6 +166,7 @@ public class Model extends Observable
         topY = topY + (30 * ratioY);
         bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
         center(x, y);
+        calculateFactor();
         setChanged();
     }
 
@@ -212,6 +186,8 @@ public class Model extends Observable
         rightX = rightX - (60 * rsp * ratioX);
         topY = topY - (60 * usp * ratioY);
         bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
+        
+        calculateFactor();
         setChanged();
     }
 
@@ -230,6 +206,8 @@ public class Model extends Observable
         rightX = rightX + (60 * rsp * ratioX);
         topY = topY + (60 * usp * ratioY);
         bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
+        
+        calculateFactor();
         setChanged();
     }
 
@@ -267,6 +245,7 @@ public class Model extends Observable
             bottomY = y2;
             rightX = leftX + (topY - bottomY) * ratio;
         }
+        calculateFactor();
         setChanged();
     }
 
@@ -282,15 +261,15 @@ public class Model extends Observable
         setChanged();
     }
 
-    public void setMouse(MouseTool mouse)
+    public void setMouseTool(MouseTool mouseTool)
     {
-        this.mouse = mouse;
+        this.mouseTool = mouseTool;
         setChanged();
     }
 
-    public MouseTool getMouse()
+    public MouseTool getMouseTool()
     {
-        return mouse;
+        return mouseTool;
     }
 
     public int getWidth()
@@ -307,6 +286,7 @@ public class Model extends Observable
     {
         this.width = width;
         this.height = height;
+        calculateFactor();
     }
 
     public List<Edge> getEdges(double xLow, double yLow, double xHigh, double yHigh)
@@ -343,12 +323,6 @@ public class Model extends Observable
         setChanged();
     }
 
-    public void setReleased(Point e)
-    {
-        released = e;
-        setChanged();
-    }
-
     public void setDragged(Point e)
     {
         dragged = e;
@@ -365,11 +339,6 @@ public class Model extends Observable
         return pressed;
     }
 
-    public Point getReleased()
-    {
-        return released;
-    }
-
     /**
      * 
      * @return The nearest roadname.
@@ -377,6 +346,22 @@ public class Model extends Observable
     public String getRoadname()
     {
         return roadname;
+    }
+    
+    /**
+     * Calculates the factor that is used to calculate where the roads should be
+     * drawn.
+     */
+    private void calculateFactor()
+    {
+        // This factor determines how big the Map will be drawn.
+        factor = (rightX - leftX) / width;
+        if ((topY - bottomY) / height > factor) {
+            factor = (topY - bottomY) / height;
+        }
+        assert(factor != 0);
+        ratioX = (rightX - leftX) / width;
+        ratioY = (topY - bottomY) / height;
     }
 
     /**
@@ -424,28 +409,5 @@ public class Model extends Observable
         double xMap = x * factor + leftX;
         double yMap = (height - y) * factor + bottomY;
         return new Point.Double(xMap, yMap);
-    }
-
-    /**
-     * Updates the Splash-screen on loading.
-     *
-     * @param percent The percentage of the program that is loaded.
-     * @throws IllegalArgumentException If the percentage is not between 0 and
-     * 100
-     */
-    private void updateSplash(int percent) throws IllegalArgumentException
-    {
-        if (percent < 0 || percent > 100) {
-            throw new IllegalArgumentException("A percentage is between 0 and 100");
-        }
-        if (g != null) {
-            double splashWidth = splash.getSize().width;
-            double splashHeight = splash.getSize().height;
-
-            g.setColor(Color.BLACK);
-            g.drawRect(10, (int) splashHeight - 10, (int) splashWidth - 20, 4);
-            g.fillRect(10, (int) splashHeight - 10, (int) (percent * ((splashWidth - 20) / 100.0)), 5);
-            splash.update();
-        }
     }
 }

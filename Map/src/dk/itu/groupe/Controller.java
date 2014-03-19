@@ -50,7 +50,6 @@ public class Controller implements
         } else {
             model.zoomScrollOut(e.getX(), e.getY());
         }
-        model.calculateFactor();
         model.notifyObservers();
     }
 
@@ -72,7 +71,6 @@ public class Controller implements
         //Right click to reset.
         if (me.getButton() == 3) {
             model.reset();
-            model.calculateFactor();
             model.notifyObservers();
         } else {
             model.setPressed(me.getPoint());
@@ -83,19 +81,15 @@ public class Controller implements
     @Override
     public void mouseReleased(MouseEvent me)
     {
-        if (me.getButton() == 1 && model.getMouse() == MouseTool.ZOOM) {
-            model.setReleased(me.getPoint());
-            if (model.getPressed().getX() == model.getReleased().getX() && model.getPressed().getY() == model.getReleased().getY()) {
-                model.setReleased(null);
+        if (me.getButton() == 1 && model.getMouseTool() == MouseTool.ZOOM) {
+            if (model.getPressed().x == model.getDragged().x && model.getPressed().y == model.getDragged().y) {
                 model.setPressed(null);
                 model.setDragged(null);
                 return;
             }
             model.zoomRect(model.getPressed().x, model.getPressed().y, model.getDragged().x, model.getDragged().y);
             model.setPressed(null);
-            model.setReleased(null);
             model.setDragged(null);
-            model.calculateFactor();
             model.notifyObservers();
         }
     }
@@ -109,7 +103,7 @@ public class Controller implements
     @Override
     public void mouseDragged(MouseEvent me)
     {
-        if (model.getMouse() == MouseTool.MOVE) {
+        if (model.getMouseTool() == MouseTool.MOVE) {
             if (model.getPressed() != null) {
                 model.moveMap(model.getDragged().x - me.getX(), model.getDragged().y - me.getY());
             }
@@ -122,7 +116,6 @@ public class Controller implements
     public void componentResized(ComponentEvent e)
     {
         model.setSize(view.getMap().getSize().width, view.getMap().getSize().height);
-        model.calculateFactor();
         model.notifyObservers();
     }
 
@@ -147,7 +140,6 @@ public class Controller implements
     public void windowStateChanged(WindowEvent e)
     {
         model.setSize(view.getMap().getSize().width, view.getMap().getSize().height);
-        model.calculateFactor();
         model.notifyObservers();
     }
 
@@ -189,13 +181,12 @@ public class Controller implements
                     model.zoomOut();
                     break;
                 case MOUSE_MOVE:
-                    model.setMouse(MouseTool.MOVE);
+                    model.setMouseTool(MouseTool.MOVE);
                     return;
                 case MOUSE_ZOOM:
-                    model.setMouse(MouseTool.ZOOM);
+                    model.setMouseTool(MouseTool.ZOOM);
                     return;
             }
-            model.calculateFactor();
             model.notifyObservers();
         }
     }

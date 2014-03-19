@@ -187,7 +187,7 @@ public class View extends JComponent implements Observer
         @Override
         public void paintComponent(Graphics g)
         {
-            if (model.getMouse() == MouseTool.ZOOM && model.getPressed() != null) {
+            if (model.getMouseTool() == MouseTool.ZOOM && model.getPressed() != null) {
                 int x1 = model.getPressed().x;
                 int y1 = model.getPressed().y;
                 int x2 = model.getDragged().x;
@@ -221,7 +221,6 @@ public class View extends JComponent implements Observer
             } else {
                 image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D gB = image.createGraphics();
-                //model.calculateFactor();
                 Point.Double topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
                 for (Edge edge : model.getEdges(topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)) {
                     switch (edge.getType()) {
