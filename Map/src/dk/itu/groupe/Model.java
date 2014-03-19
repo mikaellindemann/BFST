@@ -48,9 +48,6 @@ public class Model extends Observable
     private final SplashScreen splash = SplashScreen.getSplashScreen();
     private Graphics2D g;
 
-    /**
-     * An ArrayList of EdgeData containing (for now) all the data supplied.
-     */
     private final KDTree edges;
     
     public Model()
@@ -62,15 +59,9 @@ public class Model extends Observable
         String dir = "./res/data/";
         mouse = MouseTool.ZOOM;
 
-        // For this example, we'll simply load the raw data into
-        // ArrayLists.
-        //final List<EdgeData> edgeList = new ArrayList<>();
         final HashMap<Integer, Node> nodeMap = new HashMap<>();
         final List<Edge> edgeList = new LinkedList<>();
 
-        // For that, we need to inherit from KrakLoader and override
-        // processNode and processEdge. We do that with an 
-        // anonymous class. 
         KrakLoader loader = new KrakLoader()
         {
             @Override
@@ -86,11 +77,6 @@ public class Model extends Observable
             }
         };
         updateSplash(5);
-
-        // If your machine slows to a crawl doing inputting, try
-        // uncommenting this. 
-        // Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-        // Invoke the loader class.
         try {
             loader.load(dir + "kdv_node_unload.txt", dir + "kdv_unload.txt", nodeMap);
         } catch (IOException ex) {
@@ -134,7 +120,7 @@ public class Model extends Observable
     /**
      * Sets the maps coordinates to the initial value (Show all Denmark).
      */
-    public void reset()
+    public final void reset()
     {
         lowY = lowestY_COORD / 1.001;
         highY = highestY_COORD * 1.001;
