@@ -8,8 +8,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Point;
-
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +20,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 /**
@@ -116,46 +113,50 @@ public class View extends JComponent implements Observer
 
         buttonUp = new JButton("↑");
         buttonUp.setMaximumSize(new Dimension(100, 40));
-        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "buttonUp");
         getActionMap().put("buttonUp", Action.UP.getListener(model));
         buttonUp.addActionListener(Action.UP.getListener(model));
 
         buttonRight = new JButton("→");
         buttonRight.setMaximumSize(new Dimension(100, 40));
-        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "buttonRight");
         getActionMap().put("buttonRight", Action.RIGHT.getListener(model));
         buttonRight.addActionListener(Action.RIGHT.getListener(model));
 
         buttonLeft = new JButton("←");
         buttonLeft.setMaximumSize(new Dimension(100, 40));
-        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "buttonLeft");
         getActionMap().put("buttonLeft", Action.LEFT.getListener(model));
         buttonLeft.addActionListener(Action.LEFT.getListener(model));
 
         buttonDown = new JButton("↓");
         buttonDown.setMaximumSize(new Dimension(100, 40));
-        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "buttonDown");
         getActionMap().put("buttonDown", Action.DOWN.getListener(model));
         buttonDown.addActionListener(Action.DOWN.getListener(model));
 
         buttonZoomIn = new JButton("+");
         buttonZoomIn.setMaximumSize(new Dimension(100, 40));
-        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), "buttonZoomIn");
         getActionMap().put("buttonZoomIn", Action.ZOOM_IN.getListener(model));
         buttonZoomIn.addActionListener(Action.ZOOM_IN.getListener(model));
 
         buttonZoomOut = new JButton("-");
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
-        getInputMap(JButton.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), "buttonZoomOut");
         getActionMap().put("buttonZoomOut", Action.ZOOM_OUT.getListener(model));
         buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
 
-        mouseZoom = new JRadioButton("Zoom", true);
+        mouseZoom = new JRadioButton("Zoom");
         mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
+        if (model.getMouseTool() == MouseTool.ZOOM) {
+            mouseZoom.setSelected(true);
+        } else {
+            mouseZoom.setSelected(false);
+        }
         mouseZoom.setBackground(BGColor);
 
-        mouseMove = new JRadioButton("Move", false);
+        mouseMove = new JRadioButton("Move");
         mouseMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
+        if (model.getMouseTool() == MouseTool.MOVE) {
+            mouseMove.setSelected(true);
+        } else {
+            mouseMove.setSelected(false);
+        }
         mouseMove.setBackground(BGColor);
         mouse = new ButtonGroup();
         mouse.add(mouseZoom);

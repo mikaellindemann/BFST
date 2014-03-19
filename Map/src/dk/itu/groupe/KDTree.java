@@ -27,17 +27,17 @@ public class KDTree
      * Creates the KDTree-structure until there are no more elements.
      *
      * @param edges A list of edges that should be spread out on the tree.
-     * @param xMin The left x-coordinate.
-     * @param yMin The bottom y-coordinate.
-     * @param xMax The right x-coordinate.
-     * @param yMax The top y-coordinate.
+     * @param xLeft The left x-coordinate.
+     * @param yBottom The bottom y-coordinate.
+     * @param xRight The right x-coordinate.
+     * @param yTop The top y-coordinate.
      */
-    public KDTree(List<Edge> edges, double xMin, double yMin, double xMax, double yMax)
+    public KDTree(List<Edge> edges, double xLeft, double yBottom, double xRight, double yTop)
     {
-        xmin = xMin;
-        ymin = yMin;
-        xmax = xMax;
-        ymax = yMax;
+        xmin = xLeft;
+        ymin = yBottom;
+        xmax = xRight;
+        ymax = yTop;
 
         int size = edges.size();
 
@@ -105,8 +105,8 @@ public class KDTree
     /**
      * Returns the nearest edge.
      *
-     * @param x The x-coordinate to look at.
-     * @param y The y-coordinate to look at.
+     * @param x The x-coordinate to look near.
+     * @param y The y-coordinate to look near.
      * @return The edge that are nearest to the coordinates.
      */
     public Edge getNearest(double x, double y)
@@ -129,40 +129,40 @@ public class KDTree
      *
      * It actually adds a little more to the distance.
      *
-     * @param xLow The left x-coordinate
-     * @param yLow The bottom y-coordinate
-     * @param xHigh The right x-coordinate
-     * @param yHigh The top y-coordinate.
+     * @param leftX The left x-coordinate
+     * @param bottomY The bottom y-coordinate
+     * @param rightX The right x-coordinate
+     * @param topY The top y-coordinate.
      * @return A list of edgedata containing the edges that are inside the
      * rectangle.
      */
-    public List<Edge> getEdges(double xLow, double yLow, double xHigh, double yHigh)
+    public List<Edge> getEdges(double leftX, double bottomY, double rightX, double topY)
     {
         if (dim == Dimension.X) {
-            if (xHigh + (xHigh - xLow) / 2  < xmin || xLow - (xHigh - xLow) > xmax) {
+            if (rightX + (rightX - leftX) / 2  < xmin || leftX - (rightX - leftX) > xmax) {
                 return empty;
             }
         } else {
-            if (yHigh + (yHigh - yLow) < ymin || yLow - (yHigh - yLow) > ymax) {
+            if (topY + (topY - bottomY) < ymin || bottomY - (topY - bottomY) > ymax) {
                 return empty;
             }
         }
 
         List<Edge> edgeList = new LinkedList<>();
         if (LOW != null) {
-            edgeList.addAll(LOW.getEdges(xLow, yLow, xHigh, yHigh));
+            edgeList.addAll(LOW.getEdges(leftX, bottomY, rightX, topY));
 
             if (centerEdge != null) {
                 edgeList.add(centerEdge);
 
                 if (HIGH != null) {
-                    edgeList.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
+                    edgeList.addAll(HIGH.getEdges(leftX, bottomY, rightX, topY));
                 }
             }
         } else if (HIGH != null) {
             if (centerEdge != null) {
                 edgeList.add(centerEdge);
-                edgeList.addAll(HIGH.getEdges(xLow, yLow, xHigh, yHigh));
+                edgeList.addAll(HIGH.getEdges(leftX, bottomY, rightX, topY));
             }
         } else {
             edgeList.add(centerEdge);

@@ -3,6 +3,7 @@ package dk.itu.groupe;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -11,7 +12,9 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.KeyStroke;
 
 /**
  *
@@ -33,6 +36,12 @@ public class Controller implements
     {
         this.model = model;
         this.view = view;
+        view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "buttonUp");
+        view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "buttonRight");
+        view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "buttonLeft");
+        view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "buttonDown");
+        view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), "buttonZoomIn");
+        view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), "buttonZoomOut");
     }
 
     @Override
@@ -201,11 +210,11 @@ public class Controller implements
         model.addObserver(view);
         Controller controller = new Controller(model, view);
         view.getMap().addComponentListener(controller);
-        frame.addWindowStateListener(controller);
-        frame.setContentPane(view);
         view.getMap().addMouseListener(controller);
         view.getMap().addMouseMotionListener(controller);
         view.getMap().addMouseWheelListener(controller);
+        frame.addWindowStateListener(controller);
+        frame.setContentPane(view);
         frame.pack();
         frame.setVisible(true);
         model.reset();

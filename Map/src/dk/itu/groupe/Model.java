@@ -186,7 +186,7 @@ public class Model extends Observable
         rightX = rightX - (60 * rsp * ratioX);
         topY = topY - (60 * usp * ratioY);
         bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
-        
+
         calculateFactor();
         setChanged();
     }
@@ -206,7 +206,7 @@ public class Model extends Observable
         rightX = rightX + (60 * rsp * ratioX);
         topY = topY + (60 * usp * ratioY);
         bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
-        
+
         calculateFactor();
         setChanged();
     }
@@ -289,14 +289,22 @@ public class Model extends Observable
         calculateFactor();
     }
 
-    public List<Edge> getEdges(double xLow, double yLow, double xHigh, double yHigh)
+    /**
+     * 
+     * @param xLeft
+     * @param yBottom
+     * @param xRight
+     * @param yTop
+     * @return 
+     */
+    public List<Edge> getEdges(double xLeft, double yBottom, double xRight, double yTop)
     {
-        return edges.getEdges(xLow, yLow, xHigh, yHigh);
+        return edges.getEdges(xLeft, yBottom, xRight, yTop);
     }
 
     /**
      *
-     * @return A Point(x,y) containing the top left coordinates.
+     * @return A Point(x,y) containing the left and top coordinates.
      */
     public Point.Double getLeftTop()
     {
@@ -305,13 +313,19 @@ public class Model extends Observable
 
     /**
      *
-     * @return A point (x,y) containing the bottom right coordinates.
+     * @return A point (x,y) containing the right and bottom coordinates.
      */
     public Point.Double getRightBottom()
     {
         return new Point.Double(rightX, bottomY);
     }
 
+    /**
+     * Returns the current factor between the map-size and the on-screen
+     * map-size.
+     *
+     * @return The factor used to draw the map in the right
+     */
     public double getFactor()
     {
         return factor;
@@ -340,14 +354,14 @@ public class Model extends Observable
     }
 
     /**
-     * 
+     *
      * @return The nearest roadname.
      */
     public String getRoadname()
     {
         return roadname;
     }
-    
+
     /**
      * Calculates the factor that is used to calculate where the roads should be
      * drawn.
@@ -359,7 +373,7 @@ public class Model extends Observable
         if ((topY - bottomY) / height > factor) {
             factor = (topY - bottomY) / height;
         }
-        assert(factor != 0);
+        assert (factor != 0);
         ratioX = (rightX - leftX) / width;
         ratioY = (topY - bottomY) / height;
     }
