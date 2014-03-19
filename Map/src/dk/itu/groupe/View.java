@@ -188,10 +188,10 @@ public class View extends JComponent implements Observer
         public void paintComponent(Graphics g)
         {
             if (model.getMouse() == MouseTool.ZOOM && model.getPressed() != null) {
-                int x1 = model.getPressed().getX();
-                int y1 = model.getPressed().getY();
-                int x2 = model.getDragged().getX();
-                int y2 = model.getDragged().getY();
+                int x1 = model.getPressed().x;
+                int y1 = model.getPressed().y;
+                int x2 = model.getDragged().x;
+                int y2 = model.getDragged().y;
 
                 if (x1 > x2) {
                     int tmp = x2;
@@ -222,7 +222,7 @@ public class View extends JComponent implements Observer
                 image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D gB = image.createGraphics();
                 //model.calculateFactor();
-                Point.Double topLeft = model.getTopLeft(), bottomRight = model.getBottomRight();
+                Point.Double topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
                 for (Edge edge : model.getEdges(topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)) {
                     switch (edge.getType()) {
                         case HIGHWAY:

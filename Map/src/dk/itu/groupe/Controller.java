@@ -1,6 +1,5 @@
 package dk.itu.groupe;
 
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -19,11 +18,11 @@ import javax.swing.JFrame;
  * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
  * Jepsen <mlin@itu.dk>
  */
-public class Controller implements 
-        MouseListener, 
-        MouseMotionListener, 
-        MouseWheelListener, 
-        ComponentListener, 
+public class Controller implements
+        MouseListener,
+        MouseMotionListener,
+        MouseWheelListener,
+        ComponentListener,
         WindowStateListener
 {
 
@@ -39,38 +38,20 @@ public class Controller implements
     @Override
     public void mouseMoved(MouseEvent me)
     {
-        model.setMouseMapCoordinates(me.getX(), me.getY());
-        model.updateRoadname();
+        model.updateRoadname(me.getX(), me.getY());
         model.notifyObservers("updateRoadname");
     }
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e)
     {
-        model.setMouseMapCoordinates(e.getX(), e.getY());
-        Point.Double topLeft = model.getTopLeft(), bottomRight = model.getBottomRight();
-        double mapX = model.getMapX(), highX = bottomRight.x, lowX = topLeft.x,
-                mapY = model.getMapY(), highY = topLeft.y, lowY = bottomRight.y;
-        // Only zoom if the mouse is within the actual map
-        if (mapX < highX && mapX > lowX && mapY < highY && mapY > lowY) {
-            // calculate the ratio of the distances from the mouse to the edges (up, down, left, right)
-            double ls = mapX - lowX;
-            double rs = highX - mapX;
-            double lsp = ls / (ls + rs);
-            double rsp = rs / (ls + rs);
-            double ds = mapY - lowY;
-            double us = highY - mapY;
-            double dsp = ds / (ds + us);
-            double usp = us / (ds + us);
-            if (e.getWheelRotation() < 0) {
-                model.zoomScrollIn(usp, dsp, lsp, rsp);
-
-            } else {
-                model.zoomScrollOut(usp, dsp, lsp, rsp);
-            }
-            model.calculateFactor();
-            model.notifyObservers();
+        if (e.getWheelRotation() < 0) {
+            model.zoomScrollIn(e.getX(), e.getY());
+        } else {
+            model.zoomScrollOut(e.getX(), e.getY());
         }
+        model.calculateFactor();
+        model.notifyObservers();
     }
 
     @Override
@@ -94,8 +75,8 @@ public class Controller implements
             model.calculateFactor();
             model.notifyObservers();
         } else {
-            model.setPressed(me);
-            model.setDragged(me);
+            model.setPressed(me.getPoint());
+            model.setDragged(me.getPoint());
         }
     }
 
@@ -103,17 +84,17 @@ public class Controller implements
     public void mouseReleased(MouseEvent me)
     {
         if (me.getButton() == 1 && model.getMouse() == MouseTool.ZOOM) {
-            model.setReleased(me);
+            model.setReleased(me.getPoint());
             if (model.getPressed().getX() == model.getReleased().getX() && model.getPressed().getY() == model.getReleased().getY()) {
                 model.setReleased(null);
                 model.setPressed(null);
                 model.setDragged(null);
                 return;
             }
+            model.zoomRect(model.getPressed().x, model.getPressed().y, model.getDragged().x, model.getDragged().y);
             model.setPressed(null);
             model.setReleased(null);
             model.setDragged(null);
-            model.zoomRect();
             model.calculateFactor();
             model.notifyObservers();
         }
@@ -128,20 +109,19 @@ public class Controller implements
     @Override
     public void mouseDragged(MouseEvent me)
     {
-        model.setMouseMapCoordinates(me.getX(), me.getY());
         if (model.getMouse() == MouseTool.MOVE) {
             if (model.getPressed() != null) {
-                model.moveMap(model.getDragged().getX() - me.getX(), model.getDragged().getY() - me.getY());
+                model.moveMap(model.getDragged().x - me.getX(), model.getDragged().y - me.getY());
             }
         }
-        model.setDragged(me);
+        model.setDragged(me.getPoint());
         model.notifyObservers();
     }
 
     @Override
     public void componentResized(ComponentEvent e)
     {
-        model.setSize(view.getMap().getSize());
+        model.setSize(view.getMap().getSize().width, view.getMap().getSize().height);
         model.calculateFactor();
         model.notifyObservers();
     }
@@ -149,9 +129,6 @@ public class Controller implements
     @Override
     public void componentMoved(ComponentEvent e)
     {
-        model.setSize(view.getMap().getSize());
-        model.calculateFactor();
-        model.notifyObservers();
     }
 
     @Override
@@ -169,26 +146,27 @@ public class Controller implements
     @Override
     public void windowStateChanged(WindowEvent e)
     {
-        model.setSize(view.getMap().getSize());
+        model.setSize(view.getMap().getSize().width, view.getMap().getSize().height);
         model.calculateFactor();
         model.notifyObservers();
     }
-    
+
     public static class Listener extends AbstractAction
     {
+
         private final Model model;
         private final Action action;
-        
+
         public Listener(Model model, Action action)
         {
             this.model = model;
             this.action = action;
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e)
         {
-            switch(action) {
+            switch (action) {
                 case RESET:
                     model.reset();
                     break;
@@ -221,22 +199,22 @@ public class Controller implements
             model.notifyObservers();
         }
     }
-    
+
     public static void main(String[] args)
     {
         JFrame frame = new JFrame();
-        //frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Model model = new Model();
         View view = new View(model);
         model.addObserver(view);
         Controller controller = new Controller(model, view);
-        view.addComponentListener(controller);
+        view.getMap().addComponentListener(controller);
         frame.addWindowStateListener(controller);
         frame.setContentPane(view);
-        frame.getContentPane().addMouseListener(controller);
-        frame.getContentPane().addMouseMotionListener(controller);
-        frame.getContentPane().addMouseWheelListener(controller);
+        view.getMap().addMouseListener(controller);
+        view.getMap().addMouseMotionListener(controller);
+        view.getMap().addMouseWheelListener(controller);
         frame.pack();
         frame.setVisible(true);
         model.reset();

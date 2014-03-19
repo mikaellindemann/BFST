@@ -1,11 +1,9 @@
 package dk.itu.groupe;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.SplashScreen;
-import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -29,18 +27,14 @@ public class Model extends Observable
     private final static double highestY_COORD = 6402050.98297;
 
     // Bounds of the window.
-    private double lowX, lowY, highX, highY;
+    private double leftX, bottomY, rightX, topY;
     private double factor;
     private double ratioX;
     private double ratioY;
 
-    // mouse positions
-    private double mapX, mapY;
-    private double mapXPressed, mapYPressed;
-
     private String roadname;
 
-    private MouseEvent pressed, released, dragged;
+    private Point pressed, released, dragged;
     private MouseTool mouse;
 
     private int width, height;
@@ -49,7 +43,7 @@ public class Model extends Observable
     private Graphics2D g;
 
     private final KDTree edges;
-    
+
     public Model()
     {
         if (splash != null) {
@@ -104,17 +98,17 @@ public class Model extends Observable
     public void calculateFactor()
     {
         // This factor determines how big the Map will be drawn.
-        factor = (highX - lowX) / width;
-        if ((highY - lowY) / height > factor) {
-            factor = (highY - lowY) / height;
+        factor = (rightX - leftX) / width;
+        if ((topY - bottomY) / height > factor) {
+            factor = (topY - bottomY) / height;
         }
         if (factor == 0) {
-            System.err.println("low: (" + lowX + ", " + lowY + ")");
-            System.err.println("high: (" + highX + ", " + highY + ")");
+            System.err.println("low: (" + leftX + ", " + bottomY + ")");
+            System.err.println("high: (" + rightX + ", " + topY + ")");
             System.err.println("Window: (" + width + ", " + height + ")");
         }
-        ratioX = (highX - lowX) / width;
-        ratioY = (highY - lowY) / height;
+        ratioX = (rightX - leftX) / width;
+        ratioY = (topY - bottomY) / height;
     }
 
     /**
@@ -122,65 +116,53 @@ public class Model extends Observable
      */
     public final void reset()
     {
-        lowY = lowestY_COORD / 1.001;
-        highY = highestY_COORD * 1.001;
+        bottomY = lowestY_COORD / 1.001;
+        topY = highestY_COORD * 1.001;
 
         // This padding makes sure that the screen will center the map horizontally.
-        double padding = ((((highY - lowY) / height) * width) - (highestX_COORD - lowestX_COORD)) / 2;
-        lowX = lowestX_COORD - padding;
-        highX = highestX_COORD + padding;
+        double padding = ((((topY - bottomY) / height) * width) - (highestX_COORD - lowestX_COORD)) / 2;
+        leftX = lowestX_COORD - padding;
+        rightX = highestX_COORD + padding;
 
         setChanged();
     }
 
     public void goUp(int distance)
     {
-        if (highY < highestY_COORD) {
-            lowY = lowY + (distance * factor);
-            highY = highY + (distance * factor);
+        if (topY < highestY_COORD) {
+            moveVertical(distance * factor);
         }
         setChanged();
     }
 
     public void goLeft(int distance)
     {
-        if (lowX > lowestX_COORD) {
-            lowX = lowX - (distance * factor);
-            highX = highX - (distance * factor);
+        if (leftX > lowestX_COORD) {
+            moveHorizontal(-distance * factor);
         }
         setChanged();
     }
 
     public void goRight(int distance)
     {
-        if (highX < highestX_COORD) {
-            lowX = lowX + (distance * factor);
-            highX = highX + (distance * factor);
+        if (rightX < highestX_COORD) {
+            moveHorizontal(distance * factor);
         }
         setChanged();
     }
 
     public void goDown(int distance)
     {
-        if (lowY > lowestY_COORD) {
-            lowY = lowY - (distance * factor);
-            highY = highY - (distance * factor);
+        if (bottomY > lowestY_COORD) {
+            moveVertical(-distance * factor);
         }
         setChanged();
     }
 
     public void moveMap(int x, int y)
     {
-        if (x > 0) {
-            goRight(x);
-        } else {
-            goLeft(-x);
-        }
-        if (y > 0) {
-            goDown(y);
-        } else {
-            goUp(-y);
-        }
+        moveHorizontal(x * factor);
+        moveVertical(-y * factor);
         setChanged();
     }
 
@@ -189,10 +171,13 @@ public class Model extends Observable
      */
     public void zoomIn()
     {
-        lowX = lowX + (30 * ratioX);
-        highX = highX - (30 * ratioX);
-        highY = highY - (30 * ratioY);
-        lowY = (highY - (highX - lowX) / ((double) width / (double) height));
+        double x = (rightX + leftX) / 2;
+        double y = (topY + bottomY) / 2;
+        leftX = leftX + (30 * ratioX);
+        rightX = rightX - (30 * ratioX);
+        topY = topY - (30 * ratioY);
+        bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
+        center(x, y);
         setChanged();
     }
 
@@ -201,35 +186,66 @@ public class Model extends Observable
      */
     public void zoomOut()
     {
-        lowX = lowX - (30 * ratioX);
-        highX = highX + (30 * ratioX);
-        highY = highY + (30 * ratioY);
-        lowY = (highY - (highX - lowX) / ((double) width / (double) height));
+        double x = (rightX + leftX) / 2;
+        double y = (topY + bottomY) / 2;
+        leftX = leftX - (30 * ratioX);
+        rightX = rightX + (30 * ratioX);
+        topY = topY + (30 * ratioY);
+        bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
+        center(x, y);
         setChanged();
     }
 
-    public void zoomScrollIn(double usp, double dsp, double lsp, double rsp)
+    public void zoomScrollIn(int x, int y)
     {
-        lowX = lowX + (60 * lsp * ratioX);
-        highX = highX - (60 * rsp * ratioX);
-        highY = highY - (60 * usp * ratioY);
-        lowY = (highY - (highX - lowX) / ((double) width / (double) height));
+        Point.Double p = translatePoint(x, y);
+        double ls = p.x - leftX;
+        double rs = rightX - p.x;
+        double lsp = ls / (ls + rs);
+        double rsp = rs / (ls + rs);
+        double ds = p.y - bottomY;
+        double us = topY - p.y;
+        //double dsp = ds / (ds + us);
+        double usp = us / (ds + us);
+
+        leftX = leftX + (60 * lsp * ratioX);
+        rightX = rightX - (60 * rsp * ratioX);
+        topY = topY - (60 * usp * ratioY);
+        bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
         setChanged();
     }
 
-    public void zoomScrollOut(double usp, double dsp, double lsp, double rsp)
+    public void zoomScrollOut(int x, int y)
     {
-        lowX = lowX - (60 * lsp * ratioX);
-        highX = highX + (60 * rsp * ratioX);
-        highY = highY + (60 * usp * ratioY);
-        lowY = (highY - (highX - lowX) / ((double) width / (double) height));
+        Point.Double p = translatePoint(x, y);
+        double ls = p.x - leftX;
+        double rs = rightX - p.x;
+        double lsp = ls / (ls + rs);
+        double rsp = rs / (ls + rs);
+        double ds = p.y - bottomY;
+        double us = topY - p.y;
+        //double dsp = ds / (ds + us);
+        double usp = us / (ds + us);
+        leftX = leftX - (60 * lsp * ratioX);
+        rightX = rightX + (60 * rsp * ratioX);
+        topY = topY + (60 * usp * ratioY);
+        bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
         setChanged();
     }
 
-    public void zoomRect()
+    /**
+     *
+     * @param xLeft Screen coordinate for the left side of the rectangle.
+     * @param yTop Screen coordinate for the top side of the rectangle.
+     * @param xRight Screen coordinate for the right side of the rectangle.
+     * @param yBottom Screen coordinate for the bottom side of the rectangle.
+     */
+    public void zoomRect(int xLeft, int yTop, int xRight, int yBottom)
     {
-        double x2 = mapX, x1 = mapXPressed;
-        double y2 = mapY, y1 = mapYPressed;
+        Point.Double leftTop = translatePoint(xLeft, yTop), rightBottom = translatePoint(xRight, yBottom);
+
+        double x2 = rightBottom.x, x1 = leftTop.x;
+        double y2 = rightBottom.y, y1 = leftTop.y;
 
         if (x1 > x2) {
             double tmp = x1;
@@ -242,29 +258,22 @@ public class Model extends Observable
             y2 = tmp;
         }
         double ratio = (double) width / (double) height;
-        lowX = x1;
-        highY = y1;
+        leftX = x1;
+        topY = y1;
         if (Math.abs(x2 - x1) / width > Math.abs(y1 - y2) / height) {
-            // This is buggy
-            highX = x2;
-            lowY = (highY - (highX - lowX) / ratio);
+            rightX = x2;
+            bottomY = (topY - (rightX - leftX) / ratio);
         } else {
-            // This should work
-            lowY = y2;
-            highX = lowX + (highY - lowY) * ratio;
+            bottomY = y2;
+            rightX = leftX + (topY - bottomY) * ratio;
         }
         setChanged();
     }
 
-    public void setMouseMapCoordinates(int x, int y)
+    public void updateRoadname(int x, int y)
     {
-        mapX = x * factor + lowX;
-        mapY = (height - y) * factor + lowY;
-    }
-
-    public void updateRoadname()
-    {
-        Edge near = edges.getNearest(mapX, mapY);
+        Point.Double p = translatePoint(x, y);
+        Edge near = edges.getNearest(p.x, p.y);
         if (near != null) {
             roadname = near.VEJNAVN;
         } else {
@@ -294,10 +303,10 @@ public class Model extends Observable
         return height;
     }
 
-    public void setSize(Dimension d)
+    public void setSize(int width, int height)
     {
-        width = d.width;
-        height = d.height;
+        this.width = width;
+        this.height = height;
     }
 
     public List<Edge> getEdges(double xLow, double yLow, double xHigh, double yHigh)
@@ -309,18 +318,18 @@ public class Model extends Observable
      *
      * @return A Point(x,y) containing the top left coordinates.
      */
-    public Point.Double getTopLeft()
+    public Point.Double getLeftTop()
     {
-        return new Point.Double(lowX, highY);
+        return new Point.Double(leftX, topY);
     }
 
     /**
      *
      * @return A point (x,y) containing the bottom right coordinates.
      */
-    public Point.Double getBottomRight()
+    public Point.Double getRightBottom()
     {
-        return new Point.Double(highX, lowY);
+        return new Point.Double(rightX, bottomY);
     }
 
     public double getFactor()
@@ -328,77 +337,102 @@ public class Model extends Observable
         return factor;
     }
 
-    public void setPressed(MouseEvent pressed)
+    public void setPressed(Point e)
     {
-        this.pressed = pressed;
-        if (pressed != null) {
-            mapXPressed = pressed.getX() * factor + lowX;
-            mapYPressed = (height - pressed.getY()) * factor + lowY;
-        }
-    }
-
-    public void setReleased(MouseEvent released)
-    {
-        this.released = released;
+        pressed = e;
         setChanged();
     }
 
-    public void setDragged(MouseEvent dragged)
+    public void setReleased(Point e)
     {
-        this.dragged = dragged;
+        released = e;
         setChanged();
     }
 
-    public static double getLowestX_COORD()
+    public void setDragged(Point e)
     {
-        return lowestX_COORD;
+        dragged = e;
+        setChanged();
     }
 
-    public static double getHighestX_COORD()
-    {
-        return highestX_COORD;
-    }
-
-    public static double getLowestY_COORD()
-    {
-        return lowestY_COORD;
-    }
-
-    public static double getHighestY_COORD()
-    {
-        return highestY_COORD;
-    }
-
-    public double getMapX()
-    {
-        return mapX;
-    }
-
-    public double getMapY()
-    {
-        return mapY;
-    }
-
-    public MouseEvent getPressed()
-    {
-        return pressed;
-    }
-
-    public MouseEvent getReleased()
-    {
-        return released;
-    }
-
-    public MouseEvent getDragged()
+    public Point getDragged()
     {
         return dragged;
     }
 
+    public Point getPressed()
+    {
+        return pressed;
+    }
+
+    public Point getReleased()
+    {
+        return released;
+    }
+
+    /**
+     * 
+     * @return The nearest roadname.
+     */
     public String getRoadname()
     {
         return roadname;
     }
-    
+
+    /**
+     * Centers the screen on the map-coordinates supplied.
+     *
+     * @param x
+     * @param y
+     */
+    private void center(double x, double y)
+    {
+        double currentCenterX = (rightX + leftX) / 2;
+        double currentCenterY = (topY + bottomY) / 2;
+
+        moveHorizontal(x - currentCenterX);
+        moveVertical(y - currentCenterY);
+    }
+
+    /**
+     * Moves the map horizontally.
+     *
+     * @param distance The "on map"-distance to move the map.
+     */
+    private void moveHorizontal(double distance)
+    {
+        leftX += distance;
+        rightX += distance;
+    }
+
+    /**
+     * Moves the map vertically.
+     *
+     * @param distance The "on map"-distance to move the map.
+     */
+    private void moveVertical(double distance)
+    {
+        bottomY += distance;
+        topY += distance;
+    }
+
+    /**
+     * Translates screen-coordinates into map-coordinates.
+     */
+    private Point.Double translatePoint(int x, int y)
+    {
+        double xMap = x * factor + leftX;
+        double yMap = (height - y) * factor + bottomY;
+        return new Point.Double(xMap, yMap);
+    }
+
+    /**
+     * Updates the Splash-screen on loading.
+     *
+     * @param percent The percentage of the program that is loaded.
+     * @throws IllegalArgumentException If the percentage is not between 0 and
+     * 100
+     */
     private void updateSplash(int percent) throws IllegalArgumentException
     {
         if (percent < 0 || percent > 100) {
