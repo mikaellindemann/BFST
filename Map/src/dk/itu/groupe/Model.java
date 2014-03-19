@@ -177,25 +177,13 @@ public class Model extends Observable
      */
     public void zoomScrollIn(int x, int y)
     {
+        // Map coordinates before zoom
         Point.Double p = translatePoint(x, y);
-        double ls = p.x - leftX;
-        double rs = rightX - p.x;
-        double lsp = ls / (ls + rs);
-        double rsp = rs / (ls + rs);
-        double ds = p.y - bottomY;
-        double us = topY - p.y;
-        //double dsp = ds / (ds + us);
-        double usp = us / (ds + us);
-
-        leftX = leftX + (60 * lsp * ratioX);
-        rightX = rightX - (60 * rsp * ratioX);
-        topY = topY - (60 * usp * ratioY);
-        bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
-
-        calculateFactor();
-        
+        zoomIn();
+        // Map coordinates after zoom
         Point.Double p1 = translatePoint(x, y);
 
+        // Restore the previous map-coordinates to (x, y)
         moveHorizontal(p.x - p1.x);
         moveVertical(p.y - p1.y);
         
@@ -204,23 +192,13 @@ public class Model extends Observable
 
     public void zoomScrollOut(int x, int y)
     {
+        // Map coordinates before zoom
         Point.Double p = translatePoint(x, y);
-        double ls = p.x - leftX;
-        double rs = rightX - p.x;
-        double lsp = ls / (ls + rs);
-        double rsp = rs / (ls + rs);
-        double ds = p.y - bottomY;
-        double us = topY - p.y;
-        //double dsp = ds / (ds + us);
-        double usp = us / (ds + us);
-        leftX = leftX - (60 * lsp * ratioX);
-        rightX = rightX + (60 * rsp * ratioX);
-        topY = topY + (60 * usp * ratioY);
-        bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
-        calculateFactor();
-
+        zoomOut();
+        // Map coordinates after zoom
         Point.Double p1 = translatePoint(x, y);
 
+        // Restore the previous map-coordinates to (x, y)
         moveHorizontal(p.x - p1.x);
         moveVertical(p.y - p1.y);
 
