@@ -1,7 +1,10 @@
 package dk.itu.groupe;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.SplashScreen;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.HashMap;
@@ -49,6 +52,13 @@ public class Model extends Observable
 
     public Model()
     {
+        SplashScreen splash = SplashScreen.getSplashScreen();
+        Graphics2D g = splash.createGraphics();
+        g.setColor(Color.BLACK);
+        g.drawRect(10, splash.getSize().height - 10, splash.getSize().width - 20, 4);
+        g.fillRect(10, splash.getSize().height - 10, 1, 5);
+        splash.update();
+        
         String dir = "./data/";
         mouse = MouseTool.ZOOM;
 
@@ -75,6 +85,9 @@ public class Model extends Observable
                 edgeList.add(ed);
             }
         };
+        
+        g.fillRect(10, splash.getSize().height - 10, 10, 5);
+        splash.update();
 
         // If your machine slows to a crawl doing inputting, try
         // uncommenting this. 
@@ -92,7 +105,11 @@ public class Model extends Observable
             System.exit(300);
         }
         DataLine.resetInterner();
+        g.fillRect(10, splash.getSize().height - 10, splash.getSize().width / 2, 5);
+        splash.update();
         edges = new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
+        g.fillRect(10, splash.getSize().height - 10, splash.getSize().width - 20, 5);
+        splash.update();
         height = 600;
         width = (int) (height * (highestX_COORD - lowestX_COORD) / (highestY_COORD - lowestY_COORD));
         reset();
@@ -125,12 +142,12 @@ public class Model extends Observable
     {
         lowY = lowestY_COORD / 1.001;
         highY = highestY_COORD * 1.001;
-        
+
         // This padding makes sure that the screen will center the map horizontally.
         double padding = ((((highY - lowY) / height) * width) - (highestX_COORD - lowestX_COORD)) / 2;
         lowX = lowestX_COORD - padding;
         highX = highestX_COORD + padding;
-        
+
         setChanged();
     }
 
