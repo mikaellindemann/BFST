@@ -45,21 +45,32 @@ public class Model extends Observable
 
     private int width, height;
 
+    private final SplashScreen splash = SplashScreen.getSplashScreen();
+    private final Graphics2D g = splash.createGraphics();
+
     /**
      * An ArrayList of EdgeData containing (for now) all the data supplied.
      */
     private final KDTree edges;
 
+    private void updateSplash(int percent) throws IllegalArgumentException
+    {
+        if (percent < 0 || percent > 100) {
+            throw new IllegalArgumentException("A percentage is between 0 and 100");
+        }
+        double splashWidth = splash.getSize().width;
+        double splashHeight = splash.getSize().height;
+
+        g.setColor(Color.BLACK);
+        g.drawRect(10, (int) splashHeight - 10, (int) splashWidth - 20, 4);
+        g.fillRect(10, (int) splashHeight - 10, (int) (percent * ((splashWidth - 20) / 100.0)), 5);
+        splash.update();
+    }
+
     public Model()
     {
-        SplashScreen splash = SplashScreen.getSplashScreen();
-        Graphics2D g = splash.createGraphics();
-        g.setColor(Color.BLACK);
-        g.drawRect(10, splash.getSize().height - 10, splash.getSize().width - 20, 4);
-        g.fillRect(10, splash.getSize().height - 10, 1, 5);
-        splash.update();
-        
-        String dir = "./data/";
+        updateSplash(0);
+        String dir = "./res/data/";
         mouse = MouseTool.ZOOM;
 
         // For this example, we'll simply load the raw data into
@@ -85,9 +96,7 @@ public class Model extends Observable
                 edgeList.add(ed);
             }
         };
-        
-        g.fillRect(10, splash.getSize().height - 10, 10, 5);
-        splash.update();
+        updateSplash(5);
 
         // If your machine slows to a crawl doing inputting, try
         // uncommenting this. 
@@ -105,14 +114,12 @@ public class Model extends Observable
             System.exit(300);
         }
         DataLine.resetInterner();
-        g.fillRect(10, splash.getSize().height - 10, splash.getSize().width / 2, 5);
-        splash.update();
+        updateSplash(50);
         edges = new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
-        g.fillRect(10, splash.getSize().height - 10, splash.getSize().width - 20, 5);
-        splash.update();
         height = 600;
         width = (int) (height * (highestX_COORD - lowestX_COORD) / (highestY_COORD - lowestY_COORD));
         reset();
+        updateSplash(100);
     }
 
     /**
