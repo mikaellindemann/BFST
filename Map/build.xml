@@ -70,10 +70,14 @@
     nbproject/build-impl.xml file. 
 
     -->
-
     <target name="-post-jar">
-    	<copy todir="${dist.dir}/res">
-    		<fileset dir="res"/>
+    	<jar destfile="dist/Map.jar" update="true">
+        	<fileset dir="${basedir}">
+            	<include name="res/loading.png"/>
+        	</fileset>
+    	</jar>
+    	<copy todir="${dist.dir}/res/data">
+    		<fileset dir="res/data"/>
     	</copy>
 	</target>
 </project>
