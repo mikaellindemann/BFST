@@ -72,8 +72,8 @@
     -->
 
     <target name="-post-jar">
-    	<copy todir="${dist.dir}/data">
-    		<fileset dir="data"/>
+    	<copy todir="${dist.dir}/res">
+    		<fileset dir="res"/>
     	</copy>
 	</target>
 </project>
