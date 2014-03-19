@@ -170,6 +170,11 @@ public class Model extends Observable
         setChanged();
     }
 
+    /**
+     *
+     * @param x The screen-x-coordinate for the mouse-pointer.
+     * @param y The screen-y-coordinate for the mouse-pointer.
+     */
     public void zoomScrollIn(int x, int y)
     {
         Point.Double p = translatePoint(x, y);
@@ -188,6 +193,12 @@ public class Model extends Observable
         bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
 
         calculateFactor();
+        
+        Point.Double p1 = translatePoint(x, y);
+
+        moveHorizontal(p.x - p1.x);
+        moveVertical(p.y - p1.y);
+        
         setChanged();
     }
 
@@ -206,8 +217,13 @@ public class Model extends Observable
         rightX = rightX + (60 * rsp * ratioX);
         topY = topY + (60 * usp * ratioY);
         bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
-
         calculateFactor();
+
+        Point.Double p1 = translatePoint(x, y);
+
+        moveHorizontal(p.x - p1.x);
+        moveVertical(p.y - p1.y);
+
         setChanged();
     }
 
@@ -290,12 +306,12 @@ public class Model extends Observable
     }
 
     /**
-     * 
+     *
      * @param xLeft
      * @param yBottom
      * @param xRight
      * @param yTop
-     * @return 
+     * @return
      */
     public List<Edge> getEdges(double xLeft, double yBottom, double xRight, double yTop)
     {
