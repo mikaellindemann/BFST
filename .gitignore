@@ -233,3 +233,7 @@ nb-configuration.xml
 *.ear
 /Map/nbproject/private/
 /Map/res/data/
+/OSMParsing/nodes.csv
+/OSMParsing/ways.csv
+/OSMParsing/ways/*.csv
+/MapOSM/data
