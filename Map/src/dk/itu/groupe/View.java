@@ -1,5 +1,6 @@
 package dk.itu.groupe;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -8,6 +9,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,15 +42,16 @@ public class View extends JComponent implements Observer
     private JRadioButton mouseMove, mouseZoom;
     private ButtonGroup mouse;
     private final Color BGColor = Color.decode("#457B85");
-    
+
     //Change button color with gradient
-    private void adjustGradient(Color color) {  
-        List<Object> list = new ArrayList<>();  
-        list.add(new Float(0.3F));  
-        list.add(new Float(0));  
-        list.add(color);  
-        list.add(Color.WHITE);  
-        list.add(color.darker().darker());  
+    private void adjustGradient(Color color)
+    {
+        List<Object> list = new ArrayList<>();
+        list.add(new Float(0.3F));
+        list.add(new Float(0));
+        list.add(color);
+        list.add(Color.WHITE);
+        list.add(color.darker().darker());
         UIManager.put("Button.gradient", list);
         UIManager.put("RadioButton.gradient", list);
     }
@@ -89,12 +92,11 @@ public class View extends JComponent implements Observer
         remotePanel.add(flowPanel);
 
         flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-        
+
         flowPanel.setBackground(BGColor);
         remotePanel.setBackground(BGColor);
         flowPanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
         flowPanel.add(remotePanel);
-        
 
         setLayout(new BorderLayout());
         add(flowPanel, BorderLayout.SOUTH);
@@ -222,66 +224,82 @@ public class View extends JComponent implements Observer
             } else {
                 image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                 Graphics2D gB = image.createGraphics();
+                gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 Point.Double topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
-                for (Edge edge : model.getEdges(topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)) {
-                    switch (edge.getType()) {
-                        case HIGHWAY:
-                        case PROJ_HIGHWAY:
-                        case HIGHWAY_EXIT:
-                            gB.setColor(Color.RED);
-                            break;
-                        case EXPRESSWAY:
-                        case PROJ_EXPRESSWAY:
-                        case EXPRESSWAY_EXIT:
-                            gB.setColor(Color.GRAY);
-                            break;
-                        case PRIMARY_ROUTE:
-                        case PROJ_PRIMARY_ROUTE:
-                        case PRIMARY_ROUTE_EXIT:
-                            gB.setColor(Color.YELLOW);
-                            break;
-                        case SECONDARY_ROUTE:
-                        case ROAD:
-                        case OTHER_ROAD:
-                        case PROJ_SECONDARY_ROUTE:
-                        case PROJ_ROAD:
-                        case PROJ_OTHER_ROAD:
-                        case SECOUNDARY_ROUTE_EXIT:
-                        case OTHER_EXIT:
-                            gB.setColor(Color.GRAY);
-                            break;
-                        case PATH:
-                        case DIRT_ROAD:
-                        case PROJ_PATH:
-                            gB.setColor(Color.LIGHT_GRAY);
-                            break;
-                        case PEDESTRIAN_ZONE:
-                            gB.setColor(Color.BLUE);
-                            break;
-                        case HIGHWAY_TUNNEL:
-                        case EXPRESSWAY_TUNNEL:
-                        case PRIMARY_ROUTE_TUNNEL:
-                        case SECONDARY_ROUTE_TUNNEL:
-                        case OTHER_ROAD_TUNNEL:
-                        case SMALL_ROAD_TUNNEL:
-                        case PATH_TUNNEL:
-                            gB.setColor(Color.GREEN);
-                            break;
-                        case FERRY:
-                            continue;
-                        case EXACT_LOCATION_UNKNOWN:
-                            continue;
-                        default:
-                            //Containing: UNKNOWN(0) and ALSO_UNKNOWN(85)
-                            gB.setColor(Color.BLACK);
+                for (Node node : model.getNodes(topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)) {
+                    for (Edge edge : node.getEdges()) {
+                        gB.setStroke(new BasicStroke(1));
+                        switch (edge.getType()) {
+                            case HIGHWAY:
+                            case PROJ_HIGHWAY:
+                            case HIGHWAY_EXIT:
+                                if (15 / model.getFactor() > 1) {
+                                    gB.setStroke(new BasicStroke((float)(15 / model.getFactor())));
+                                }
+                                gB.setColor(Color.RED);
+                                break;
+                            case EXPRESSWAY:
+                            case PROJ_EXPRESSWAY:
+                            case EXPRESSWAY_EXIT:
+                                if (10 / model.getFactor() > 1) {
+                                    gB.setStroke(new BasicStroke((float)(10 / model.getFactor())));
+                                }
+                                gB.setColor(Color.GRAY);
+                                break;
+                            case PRIMARY_ROUTE:
+                            case PROJ_PRIMARY_ROUTE:
+                            case PRIMARY_ROUTE_EXIT:
+                                if (8 / model.getFactor() > 1) {
+                                    gB.setStroke(new BasicStroke((float)(8 / model.getFactor())));
+                                }
+                                gB.setColor(Color.YELLOW);
+                                break;
+                            case SECONDARY_ROUTE:
+                            case ROAD:
+                            case OTHER_ROAD:
+                            case PROJ_SECONDARY_ROUTE:
+                            case PROJ_ROAD:
+                            case PROJ_OTHER_ROAD:
+                            case SECOUNDARY_ROUTE_EXIT:
+                            case OTHER_EXIT:
+                                if (3 / model.getFactor() > 1) {
+                                    gB.setStroke(new BasicStroke((float)(3 / model.getFactor())));
+                                }
+                                gB.setColor(Color.GRAY);
+                                break;
+                            case PATH:
+                            case DIRT_ROAD:
+                            case PROJ_PATH:
+                                gB.setColor(Color.LIGHT_GRAY);
+                                break;
+                            case PEDESTRIAN_ZONE:
+                                gB.setColor(Color.BLUE);
+                                break;
+                            case HIGHWAY_TUNNEL:
+                            case EXPRESSWAY_TUNNEL:
+                            case PRIMARY_ROUTE_TUNNEL:
+                            case SECONDARY_ROUTE_TUNNEL:
+                            case OTHER_ROAD_TUNNEL:
+                            case SMALL_ROAD_TUNNEL:
+                            case PATH_TUNNEL:
+                                gB.setColor(Color.GREEN);
+                                break;
+                            case FERRY:
+                                continue;
+                            case EXACT_LOCATION_UNKNOWN:
+                                continue;
+                            default:
+                                //Containing: UNKNOWN(0) and ALSO_UNKNOWN(85)
+                                gB.setColor(Color.BLACK);
+                        }
+
+                        int fx = (int) ((edge.line.getX1() - topLeft.x) / model.getFactor());
+                        int fy = getHeight() - (int) ((edge.line.getY1() - bottomRight.y) / model.getFactor());
+                        int lx = (int) ((edge.line.getX2() - topLeft.x) / model.getFactor());
+                        int ly = getHeight() - (int) ((edge.line.getY2() - bottomRight.y) / model.getFactor());
+
+                        gB.drawLine(fx, fy, lx, ly);
                     }
-
-                    int fx = (int) ((edge.line.getX1() - topLeft.x) / model.getFactor());
-                    int fy = getHeight() - (int) ((edge.line.getY1() - bottomRight.y) / model.getFactor());
-                    int lx = (int) ((edge.line.getX2() - topLeft.x) / model.getFactor());
-                    int ly = getHeight() - (int) ((edge.line.getY2() - bottomRight.y) / model.getFactor());
-
-                    gB.drawLine(fx, fy, lx, ly);
                 }
                 g.drawImage(image, 0, 0, Color.WHITE, null);
             }

@@ -11,16 +11,32 @@ import java.awt.SplashScreen;
 public class SplashLoader
 {
 
-    private final SplashScreen splash = SplashScreen.getSplashScreen();
-    private Graphics2D g;
+    private static int nodes = 0, edges = 0;
+    private static final SplashScreen splash = SplashScreen.getSplashScreen();
+    private static Graphics2D g = splash.createGraphics();
+
+    ;
     
-    public SplashLoader()
+    private SplashLoader()
     {
-        if (splash != null) {
-            g = splash.createGraphics();
+    }
+
+    public static void countNode()
+    {
+        nodes++;
+        if (nodes % 6759 == 0) {
+            updateSplash((int)((double)(nodes * 20 / 675902)));
         }
     }
-    
+
+    public static void countEdge()
+    {
+        edges++;
+        if (edges % 8123 == 0 || edges == 812301) {
+            updateSplash((int)(20 + 80 * ((double) edges / 812301)));
+        }
+    }
+
     /**
      * Updates the Splash-screen on loading.
      *
@@ -28,7 +44,7 @@ public class SplashLoader
      * @throws IllegalArgumentException If the percentage is not between 0 and
      * 100
      */
-    public void updateSplash(int percent) throws IllegalArgumentException
+    public static void updateSplash(int percent) throws IllegalArgumentException
     {
         if (percent < 0 || percent > 100) {
             throw new IllegalArgumentException("A percentage is between 0 and 100");

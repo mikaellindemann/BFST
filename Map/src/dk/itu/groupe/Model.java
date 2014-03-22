@@ -36,33 +36,32 @@ public class Model extends Observable
 
     private int width, height;
 
-    private final KDTree edges;
+    private final KDTree nodes;
 
     public Model()
     {
-        SplashLoader splashLoader = new SplashLoader();
-        splashLoader.updateSplash(0);
+        SplashLoader.updateSplash(0);
         String dir = "./res/data/";
         mouseTool = MouseTool.ZOOM;
-
+        
         final HashMap<Integer, Node> nodeMap = new HashMap<>();
-        final List<Edge> edgeList = new LinkedList<>();
-
         KrakLoader loader = new KrakLoader()
         {
             @Override
             public void processNode(Node nd)
             {
+                SplashLoader.countNode();
                 nodeMap.put(nd.KDV, nd);
             }
 
             @Override
             public void processEdge(Edge ed)
             {
-                edgeList.add(ed);
+                SplashLoader.countEdge();
+                nodeMap.get(ed.FNODE).addEdge(ed);
+                nodeMap.get(ed.TNODE).addEdge(ed);
             }
         };
-        splashLoader.updateSplash(5);
         try {
             loader.load(dir + "kdv_node_unload.txt", dir + "kdv_unload.txt", nodeMap);
         } catch (IOException ex) {
@@ -75,12 +74,12 @@ public class Model extends Observable
             System.exit(300);
         }
         DataLine.resetInterner();
-        splashLoader.updateSplash(50);
-        edges = new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
-        height = 600;
-        width = (int) (height * (highestX_COORD - lowestX_COORD) / (highestY_COORD - lowestY_COORD));
+        List<Node> n = new LinkedList<>(nodeMap.values());
+        nodes = new KDTree(n, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
+        height = 621;
+        width = 1366;
         reset();
-        splashLoader.updateSplash(100);
+        System.gc();
     }
 
     /**
@@ -246,7 +245,7 @@ public class Model extends Observable
     public void updateRoadname(int x, int y)
     {
         Point.Double p = translatePoint(x, y);
-        Edge near = edges.getNearest(p.x, p.y);
+        Edge near = nodes.getNearest(p.x, p.y);
         if (near != null) {
             roadname = near.VEJNAVN;
         } else {
@@ -291,9 +290,9 @@ public class Model extends Observable
      * @param yTop
      * @return
      */
-    public List<Edge> getEdges(double xLeft, double yBottom, double xRight, double yTop)
+    public List<Node> getNodes(double xLeft, double yBottom, double xRight, double yTop)
     {
-        return edges.getEdges(xLeft, yBottom, xRight, yTop);
+        return nodes.getNodes(xLeft, yBottom, xRight, yTop);
     }
 
     /**

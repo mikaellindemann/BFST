@@ -17,67 +17,67 @@ public class KDTree
         X, Y
     };
 
-    private final List<Edge> empty = new LinkedList<>();
+    private final List<Node> empty = new LinkedList<>();
     private KDTree HIGH, LOW;
-    private final Edge centerEdge;
+    private final Node centerNode;
     private final double xmin, ymin, xmax, ymax;
     private final Dimension dim;
 
     /**
      * Creates the KDTree-structure until there are no more elements.
      *
-     * @param edges A list of edges that should be spread out on the tree.
+     * @param nodes A list of edges that should be spread out on the tree.
      * @param xLeft The left x-coordinate.
      * @param yBottom The bottom y-coordinate.
      * @param xRight The right x-coordinate.
      * @param yTop The top y-coordinate.
      */
-    public KDTree(List<Edge> edges, double xLeft, double yBottom, double xRight, double yTop)
+    public KDTree(List<Node> nodes, double xLeft, double yBottom, double xRight, double yTop)
     {
         xmin = xLeft;
         ymin = yBottom;
         xmax = xRight;
         ymax = yTop;
 
-        int size = edges.size();
+        int size = nodes.size();
 
-        List<Edge> low = new LinkedList<>(), high = new LinkedList<>();
-        centerEdge = edges.remove(edges.size() / 2);
+        List<Node> low = new LinkedList<>(), high = new LinkedList<>();
+        centerNode = nodes.remove(nodes.size() / 2);
         if (ymax - ymin < xmax - xmin) {
             // Delta x is gratest.
             dim = Dimension.X;
             // Put the right elements where it belongs.
-            while (!edges.isEmpty()) {
-                Edge edge = edges.remove(0);
-                if (edge.line.getX1() < centerEdge.line.getX1()) {
-                    low.add(edge);
+            while (!nodes.isEmpty()) {
+                Node node = nodes.remove(0);
+                if (node.X_COORD < centerNode.X_COORD) {
+                    low.add(node);
                 } else {
-                    high.add(edge);
+                    high.add(node);
                 }
             }
         } else {
             // Delta y is the same size or greater.
             dim = Dimension.Y;
             // Put the right elements where it belongs.
-            while (!edges.isEmpty()) {
-                Edge edge = edges.remove(0);
-                if (edge.line.getY1() < centerEdge.line.getY1()) {
-                    low.add(edge);
+            while (!nodes.isEmpty()) {
+                Node node = nodes.remove(0);
+                if (node.Y_COORD < centerNode.Y_COORD) {
+                    low.add(node);
                 } else {
-                    high.add(edge);
+                    high.add(node);
                 }
             }
         }
-        assert (edges.isEmpty());
+        assert (nodes.isEmpty());
         assert (size == high.size() + 1 + low.size());
         double[] lowBounds = new double[4], highBounds = new double[4];
         if (dim == Dimension.X) {
             lowBounds[0] = xmin;
             lowBounds[1] = ymin;
-            lowBounds[2] = centerEdge.line.getX1();
+            lowBounds[2] = centerNode.X_COORD;
             lowBounds[3] = ymax;
 
-            highBounds[0] = centerEdge.line.getX1();
+            highBounds[0] = centerNode.X_COORD;
             highBounds[1] = ymin;
             highBounds[2] = xmax;
             highBounds[3] = ymax;
@@ -85,10 +85,10 @@ public class KDTree
             lowBounds[0] = xmin;
             lowBounds[1] = ymin;
             lowBounds[2] = xmax;
-            lowBounds[3] = centerEdge.line.getY1();
+            lowBounds[3] = centerNode.Y_COORD;
 
             highBounds[0] = xmin;
-            highBounds[1] = centerEdge.line.getY1();
+            highBounds[1] = centerNode.Y_COORD;
             highBounds[2] = xmax;
             highBounds[3] = ymax;
         }
@@ -111,14 +111,16 @@ public class KDTree
      */
     public Edge getNearest(double x, double y)
     {
-        List<Edge> es = getEdges(x, y, x, y);
-        double dist = 12;
+        List<Node> ns = getNodes(x, y, x, y);
+        double dist = Double.MAX_VALUE;
         Edge nearest = null;
-        for (Edge edge : es) {
-            double d = edge.line.ptSegDist(x, y);
-            if (d < dist) {
-                dist = d;
-                nearest = edge;
+        for (Node node : ns) {
+            for (Edge edge : node.getEdges()) {
+                double d = edge.line.ptSegDist(x, y);
+                if (d < dist) {
+                    dist = d;
+                    nearest = edge;
+                }
             }
         }
         return nearest;
@@ -136,37 +138,37 @@ public class KDTree
      * @return A list of edgedata containing the edges that are inside the
      * rectangle.
      */
-    public List<Edge> getEdges(double leftX, double bottomY, double rightX, double topY)
+    public List<Node> getNodes(double leftX, double bottomY, double rightX, double topY)
     {
         if (dim == Dimension.X) {
-            if (rightX + (rightX - leftX) / 2  < xmin || leftX - (rightX - leftX) > xmax) {
+            if (rightX + Math.abs((leftX - rightX) / 10) < xmin || leftX - Math.abs(leftX - rightX) / 10 > xmax) {
                 return empty;
             }
         } else {
-            if (topY + (topY - bottomY) < ymin || bottomY - (topY - bottomY) > ymax) {
+            if (topY + Math.abs(topY - bottomY) / 10 < ymin || bottomY - Math.abs(topY - bottomY) / 10 > ymax) {
                 return empty;
             }
         }
 
-        List<Edge> edgeList = new LinkedList<>();
+        List<Node> nodeList = new LinkedList<>();
         if (LOW != null) {
-            edgeList.addAll(LOW.getEdges(leftX, bottomY, rightX, topY));
+            nodeList.addAll(LOW.getNodes(leftX, bottomY, rightX, topY));
 
-            if (centerEdge != null) {
-                edgeList.add(centerEdge);
+            if (centerNode != null) {
+                nodeList.add(centerNode);
 
                 if (HIGH != null) {
-                    edgeList.addAll(HIGH.getEdges(leftX, bottomY, rightX, topY));
+                    nodeList.addAll(HIGH.getNodes(leftX, bottomY, rightX, topY));
                 }
             }
         } else if (HIGH != null) {
-            if (centerEdge != null) {
-                edgeList.add(centerEdge);
-                edgeList.addAll(HIGH.getEdges(leftX, bottomY, rightX, topY));
+            if (centerNode != null) {
+                nodeList.add(centerNode);
+                nodeList.addAll(HIGH.getNodes(leftX, bottomY, rightX, topY));
             }
         } else {
-            edgeList.add(centerEdge);
+            nodeList.add(centerNode);
         }
-        return edgeList;
+        return nodeList;
     }
 }

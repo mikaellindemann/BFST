@@ -8,6 +8,7 @@ import java.util.HashMap;
  */
 public class Edge
 {
+    public final int FNODE, TNODE;
     public final double LENGTH;
     public final int DAV_DK;
     private RoadType TYPE = null;
@@ -60,8 +61,8 @@ public class Edge
     public Edge(String line, HashMap<Integer, Node> nodeMap)
     {
         DataLine dl = new DataLine(line);
-        int FNODE = dl.getInt();
-        int TNODE = dl.getInt();
+        FNODE = dl.getInt();
+        TNODE = dl.getInt();
         LENGTH = dl.getDouble();
         DAV_DK = dl.getInt();
         dl.getInt();
