@@ -1,12 +1,12 @@
 package dk.itu.groupe;
 
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
-import java.util.Set;
 import javax.swing.JOptionPane;
 
 /**
@@ -77,8 +77,8 @@ public class Model extends Observable
         DataLine.resetInterner();
         List<Node> n = new LinkedList<>(nodeMap.values());
         nodes = new KDTree(n, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
-        height = 621;
-        width = 1366;
+        height = Toolkit.getDefaultToolkit().getScreenSize().height - 100;
+        width = Toolkit.getDefaultToolkit().getScreenSize().width;
         reset();
         System.gc();
     }
