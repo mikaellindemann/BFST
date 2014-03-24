@@ -202,7 +202,7 @@ public class Controller implements
 
     public static void main(String[] args)
     {
-        JFrame frame = new JFrame();
+        JFrame frame = new JFrame("Groupie-Map");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Model model = new Model();
