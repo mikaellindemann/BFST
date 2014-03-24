@@ -11,7 +11,8 @@ import java.awt.SplashScreen;
 public class SplashLoader
 {
 
-    private static int nodes = 0, edges = 0;
+    private static int nodes = 0, edges = 0, trees = 0;
+    private static final int maxNodes = 675902, maxEdges = 812301, maxTrees = 26;
     private static final SplashScreen splash = SplashScreen.getSplashScreen();
     private static final Graphics2D g = splash.createGraphics();
     
@@ -22,17 +23,23 @@ public class SplashLoader
     public static void countNode()
     {
         nodes++;
-        if (nodes % 6759 == 0 ||nodes == 675902) {
-            updateSplash((int)((double)(nodes * 20 / 675902)));
+        if (nodes % (maxNodes / 100) == 0 ||nodes == maxNodes) {
+            updateSplash((int)((double)(nodes * 20 / maxNodes)));
         }
     }
 
     public static void countEdge()
     {
         edges++;
-        if (edges % 8123 == 0 || edges == 812301) {
-            updateSplash((int)(20 + 80 * ((double) edges / 812301)));
+        if (edges % (maxEdges / 100) == 0 || edges == maxEdges) {
+            updateSplash((int)(20 + 30 * ((double) edges / maxEdges)));
         }
+    }
+    
+    public static void countTree()
+    {
+        trees++;
+        updateSplash((int)(50 + 50 * ((double) trees / maxTrees)));
     }
 
     /**

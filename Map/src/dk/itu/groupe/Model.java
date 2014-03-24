@@ -1,8 +1,8 @@
 package dk.itu.groupe;
 
 import java.awt.Point;
-import java.awt.Toolkit;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,6 +30,8 @@ public class Model extends Observable
     private double ratioX;
     private double ratioY;
 
+    private final HashMap<RoadType, KDTree> treeMap;
+
     private String roadname;
 
     private Point pressed, dragged;
@@ -37,15 +39,18 @@ public class Model extends Observable
 
     private int width, height;
 
-    private final KDTree nodes;
-
     public Model()
     {
+        treeMap = new HashMap<>();
         SplashLoader.updateSplash(0);
         String dir = "./res/data/";
-        mouseTool = MouseTool.ZOOM;
-        
+        mouseTool = MouseTool.MOVE;
+
         final HashMap<Integer, Node> nodeMap = new HashMap<>();
+        final HashMap<RoadType, List<Edge>> edgeMap = new HashMap<>();
+        for (RoadType rt : RoadType.values()) {
+            edgeMap.put(rt, new ArrayList<Edge>());
+        }
         KrakLoader loader = new KrakLoader()
         {
             @Override
@@ -59,8 +64,7 @@ public class Model extends Observable
             public void processEdge(Edge ed)
             {
                 SplashLoader.countEdge();
-                nodeMap.get(ed.FNODE).addEdge(ed);
-                nodeMap.get(ed.TNODE).addEdge(ed);
+                edgeMap.get(ed.getType()).add(ed);
             }
         };
         try {
@@ -75,10 +79,12 @@ public class Model extends Observable
             System.exit(300);
         }
         DataLine.resetInterner();
-        List<Node> n = new LinkedList<>(nodeMap.values());
-        nodes = new KDTree(n, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD);
-        height = Toolkit.getDefaultToolkit().getScreenSize().height - 100;
-        width = Toolkit.getDefaultToolkit().getScreenSize().width;
+        for (RoadType rt : RoadType.values()) {
+            treeMap.put(rt, new KDTree(edgeMap.get(rt), lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
+            SplashLoader.countTree();
+        }
+        height = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 100;
+        width = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
         reset();
         System.gc();
     }
@@ -186,7 +192,7 @@ public class Model extends Observable
         // Restore the previous map-coordinates to (x, y)
         moveHorizontal(p.x - p1.x);
         moveVertical(p.y - p1.y);
-        
+
         setChanged();
     }
 
@@ -246,7 +252,22 @@ public class Model extends Observable
     public void updateRoadname(int x, int y)
     {
         Point.Double p = translatePoint(x, y);
-        Edge near = nodes.getNearest(p.x, p.y);
+        List<Edge> edges = new LinkedList<>();
+        for (RoadType rt : RoadType.values()) {
+            Edge e = treeMap.get(rt).getNearest(p.x, p.y);
+            if (e != null) {
+                edges.add(e);
+            }
+        }
+        Edge near = null;
+        double dist = Double.MAX_VALUE;
+        for (Edge edge : edges) {
+            if (edge.line.ptSegDist(p) < dist) {
+                dist = edge.line.ptSegDist(p);
+                near = edge;
+            }
+        }
+        // If there are no "nearest" edges
         if (near != null) {
             roadname = near.VEJNAVN;
         } else {
@@ -285,15 +306,16 @@ public class Model extends Observable
 
     /**
      *
+     * @param rt
      * @param xLeft
      * @param yBottom
      * @param xRight
      * @param yTop
      * @return
      */
-    public List<Node> getNodes(double xLeft, double yBottom, double xRight, double yTop)
+    public List<Edge> getEdges(RoadType rt, double xLeft, double yBottom, double xRight, double yTop)
     {
-        return nodes.getNodes(xLeft, yBottom, xRight, yTop);
+        return treeMap.get(rt).getEdges(xLeft, yBottom, xRight, yTop);
     }
 
     /**
