@@ -2,11 +2,13 @@ package dk.itu.groupe;
 
 import java.awt.Point;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 
 /**
@@ -49,7 +51,7 @@ public class Model extends Observable
         final HashMap<Integer, Node> nodeMap = new HashMap<>();
         final HashMap<RoadType, List<Edge>> edgeMap = new HashMap<>();
         for (RoadType rt : RoadType.values()) {
-            edgeMap.put(rt, new ArrayList<Edge>());
+            edgeMap.put(rt, new LinkedList<Edge>());
         }
         KrakLoader loader = new KrakLoader()
         {
@@ -79,9 +81,25 @@ public class Model extends Observable
             System.exit(300);
         }
         DataLine.resetInterner();
-        for (RoadType rt : RoadType.values()) {
-            treeMap.put(rt, new KDTree(edgeMap.get(rt), lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
-            SplashLoader.countTree();
+
+        ExecutorService es = Executors.newFixedThreadPool(4);
+
+        for (final RoadType rt : RoadType.values()) {
+            es.execute(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    treeMap.put(rt, new KDTree(edgeMap.get(rt), lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
+                    SplashLoader.countTree();
+                }
+            });
+        }
+        try {
+            es.shutdown();
+            es.awaitTermination(1, TimeUnit.DAYS);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace(System.err);
         }
         height = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 100;
         width = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
