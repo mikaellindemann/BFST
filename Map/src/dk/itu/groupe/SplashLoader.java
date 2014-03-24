@@ -13,9 +13,7 @@ public class SplashLoader
 
     private static int nodes = 0, edges = 0;
     private static final SplashScreen splash = SplashScreen.getSplashScreen();
-    private static Graphics2D g = splash.createGraphics();
-
-    ;
+    private static final Graphics2D g = splash.createGraphics();
     
     private SplashLoader()
     {
@@ -24,7 +22,7 @@ public class SplashLoader
     public static void countNode()
     {
         nodes++;
-        if (nodes % 6759 == 0) {
+        if (nodes % 6759 == 0 ||nodes == 675902) {
             updateSplash((int)((double)(nodes * 20 / 675902)));
         }
     }

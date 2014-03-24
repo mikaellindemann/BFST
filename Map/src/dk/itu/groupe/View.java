@@ -11,8 +11,6 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.BorderFactory;
@@ -22,7 +20,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.UIManager;
 
 /**
  *
@@ -42,19 +39,6 @@ public class View extends JComponent implements Observer
     private JRadioButton mouseMove, mouseZoom;
     private ButtonGroup mouse;
     private final Color BGColor = Color.decode("#457B85");
-
-    //Change button color with gradient
-    private void adjustGradient(Color color)
-    {
-        List<Object> list = new ArrayList<>();
-        list.add(new Float(0.3F));
-        list.add(new Float(0));
-        list.add(color);
-        list.add(Color.WHITE);
-        list.add(color.darker().darker());
-        UIManager.put("Button.gradient", list);
-        UIManager.put("RadioButton.gradient", list);
-    }
 
     public View(final Model model)
     {
@@ -111,7 +95,6 @@ public class View extends JComponent implements Observer
         buttonShowAll = new JButton("Show entire map");
         buttonShowAll.setMaximumSize(new Dimension(100, 40));
         buttonShowAll.addActionListener(Action.RESET.getListener(model));
-        adjustGradient(Color.ORANGE);
 
         buttonUp = new JButton("↑");
         buttonUp.setMaximumSize(new Dimension(100, 40));

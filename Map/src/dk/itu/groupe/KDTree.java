@@ -141,11 +141,11 @@ public class KDTree
     public List<Node> getNodes(double leftX, double bottomY, double rightX, double topY)
     {
         if (dim == Dimension.X) {
-            if (rightX + Math.abs((leftX - rightX) / 10) < xmin || leftX - Math.abs(leftX - rightX) / 10 > xmax) {
+            if (rightX + 17071 < xmin || leftX - 17071 > xmax) {
                 return empty;
             }
         } else {
-            if (topY + Math.abs(topY - bottomY) / 10 < ymin || bottomY - Math.abs(topY - bottomY) / 10 > ymax) {
+            if (topY + 17071 < ymin || bottomY - 17071 > ymax) {
                 return empty;
             }
         }
