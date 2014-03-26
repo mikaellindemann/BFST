@@ -226,7 +226,7 @@ public class View extends JComponent implements Observer
                             case PROJ_EXPRESSWAY:
                             case EXPRESSWAY_EXIT:
                                 if (10 / model.getFactor() > 1) {
-                                    gB.setStroke(new BasicStroke((float) (10 / model.getFactor())));
+                                    gB.setStroke(new BasicStroke((float) (10 / model.getFactor()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
                                 }
                                 gB.setColor(Color.GRAY);
                                 break;
@@ -234,7 +234,7 @@ public class View extends JComponent implements Observer
                             case PROJ_PRIMARY_ROUTE:
                             case PRIMARY_ROUTE_EXIT:
                                 if (8 / model.getFactor() > 1) {
-                                    gB.setStroke(new BasicStroke((float) (8 / model.getFactor())));
+                                    gB.setStroke(new BasicStroke((float) (8 / model.getFactor()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
                                 }
                                 gB.setColor(Color.YELLOW);
                                 break;
@@ -246,7 +246,7 @@ public class View extends JComponent implements Observer
                             case PROJ_OTHER_ROAD:
                             case SECOUNDARY_ROUTE_EXIT:
                                 if (3 / model.getFactor() > 1) {
-                                    gB.setStroke(new BasicStroke((float) (3 / model.getFactor())));
+                                    gB.setStroke(new BasicStroke((float) (3 / model.getFactor()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
                                 }
                                 gB.setColor(Color.GRAY);
                                 break;
@@ -263,7 +263,12 @@ public class View extends JComponent implements Observer
                                 gB.setColor(Color.GREEN);
                                 break;
                             case FERRY:
-                                continue;
+                                gB.setStroke(new BasicStroke(1,
+                                        BasicStroke.CAP_BUTT,
+                                        BasicStroke.JOIN_MITER,
+                                        10, new float[]{10}, 0));
+                                gB.setColor(Color.BLUE.darker());
+                                break;
                             default:
                                 //Containing: UNKNOWN(0) and ALSO_UNKNOWN(85)
                                 gB.setColor(Color.BLACK);
