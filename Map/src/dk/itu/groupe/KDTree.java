@@ -139,11 +139,11 @@ public class KDTree
     public List<Edge> getEdges(double leftX, double bottomY, double rightX, double topY)
     {
         if (dim == Dimension.X) {
-            if (rightX + 17071 < xmin || leftX - 17071 > xmax) {
+            if (rightX + 17071 / 2 < xmin || leftX - 17071 / 2 > xmax) {
                 return empty;
             }
         } else {
-            if (topY + 17071 < ymin || bottomY - 17071 > ymax) {
+            if (topY + 17071 / 2 < ymin || bottomY - 17071 / 2 > ymax) {
                 return empty;
             }
         }
