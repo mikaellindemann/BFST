@@ -206,7 +206,7 @@ public class Controller implements
         JFrame frame = new JFrame("Groupie-Map");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setIconImage(new ImageIcon("../Map/res/Icon.png").getImage());
+        frame.setIconImage(new ImageIcon("res/Icon.png").getImage());
         Model model = new Model();
         View view = new View(model);
         model.addObserver(view);

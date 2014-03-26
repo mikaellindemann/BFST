@@ -79,5 +79,8 @@
     	<copy todir="${dist.dir}/res/data">
     		<fileset dir="res/data"/>
     	</copy>
+    	<copy todir="${dist.dir}/res">
+    		<file file="res/Icon.png" />
+    	</copy>
 	</target>
 </project>
