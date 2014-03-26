@@ -11,6 +11,9 @@ import java.awt.SplashScreen;
  * Its intention is to allow the user to see how far in the loading progress the
  * program is.
  *
+ * If the program is run from compiled source without the settings from our
+ * NetBeans-project, the -splash:path-to-loading.png has to be specified.
+ *
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)
  */
