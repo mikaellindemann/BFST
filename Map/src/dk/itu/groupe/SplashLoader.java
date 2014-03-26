@@ -5,8 +5,14 @@ import java.awt.Graphics2D;
 import java.awt.SplashScreen;
 
 /**
+ * The SplashLoader-class provides static methods to alter the SplashScreen that
+ * is shown upon loading Group E's Map-program.
  *
- * @author Mikael
+ * Its intention is to allow the user to see how far in the loading progress the
+ * program is.
+ *
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk)
  */
 public class SplashLoader
 {
@@ -15,31 +21,41 @@ public class SplashLoader
     private static final int maxNodes = 675902, maxEdges = 812301, maxTrees = 26;
     private static final SplashScreen splash = SplashScreen.getSplashScreen();
     private static final Graphics2D g = splash.createGraphics();
-    
+
     private SplashLoader()
     {
     }
 
+    /**
+     * Updates the splashscreen so it shows that it has loaded another node.
+     */
     public static void countNode()
     {
         nodes++;
-        if (nodes % (maxNodes / 100) == 0 ||nodes == maxNodes) {
-            updateSplash((int)((double)(nodes * 20 / maxNodes)));
+        if (nodes % (maxNodes / 100) == 0 || nodes == maxNodes) {
+            updateSplash((int) ((double) (nodes * 20 / maxNodes)));
         }
     }
 
+    /**
+     * Updates the splashscreen so it shows that it has loaded another edge.
+     */
     public static void countEdge()
     {
         edges++;
         if (edges % (maxEdges / 100) == 0 || edges == maxEdges) {
-            updateSplash((int)(20 + 30 * ((double) edges / maxEdges)));
+            updateSplash((int) (20 + 30 * ((double) edges / maxEdges)));
         }
     }
-    
+
+    /**
+     * Called whenever a tree has been built. This makes the splashscreen update
+     * its progress bar.
+     */
     public static void countTree()
     {
         trees++;
-        updateSplash((int)(50 + 50 * ((double) trees / maxTrees)));
+        updateSplash((int) (50 + 50 * ((double) trees / maxTrees)));
     }
 
     /**
@@ -49,7 +65,7 @@ public class SplashLoader
      * @throws IllegalArgumentException If the percentage is not between 0 and
      * 100
      */
-    public static void updateSplash(int percent) throws IllegalArgumentException
+    private static void updateSplash(int percent) throws IllegalArgumentException
     {
         if (percent < 0 || percent > 100) {
             throw new IllegalArgumentException("A percentage is between 0 and 100");

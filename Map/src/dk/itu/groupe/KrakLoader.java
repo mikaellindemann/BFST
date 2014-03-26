@@ -18,7 +18,19 @@ import java.util.HashMap;
  */
 public abstract class KrakLoader
 {
+
+    /**
+     * This method is called when a node has been instantiated.
+     *
+     * @param nd The <code>Node</code> to process.
+     */
     public abstract void processNode(Node nd);
+
+    /**
+     * This method is called when an edge has been instantiated.
+     *
+     * @param ed The <code>Edge</code> to process.
+     */
     public abstract void processEdge(Edge ed);
 
     /**
@@ -26,10 +38,11 @@ public abstract class KrakLoader
      * once for each node- and edge- specification in the input file,
      * respectively.
      *
-     * @param nodeFile
-     * @param edgeFile
-     * @param nodeMap
-     * @throws IOException if there is a problem reading data or the files dont
+     * @param nodeFile The path to the file containing the nodes.
+     * @param edgeFile The path to the file containing the edges.
+     * @param nodeMap The nodemap to use for looking up nodes in the process of
+     * creating the edges.
+     * @throws IOException if there is a problem reading data or the files don't
      * exist
      */
     public void load(String nodeFile, String edgeFile, HashMap<Integer, Node> nodeMap) throws IOException

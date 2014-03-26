@@ -2,8 +2,8 @@ package dk.itu.groupe;
 
 /**
  *
- * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
- * Jepsen <mlin@itu.dk>
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk)
  */
 public enum RoadType
 {   
@@ -37,7 +37,7 @@ public enum RoadType
     
     EXACT_LOCATION_UNKNOWN(99, 10);
 
-    private final static int firstFactor = 1000, secondFactor = 100, thirdFactor = 30;
+    private final static int firstFactor = Integer.MAX_VALUE, secondFactor = 100, thirdFactor = 30;
     private final int typeNumber;
     private final int factorActivate;
 

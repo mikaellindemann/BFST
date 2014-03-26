@@ -2,8 +2,12 @@ package dk.itu.groupe;
 
 /**
  * An object storing the raw node data from the krak data file.
+ *
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk)
  */
-public class Node {
+public class Node
+{
 
     //final int ARC;
     final int KDV;
@@ -17,7 +21,8 @@ public class Node {
      *
      * @param line The source line from which the NodeData fields are parsed
      */
-    public Node(String line) {
+    public Node(String line)
+    {
         DataLine dl = new DataLine(line);
         dl.getInt();
         KDV = dl.getInt();
@@ -29,10 +34,12 @@ public class Node {
     /**
      * Returns a string representing the node data in the same format as used in
      * the kdv_node_unload.txt file.
-     * @return 
+     *
+     * @return
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return KDV + "," + X_COORD + "," + Y_COORD;
     }
 }

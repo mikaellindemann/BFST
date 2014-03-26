@@ -18,8 +18,8 @@ import javax.swing.KeyStroke;
 
 /**
  *
- * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
- * Jepsen <mlin@itu.dk>
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk)
  */
 public class Controller implements
         MouseListener,
@@ -55,9 +55,9 @@ public class Controller implements
     public void mouseWheelMoved(MouseWheelEvent e)
     {
         if (e.getWheelRotation() < 0) {
-            model.zoomScrollIn(e.getX(), e.getY());
+            model.zoomInScroll(e.getX(), e.getY());
         } else {
-            model.zoomScrollOut(e.getX(), e.getY());
+            model.zoomOutScroll(e.getX(), e.getY());
         }
         model.notifyObservers();
     }

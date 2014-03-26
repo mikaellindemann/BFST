@@ -5,13 +5,16 @@ import java.util.HashMap;
 
 /**
  * Represents the raw data from a line in kdv_unload.txt.
+ *
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk)
  */
 public class Edge
 {
-    public final int FNODE, TNODE;
+
     public final double LENGTH;
     public final int DAV_DK;
-    private RoadType TYPE = null;
+    private RoadType TYPE;
     public final String VEJNAVN;
     public final int FROMLEFT;
     public final int TOLEFT;
@@ -61,8 +64,8 @@ public class Edge
     public Edge(String line, HashMap<Integer, Node> nodeMap)
     {
         DataLine dl = new DataLine(line);
-        FNODE = dl.getInt();
-        TNODE = dl.getInt();
+        Node fN = nodeMap.get(dl.getInt());
+        Node tN = nodeMap.get(dl.getInt());
         LENGTH = dl.getDouble();
         DAV_DK = dl.getInt();
         dl.getInt();
@@ -100,9 +103,6 @@ public class Edge
         dl.getInt();
         dl.getString();
         dl.getInt();
-
-        Node fN = nodeMap.get(FNODE);
-        Node tN = nodeMap.get(TNODE);
 
         this.line = new Line2D.Double(
                 fN.X_COORD,

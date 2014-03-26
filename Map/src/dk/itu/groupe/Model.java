@@ -12,9 +12,13 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 
 /**
+ * The model contains all the information about the map.
  *
- * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
- * Jepsen <mlin@itu.dk>
+ * It includes methods to change what part of the map to look at, and
+ * zoom-algorithms as well.
+ *
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk)
  */
 public class Model extends Observable
 {
@@ -41,10 +45,17 @@ public class Model extends Observable
 
     private int width, height;
 
+    private boolean reset;
+
+    /**
+     * On creation of the Model, it will start to load in the data.
+     *
+     * This takes around 10 seconds on a decent computer. After loading it will
+     * create the 2DTree structures for every roadtype in the dataset.
+     */
     public Model()
     {
         treeMap = new HashMap<>();
-        SplashLoader.updateSplash(0);
         String dir = "./res/data/";
         mouseTool = MouseTool.MOVE;
 
@@ -115,58 +126,104 @@ public class Model extends Observable
         bottomY = lowestY_COORD / 1.001;
         topY = highestY_COORD * 1.001;
 
-        // This padding makes sure that the screen will center the map horizontally.
-        double padding = ((((topY - bottomY) / height) * width) - (highestX_COORD - lowestX_COORD)) / 2;
-        leftX = lowestX_COORD - padding;
-        rightX = highestX_COORD + padding;
+        // These paddings make sure that the screen will center the map.
+        double xPadding = ((((topY - bottomY) / height) * width) - (highestX_COORD - lowestX_COORD)) / 2;
+        double yPadding = ((((rightX - leftX) / width) * height) - (highestY_COORD - lowestY_COORD)) / 2;
+
+        if (xPadding > 0) {
+            leftX = lowestX_COORD - xPadding;
+            rightX = highestX_COORD + xPadding;
+        }
+
+        if (yPadding > 0) {
+            bottomY = lowestY_COORD - yPadding;
+            topY = highestY_COORD + yPadding;
+        }
+        reset = true;
         calculateFactor();
         setChanged();
     }
 
+    /**
+     * Moves the map <code>distance</code> pixel towards the bottom, to get the
+     * feeling that we look at a higher point on the map.
+     *
+     * @param distance The distance to move the map in pixels.
+     */
     public void goUp(int distance)
     {
+        reset = false;
         if (topY < highestY_COORD) {
             moveVertical(distance * factor);
         }
         setChanged();
     }
 
+    /**
+     * Moves the map <code>distance</code> pixel towards the right side, to get
+     * the feeling that we look at a point longer to the left on the map.
+     *
+     * @param distance The distance to move the map in pixels.
+     */
     public void goLeft(int distance)
     {
+        reset = false;
         if (leftX > lowestX_COORD) {
             moveHorizontal(-distance * factor);
         }
         setChanged();
     }
 
+    /**
+     * Moves the map <code>distance</code> pixel towards the left side, to get
+     * the feeling that we look at a point longer to the right on the map.
+     *
+     * @param distance The distance to move the map in pixels.
+     */
     public void goRight(int distance)
     {
+        reset = false;
         if (rightX < highestX_COORD) {
             moveHorizontal(distance * factor);
         }
         setChanged();
     }
 
+    /**
+     * Moves the map <code>distance</code> pixel towards the top, to get the
+     * feeling that we look at a lower point on the map.
+     *
+     * @param distance The distance to move the map in pixels.
+     */
     public void goDown(int distance)
     {
+        reset = false;
         if (bottomY > lowestY_COORD) {
             moveVertical(-distance * factor);
         }
         setChanged();
     }
 
+    /**
+     * Moves the map x pixels horizontally and y pixels vertically.
+     *
+     * @param x The amount in pixels to move the map in horizontal direction.
+     * @param y The amount in pixels to move the map in vertical direction.
+     */
     public void moveMap(int x, int y)
     {
+        reset = false;
         moveHorizontal(x * factor);
         moveVertical(-y * factor);
         setChanged();
     }
 
     /**
-     * Zooms in the map.
+     * Zooms in the map, and centers to the center point of the current view.
      */
     public void zoomIn()
     {
+        reset = false;
         double x = (rightX + leftX) / 2;
         double y = (topY + bottomY) / 2;
         leftX = leftX + (30 * ratioX);
@@ -179,10 +236,11 @@ public class Model extends Observable
     }
 
     /**
-     * Zooms out on the map.
+     * Zooms out the map, and centers to the center point of the current view.
      */
     public void zoomOut()
     {
+        reset = false;
         double x = (rightX + leftX) / 2;
         double y = (topY + bottomY) / 2;
         leftX = leftX - (30 * ratioX);
@@ -195,12 +253,18 @@ public class Model extends Observable
     }
 
     /**
+     * Zooms in on the map, and keeps the point specified at the same place on
+     * the map after zooming.
+     *
+     * Google like zooming, so the mouse always point on the same thing on the
+     * map.
      *
      * @param x The screen-x-coordinate for the mouse-pointer.
      * @param y The screen-y-coordinate for the mouse-pointer.
      */
-    public void zoomScrollIn(int x, int y)
+    public void zoomInScroll(int x, int y)
     {
+        reset = false;
         // Map coordinates before zoom
         Point.Double p = translatePoint(x, y);
         zoomIn();
@@ -214,8 +278,19 @@ public class Model extends Observable
         setChanged();
     }
 
-    public void zoomScrollOut(int x, int y)
+    /**
+     * Zooms out on the map, and keeps the point specified at the same place on
+     * the map after zooming.
+     *
+     * Google like zooming, so the mouse always point on the same thing on the
+     * map.
+     *
+     * @param x The screen-x-coordinate for the mouse-pointer.
+     * @param y The screen-y-coordinate for the mouse-pointer.
+     */
+    public void zoomOutScroll(int x, int y)
     {
+        reset = false;
         // Map coordinates before zoom
         Point.Double p = translatePoint(x, y);
         zoomOut();
@@ -230,6 +305,10 @@ public class Model extends Observable
     }
 
     /**
+     * This zoom-method zooms in to the specified rectangle.
+     *
+     * If the rectangle doesn't match the ratio between screen width and height,
+     * the right or bottom side will be moved to fit.
      *
      * @param xLeft Screen coordinate for the left side of the rectangle.
      * @param yTop Screen coordinate for the top side of the rectangle.
@@ -238,6 +317,7 @@ public class Model extends Observable
      */
     public void zoomRect(int xLeft, int yTop, int xRight, int yBottom)
     {
+        reset = false;
         Point.Double leftTop = translatePoint(xLeft, yTop), rightBottom = translatePoint(xRight, yBottom);
 
         double x2 = rightBottom.x, x1 = leftTop.x;
@@ -267,14 +347,27 @@ public class Model extends Observable
         setChanged();
     }
 
+    /**
+     * Updates the field roadname to correspond with the road nearest to the
+     * mouse pointer.
+     *
+     * @param x The on-screen x-coordinate of the mouse.
+     * @param y The on-screen y-coordinate of the mouse.
+     */
     public void updateRoadname(int x, int y)
     {
         Point.Double p = translatePoint(x, y);
         List<Edge> edges = new LinkedList<>();
         for (RoadType rt : RoadType.values()) {
-            Edge e = treeMap.get(rt).getNearest(p.x, p.y);
-            if (e != null) {
-                edges.add(e);
+            KDTree tree = treeMap.get(rt);
+            if (tree != null) {
+                Edge e = tree.getNearest(p.x, p.y);
+                if (e != null) {
+                    edges.add(e);
+                }
+            } else {
+                System.err.println(rt);
+                throw new RuntimeException("Check above statement to see which tree is null");
             }
         }
         Edge near = null;
@@ -294,42 +387,81 @@ public class Model extends Observable
         setChanged();
     }
 
+    /**
+     * Sets the mouse click/drag-action.
+     *
+     * As of now this is either drag-to-zoom, or drag-to-move.
+     *
+     * @param mouseTool The mouse function.
+     */
     public void setMouseTool(MouseTool mouseTool)
     {
         this.mouseTool = mouseTool;
         setChanged();
     }
 
+    /**
+     * Returns the current mouse function.
+     *
+     * @return the current mouse function which is either drag-to-zoom or
+     * drag-to-move.
+     */
     public MouseTool getMouseTool()
     {
         return mouseTool;
     }
 
+    /**
+     * Returns the current width used for calculating the view of the map.
+     *
+     * @return the current width.
+     */
     public int getWidth()
     {
         return width;
     }
 
+    /**
+     * Returns the current height used for calculating the view of the map.
+     *
+     * @return the current height.
+     */
     public int getHeight()
     {
         return height;
     }
 
+    /**
+     * Sets the size of the map.
+     *
+     * This should be used whenever the view changes size, so the model can
+     * return the correct data.
+     *
+     * @param width The new width.
+     * @param height The new height.
+     */
     public void setSize(int width, int height)
     {
         this.width = width;
         this.height = height;
+        if (reset) {
+            reset();
+        }
         calculateFactor();
+        setChanged();
     }
 
     /**
+     * Returns the edges of roadtype <code>rt</code> and within the specified
+     * rectangle-coordinates.
      *
-     * @param rt
-     * @param xLeft
-     * @param yBottom
-     * @param xRight
-     * @param yTop
-     * @return
+     * @param rt The roadtype of interest.
+     * @param xLeft The left x-coordinate.
+     * @param yBottom The bottom y-coordinate.
+     * @param xRight The right x-coordinate.
+     * @param yTop The top y-coordinate.
+     * @return A list of edges, containing the edges of roadtype <code>rt</code>
+     * within the specified rectangle.
      */
     public List<Edge> getEdges(RoadType rt, double xLeft, double yBottom, double xRight, double yTop)
     {

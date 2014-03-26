@@ -5,8 +5,8 @@ import java.util.List;
 
 /**
  *
- * @author Peter Bindslev <plil@itu.dk>, Rune Henriksen <ruju@itu.dk> & Mikael
- * Jepsen <mlin@itu.dk>
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk)
  */
 public class KDTree
 {
@@ -112,7 +112,7 @@ public class KDTree
     public Edge getNearest(double x, double y)
     {
         List<Edge> ns = getEdges(x, y, x, y);
-        double dist = Double.MAX_VALUE;
+        double dist = 100;
         Edge nearest = null;
         for (Edge edge : ns) {
                 double d = edge.line.ptSegDist(x, y);
