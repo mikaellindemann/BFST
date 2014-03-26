@@ -12,6 +12,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
@@ -205,6 +206,7 @@ public class Controller implements
         JFrame frame = new JFrame("Groupie-Map");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setIconImage(new ImageIcon("../Map/res/Icon.png").getImage());
         Model model = new Model();
         View view = new View(model);
         model.addObserver(view);
