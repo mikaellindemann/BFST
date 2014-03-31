@@ -222,7 +222,7 @@ public class View extends JComponent implements Observer
                                 if (10 / model.getFactor() > 1) {
                                     gB.setStroke(new BasicStroke((float) (10 / model.getFactor()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
                                 }
-                                gB.setColor(Color.GRAY);
+                                gB.setColor(Color.ORANGE);
                                 break;
                             case PRIMARY_ROUTE:
                             case PROJ_PRIMARY_ROUTE:
