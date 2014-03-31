@@ -1,7 +1,7 @@
 package dk.itu.groupe;
 
 import java.awt.geom.Line2D;
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents the raw data from a line in kdv_unload.txt.
@@ -61,7 +61,7 @@ public class Edge
                 + "'" + T_TURN;
     }
 
-    public Edge(String line, HashMap<Integer, Node> nodeMap)
+    public Edge(String line, Map<Integer, Node> nodeMap)
     {
         DataLine dl = new DataLine(line);
         Node fN = nodeMap.get(dl.getInt());

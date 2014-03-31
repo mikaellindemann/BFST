@@ -46,7 +46,7 @@ public class View extends JComponent implements Observer
         map = new MapView();
 
         // Creates buttons and their listeners.
-        buttons();
+        createButtons();
         roadName = new JLabel(" ");
         keyPad = new JPanel(new GridLayout(0, 3));
         keyPad.add(buttonZoomIn);
@@ -90,7 +90,7 @@ public class View extends JComponent implements Observer
     /**
      * Creates buttons and assigns functions to buttons and keys.
      */
-    private void buttons()
+    private void createButtons()
     {
         buttonShowAll = new JButton("Show entire map");
         buttonShowAll.setMaximumSize(new Dimension(100, 40));
@@ -98,32 +98,26 @@ public class View extends JComponent implements Observer
 
         buttonUp = new JButton("↑");
         buttonUp.setMaximumSize(new Dimension(100, 40));
-        getActionMap().put("buttonUp", Action.UP.getListener(model));
         buttonUp.addActionListener(Action.UP.getListener(model));
 
         buttonRight = new JButton("→");
         buttonRight.setMaximumSize(new Dimension(100, 40));
-        getActionMap().put("buttonRight", Action.RIGHT.getListener(model));
         buttonRight.addActionListener(Action.RIGHT.getListener(model));
 
         buttonLeft = new JButton("←");
         buttonLeft.setMaximumSize(new Dimension(100, 40));
-        getActionMap().put("buttonLeft", Action.LEFT.getListener(model));
         buttonLeft.addActionListener(Action.LEFT.getListener(model));
 
         buttonDown = new JButton("↓");
         buttonDown.setMaximumSize(new Dimension(100, 40));
-        getActionMap().put("buttonDown", Action.DOWN.getListener(model));
         buttonDown.addActionListener(Action.DOWN.getListener(model));
 
         buttonZoomIn = new JButton("+");
         buttonZoomIn.setMaximumSize(new Dimension(100, 40));
-        getActionMap().put("buttonZoomIn", Action.ZOOM_IN.getListener(model));
         buttonZoomIn.addActionListener(Action.ZOOM_IN.getListener(model));
 
         buttonZoomOut = new JButton("-");
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
-        getActionMap().put("buttonZoomOut", Action.ZOOM_OUT.getListener(model));
         buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
 
         mouseZoom = new JRadioButton("Zoom");

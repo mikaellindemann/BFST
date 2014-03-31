@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,7 +37,7 @@ public class Model extends Observable
     private double ratioX;
     private double ratioY;
 
-    private final HashMap<RoadType, KDTree> treeMap;
+    private final Map<RoadType, KDTree> treeMap;
 
     private String roadname;
 
@@ -59,8 +60,8 @@ public class Model extends Observable
         String dir = "./res/data/";
         mouseTool = MouseTool.MOVE;
 
-        final HashMap<Integer, Node> nodeMap = new HashMap<>();
-        final HashMap<RoadType, List<Edge>> edgeMap = new HashMap<>();
+        final Map<Integer, Node> nodeMap = new HashMap<>();
+        final Map<RoadType, List<Edge>> edgeMap = new HashMap<>();
         for (RoadType rt : RoadType.values()) {
             edgeMap.put(rt, new LinkedList<Edge>());
         }

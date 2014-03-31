@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Parse Krak data files (kdv_node_unload.txt, kdv_unload.txt).
@@ -45,7 +45,7 @@ public abstract class KrakLoader
      * @throws IOException if there is a problem reading data or the files don't
      * exist
      */
-    public void load(String nodeFile, String edgeFile, HashMap<Integer, Node> nodeMap) throws IOException
+    public void load(String nodeFile, String edgeFile, Map<Integer, Node> nodeMap) throws IOException
     {
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nodeFile), Charset.forName("UTF-8")));
         br.readLine(); // First line is column names, not data.
