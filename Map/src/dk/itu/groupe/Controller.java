@@ -211,7 +211,7 @@ public class Controller implements
 
     public static void main(String[] args)
     {
-        JFrame frame = new JFrame("Groupie-Map");
+        JFrame frame = new JFrame("GroupE-map");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setIconImage(new ImageIcon("res/Icon.png").getImage());
