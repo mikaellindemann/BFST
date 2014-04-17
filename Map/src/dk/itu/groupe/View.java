@@ -5,11 +5,16 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +27,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 
 /**
  *
@@ -34,14 +40,20 @@ public class View extends JComponent implements Observer
     JLabel roadName;
     private final Map<Integer, BasicStroke> strokeMap;
     private BufferedImage image;
-    private final JPanel remotePanel, keyPad;
+    private final JPanel remotePanel, keyPad, directionPanel;
     private final JComponent map;
-    private JPanel flowPanel;
+    private JPanel flowPanel, leftPanel;
     private final Model model;
-    private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
+    private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut, searchButton;
+    private JLabel label_from, label_to;
+    private JTextField textField_from, textField_to;
     private JRadioButton mouseMove, mouseZoom;
     private ButtonGroup mouse;
     private final Color BGColor = Color.decode("#457B85");
+    private MouseListener e;
+    boolean toggle_direction = false;
+    private final String fontStandard = "calibri";
+    private final int smallFontSize = 15;
 
     public View(final Model model)
     {
@@ -54,8 +66,10 @@ public class View extends JComponent implements Observer
         this.model = model;
         map = new MapView();
 
-        // Creates buttons and their listeners.
+        // Creates buttons, labels and their listeners.
         createButtons();
+        createLabels();
+        createTextField();
         roadName = new JLabel(" ");
         keyPad = new JPanel(new GridLayout(0, 3));
         keyPad.add(buttonZoomIn);
@@ -85,15 +99,88 @@ public class View extends JComponent implements Observer
         remotePanel.add(flowPanel);
 
         flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+        
+        directionPanel = new JPanel(new FlowLayout());
+        leftPanel = new JPanel(new FlowLayout());
+        leftPanel.setPreferredSize(new Dimension(20,1));
+        directionPanel.add(leftPanel);
+
+        leftPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+        leftPanel.addMouseListener(new MyMouseListener());
 
         flowPanel.setBackground(BGColor);
         remotePanel.setBackground(BGColor);
+        leftPanel.setBackground(BGColor);
+        directionPanel.setBackground(BGColor);
         flowPanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
+        leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
         flowPanel.add(remotePanel);
+
+        leftPanel.setVisible(true);
 
         setLayout(new BorderLayout());
         add(flowPanel, BorderLayout.SOUTH);
+        add(leftPanel, BorderLayout.WEST);
         add(map, BorderLayout.CENTER);
+    }
+    private class MyMouseListener implements MouseListener {  
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            if (toggle_direction == false) {
+                leftPanel.setPreferredSize(new Dimension(200,1));
+                leftPanel.add(label_from);
+                leftPanel.add(textField_from);
+                leftPanel.add(label_to);
+                leftPanel.add(textField_to);
+                leftPanel.add(searchButton);
+                
+                leftPanel.setVisible(true);
+                label_from.setVisible(true);
+                textField_from.setVisible(true);
+                label_to.setVisible(true);
+                textField_to.setVisible(true);
+                searchButton.setVisible(true);
+                
+                System.out.println("Direction toggled");
+                //Resetting frame, (Any better approach is appreciated)
+                setVisible(false);
+                setVisible(true);
+                toggle_direction = true;
+            }
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            //Nothing yet
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            //Nothing yet
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            //Nothing yet
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            if (toggle_direction == true) {
+                leftPanel.setPreferredSize(new Dimension(20,1));
+                label_from.setVisible(false);
+                textField_from.setVisible(false);
+                label_to.setVisible(false);
+                textField_to.setVisible(false);
+                searchButton.setVisible(false);
+                
+                System.out.println("Direction untoggled");
+                //Resetting frame, (Any better approach is appreciated)
+                setVisible(false);
+                setVisible(true);
+                toggle_direction = false;
+            }
+        }
     }
 
     /**
@@ -130,6 +217,7 @@ public class View extends JComponent implements Observer
         buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
 
         mouseZoom = new JRadioButton("Zoom");
+        mouseZoom.setFont(new Font("calibri", Font.PLAIN, smallFontSize));
         mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
         if (model.getMouseTool() == MouseTool.ZOOM) {
             mouseZoom.setSelected(true);
@@ -139,6 +227,7 @@ public class View extends JComponent implements Observer
         mouseZoom.setBackground(BGColor);
 
         mouseMove = new JRadioButton("Move");
+        mouseMove.setFont(new Font("calibri", Font.PLAIN, smallFontSize));
         mouseMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
         if (model.getMouseTool() == MouseTool.MOVE) {
             mouseMove.setSelected(true);
@@ -149,8 +238,41 @@ public class View extends JComponent implements Observer
         mouse = new ButtonGroup();
         mouse.add(mouseZoom);
         mouse.add(mouseMove);
+        
+        searchButton = new JButton("Search");
+        searchButton.setMaximumSize(new Dimension(100, 40));
+        searchButton.addMouseListener(new MyMouseListener());
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                String search_from = textField_from.getText();
+                String search_to = textField_to.getText();
+                System.out.println("search_from = " + search_from);
+                System.out.println("search_to = " + search_to);
+            }
+        });
     }
-
+    private void createLabels()
+    {
+        label_from = new JLabel();
+        label_from.setText("From:");
+        label_from.setFont(new Font("calibri", Font.PLAIN, smallFontSize));
+        
+        label_to = new JLabel();
+        label_to.setText("To:");
+        label_to.setFont(new Font("calibri", Font.PLAIN, smallFontSize));
+    }
+    
+    private void createTextField()
+    {
+        textField_from = new JTextField();
+        textField_from.setPreferredSize(new Dimension(180,20));
+        textField_from.addMouseListener(new MyMouseListener());
+        
+        textField_to = new JTextField();
+        textField_to.setPreferredSize(new Dimension(180,20));
+        textField_to.addMouseListener(new MyMouseListener());
+    }
     public BufferedImage getImage()
     {
         return image;
