@@ -1,4 +1,4 @@
-package dk.itu.groupe;
+package dk.itu.groupe.parsing.krak;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -24,14 +24,14 @@ public abstract class KrakLoader
      *
      * @param nd The <code>Node</code> to process.
      */
-    public abstract void processNode(Node nd);
+    public abstract void processNode(NodeData nd);
 
     /**
      * This method is called when an edge has been instantiated.
      *
      * @param ed The <code>Edge</code> to process.
      */
-    public abstract void processEdge(Edge ed);
+    public abstract void processEdge(EdgeData ed);
 
     /**
      * Load krak-data from given files, invoking processNode and processEdge
@@ -45,21 +45,21 @@ public abstract class KrakLoader
      * @throws IOException if there is a problem reading data or the files don't
      * exist
      */
-    public void load(String nodeFile, String edgeFile, Map<Integer, Node> nodeMap) throws IOException
+    public void load(String nodeFile, String edgeFile, Map<Integer, NodeData> nodeMap) throws IOException
     {
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nodeFile), Charset.forName("UTF-8")));
         br.readLine(); // First line is column names, not data.
 
         String line;
         while ((line = br.readLine()) != null) {
-            processNode(new Node(line));
+            processNode(new NodeData(line));
         }
 
-        br = new BufferedReader(new InputStreamReader(new FileInputStream(edgeFile), Charset.forName("ISO-8859-15")));
+        br = new BufferedReader(new InputStreamReader(new FileInputStream(edgeFile), Charset.forName("ISO-8859-1")));
         br.readLine(); // Again, first line is column names, not data.
 
         while ((line = br.readLine()) != null) {
-            processEdge(new Edge(line, nodeMap));
+            processEdge(new EdgeData(line, nodeMap));
         }
     }
 }

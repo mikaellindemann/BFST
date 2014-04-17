@@ -11,6 +11,8 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.BorderFactory;
@@ -30,6 +32,7 @@ public class View extends JComponent implements Observer
 {
 
     JLabel roadName;
+    private final Map<Integer, BasicStroke> strokeMap;
     private BufferedImage image;
     private final JPanel remotePanel, keyPad;
     private final JComponent map;
@@ -42,6 +45,12 @@ public class View extends JComponent implements Observer
 
     public View(final Model model)
     {
+        strokeMap = new HashMap<>();
+        for (int i = 0; i < 30; i++) {
+            strokeMap.put(i, new BasicStroke(i, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+        }
+        strokeMap.put(-1, new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{10}, 0));
+
         this.model = model;
         map = new MapView();
 
@@ -204,82 +213,93 @@ public class View extends JComponent implements Observer
                 Graphics2D gB = image.createGraphics();
                 gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 Point.Double topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
-                for (RoadType rt : RoadType.values()) {
+                for (CommonRoadType rt : CommonRoadType.values()) {
                     if (rt.isEnabled(model.getFactor())) {
-                        gB.setStroke(new BasicStroke(1));
+                        double stroke;
+                        gB.setStroke(strokeMap.get(1));
                         switch (rt) {
-                            case HIGHWAY:
-                            case PROJ_HIGHWAY:
-                            case HIGHWAY_EXIT:
-                                if (15 / model.getFactor() > 1) {
-                                    gB.setStroke(new BasicStroke((float) (15 / model.getFactor())));
+                            case MOTORWAY:
+                            case MOTORWAY_LINK:
+                                stroke = 15 / model.getFactor();
+                                if (stroke > 1) {
+                                    if (strokeMap.containsKey((int) stroke)) {
+                                        gB.setStroke(strokeMap.get((int) stroke));
+                                    } else {
+                                        gB.setStroke(new BasicStroke((float) stroke));
+                                    }
                                 }
                                 gB.setColor(Color.RED);
                                 break;
-                            case EXPRESSWAY:
-                            case PROJ_EXPRESSWAY:
-                            case EXPRESSWAY_EXIT:
-                                if (10 / model.getFactor() > 1) {
-                                    gB.setStroke(new BasicStroke((float) (10 / model.getFactor()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+                            case TRUNK:
+                            case TRUNK_LINK:
+                                stroke = 10 / model.getFactor();
+                                if (stroke > 1) {
+                                    if (strokeMap.containsKey((int) stroke)) {
+                                        gB.setStroke(strokeMap.get((int) stroke));
+                                    } else {
+                                        gB.setStroke(new BasicStroke((float) stroke, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+                                    }
                                 }
                                 gB.setColor(Color.ORANGE);
                                 break;
-                            case PRIMARY_ROUTE:
-                            case PROJ_PRIMARY_ROUTE:
-                            case PRIMARY_ROUTE_EXIT:
-                                if (8 / model.getFactor() > 1) {
-                                    gB.setStroke(new BasicStroke((float) (8 / model.getFactor()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+                            case PRIMARY:
+                            case PRIMARY_LINK:
+                                stroke = 8 / model.getFactor();
+                                if (stroke > 1) {
+                                    if (strokeMap.containsKey((int) stroke)) {
+                                        gB.setStroke(strokeMap.get((int) stroke));
+                                    } else {
+                                        gB.setStroke(new BasicStroke((float) stroke, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+                                    }
                                 }
                                 gB.setColor(Color.YELLOW);
                                 break;
-                            case SECONDARY_ROUTE:
+                            case SECONDARY:
+                            case TERTIARY:
+                            case TERTIARY_LINK:
                             case ROAD:
-                            case OTHER_ROAD:
-                            case PROJ_SECONDARY_ROUTE:
-                            case PROJ_ROAD:
-                            case PROJ_OTHER_ROAD:
-                            case SECOUNDARY_ROUTE_EXIT:
-                                if (3 / model.getFactor() > 1) {
-                                    gB.setStroke(new BasicStroke((float) (3 / model.getFactor()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+                            case UNCLASSIFIED:
+                            case SECONDARY_LINK:
+                                stroke = 3 / model.getFactor();
+                                if (stroke > 1) {
+                                    if (strokeMap.containsKey((int) stroke)) {
+                                        gB.setStroke(strokeMap.get((int) stroke));
+                                    } else {
+                                        gB.setStroke(new BasicStroke((float) (stroke), BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));
+                                    }
                                 }
                                 gB.setColor(Color.GRAY);
                                 break;
                             case PATH:
-                            case DIRT_ROAD:
-                            case PROJ_PATH:
+                            case TRACK:
                                 gB.setColor(Color.LIGHT_GRAY);
                                 break;
-                            case PEDESTRIAN_ZONE:
+                            case PEDESTRIAN:
                                 gB.setColor(Color.BLUE);
                                 break;
-                            case HIGHWAY_TUNNEL:
-                            case EXPRESSWAY_TUNNEL:
+                            case TUNNEL:
                                 gB.setColor(Color.GREEN);
                                 break;
                             case FERRY:
-                                gB.setStroke(new BasicStroke(1,
-                                        BasicStroke.CAP_BUTT,
-                                        BasicStroke.JOIN_MITER,
-                                        10, new float[]{10}, 0));
+                                gB.setStroke(strokeMap.get(-1));
                                 gB.setColor(Color.BLUE.darker());
                                 break;
                             default:
-                                //Containing: UNKNOWN(0) and ALSO_UNKNOWN(85)
                                 gB.setColor(Color.BLACK);
                         }
                         for (Edge edge : model.getEdges(rt, topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)) {
-                            if (rt == RoadType.EXACT_LOCATION_UNKNOWN) {
+                            if (rt == CommonRoadType.PLACES) {
                                 gB.setColor(Color.BLACK);
-                                int x = (int) ((edge.line.getX1() - topLeft.x) / model.getFactor());
-                                int y = getHeight() - (int) ((edge.line.getY1() - bottomRight.y) / model.getFactor());
-                                gB.drawString(edge.VEJNAVN, x, y);
+                                int x = (int) ((edge.getLine().getX1() - topLeft.x) / model.getFactor());
+                                int y = getHeight() - (int) ((edge.getLine().getY1() - bottomRight.y) / model.getFactor());
+                                gB.drawString(edge.getRoadname(), x, y);
                                 continue;
                             }
 
-                            int fx = (int) ((edge.line.getX1() - topLeft.x) / model.getFactor());
-                            int fy = getHeight() - (int) ((edge.line.getY1() - bottomRight.y) / model.getFactor());
-                            int lx = (int) ((edge.line.getX2() - topLeft.x) / model.getFactor());
-                            int ly = getHeight() - (int) ((edge.line.getY2() - bottomRight.y) / model.getFactor());
+                            int fx = (int) ((edge.getLine().getX1() - topLeft.x) / model.getFactor());
+                            int fy = getHeight() - (int) ((edge.getLine().getY1() - bottomRight.y) / model.getFactor());
+                            int lx = (int) ((edge.getLine().getX2() - topLeft.x) / model.getFactor());
+                            int ly = getHeight() - (int) ((edge.getLine().getY2() - bottomRight.y) / model.getFactor());
 
                             gB.drawLine(fx, fy, lx, ly);
                         }

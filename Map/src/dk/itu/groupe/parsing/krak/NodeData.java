@@ -1,14 +1,19 @@
-package dk.itu.groupe;
+package dk.itu.groupe.parsing.krak;
+
+import dk.itu.groupe.DataLine;
 
 /**
- * An object storing the raw node data from the parsed krak data file.
+ * An object storing the raw node data from the krak data file.
  *
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)
  */
-public class Node
+public class NodeData
 {
-    public final long ID;
+
+    //final int ARC;
+    public final int ID;
+    //final int KDV_ID;
     public final double X_COORD;
     public final double Y_COORD;
 
@@ -16,19 +21,21 @@ public class Node
      * Parses node data from line, throws an IOException if something unexpected
      * is read
      *
-     * @param line The source line from which the Node fields are parsed
+     * @param line The source line from which the NodeData fields are parsed
      */
-    public Node(String line)
+    public NodeData(String line)
     {
         DataLine dl = new DataLine(line);
-        ID = dl.getLong();
+        dl.getInt();
+        ID = dl.getInt();
+        dl.getInt();
         X_COORD = dl.getDouble();
         Y_COORD = dl.getDouble();
     }
 
     /**
      * Returns a string representing the node data in the same format as used in
-     * the nodes.csv file.
+     * the kdv_node_unload.txt file.
      *
      * @return
      */

@@ -1,10 +1,12 @@
 package dk.itu.groupe;
 
 import java.awt.geom.Line2D;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
- * Represents the raw data from a line in kdv_unload.txt.
+ * Represents the raw data from a line in edges.csv.
  *
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)
@@ -12,98 +14,95 @@ import java.util.Map;
 public class Edge
 {
 
-    public final double LENGTH;
-    public final int DAV_DK;
-    private RoadType TYPE;
-    public final String VEJNAVN;
-    public final int FROMLEFT;
-    public final int TOLEFT;
-    public final int FROMRIGHT;
-    public final int TORIGHT;
-    public final String FROMLEFT_BOGSTAV;
-    public final String TOLEFT_BOGSTAV;
-    public final String FROMRIGHT_BOGSTAV;
-    public final String TORIGHT_BOGSTAV;
-    public final int V_POSTNR;
-    public final int H_POSTNR;
-    public final int FRAKOERSEL;
-    public final int ZONE;
-    public final int SPEED;
-    public final double DRIVETIME;
-    public final String ONE_WAY;
-    public final String F_TURN;
-    public final String T_TURN;
-    public final Line2D line;
+    private static HashMap<Integer, CommonRoadType> rtMap;
+
+    private final long fromNode;
+    private final long toNode;
+    private final double length;
+    private final long id;
+    private final CommonRoadType type;
+    private final String roadname;
+    private final int exitNumber;
+    private final int speedLimit;
+    private final double driveTime;
+    private final OneWay oneWay;
+    private final Line2D line;
 
     @Override
     public String toString()
     {
-        return String.format("%.5f,", LENGTH)
-                + DAV_DK + ","
-                + TYPE + ","
-                + "'" + VEJNAVN + "',"
-                + FROMLEFT + ","
-                + TOLEFT + ","
-                + FROMRIGHT + ","
-                + TORIGHT + ","
-                + "'" + FROMLEFT_BOGSTAV + "',"
-                + "'" + TOLEFT_BOGSTAV + "',"
-                + "'" + FROMRIGHT_BOGSTAV + "',"
-                + "'" + TORIGHT_BOGSTAV + ","
-                + V_POSTNR + ","
-                + H_POSTNR + "',"
-                + FRAKOERSEL + ","
-                + ZONE + ","
-                + SPEED + ","
-                + String.format("%.3f,", DRIVETIME)
-                + "'" + ONE_WAY + "',"
-                + "'" + F_TURN + "',"
-                + "'" + T_TURN;
+        return fromNode + ","
+                + toNode + ","
+                + String.format(Locale.ENGLISH, "%.5f,", length)
+                + id + ","
+                + type.getTypeNo() + ","
+                + "`" + roadname + "`,"
+                + exitNumber + ","
+                + speedLimit + ","
+                + String.format(Locale.ENGLISH, "%.3f,", driveTime)
+                + oneWay.getNumber();
+    }
+    
+    protected Edge(Node from, Node to) {
+        line = new Line2D.Double(from.X_COORD, from.Y_COORD, to.X_COORD, to.Y_COORD);
+        fromNode = 0;
+        toNode = 0;
+        length = 0;
+        id = 0;
+        type = null;
+        roadname = null;
+        exitNumber = 0;
+        speedLimit = 0;
+        driveTime = 0;
+        oneWay = null;
     }
 
-    public Edge(String line, Map<Integer, Node> nodeMap)
+    public Edge(String line, Map<Long, Node> nodeMap)
     {
-        DataLine dl = new DataLine(line);
-        Node fN = nodeMap.get(dl.getInt());
-        Node tN = nodeMap.get(dl.getInt());
-        LENGTH = dl.getDouble();
-        DAV_DK = dl.getInt();
-        dl.getInt();
-        int typ = dl.getInt();
-        for (RoadType rt : RoadType.values()) {
-            if (rt.getTypeNumber() == typ) {
-                TYPE = rt;
-                break;
+        if (rtMap == null) {
+            rtMap = new HashMap<>();
+            for (CommonRoadType rt : CommonRoadType.values()) {
+                rtMap.put(rt.getTypeNo(), rt);
             }
         }
-        VEJNAVN = dl.getString();
-        FROMLEFT = dl.getInt();
-        TOLEFT = dl.getInt();
-        FROMRIGHT = dl.getInt();
-        TORIGHT = dl.getInt();
-        FROMLEFT_BOGSTAV = dl.getString();
-        TOLEFT_BOGSTAV = dl.getString();
-        FROMRIGHT_BOGSTAV = dl.getString();
-        TORIGHT_BOGSTAV = dl.getString();
-        dl.getInt();
-        dl.getInt();
-        V_POSTNR = dl.getInt();
-        H_POSTNR = dl.getInt();
-        dl.getInt();
-        dl.getInt();
-        dl.getInt();
-        dl.getString();
-        FRAKOERSEL = dl.getInt();
-        ZONE = dl.getInt();
-        SPEED = dl.getInt();
-        DRIVETIME = dl.getDouble();
-        ONE_WAY = dl.getString();
-        F_TURN = dl.getString();
-        T_TURN = dl.getString();
-        dl.getInt();
-        dl.getString();
-        dl.getInt();
-
+        DataLine dl = new DataLine(line);
+        fromNode = dl.getLong();
+        toNode = dl.getLong();
+        Node fN = nodeMap.get(fromNode);
+        Node tN = nodeMap.get(toNode);
+        length = dl.getDouble();
+        id = dl.getLong();
+        int typ = dl.getInt();
+        type = rtMap.get(typ);
+        if (type == null) {
+            System.err.println(typ);
+            assert (type != null);
+        }
+        roadname = dl.getString();
+        exitNumber = dl.getInt();
+        speedLimit = dl.getInt();
+        driveTime = dl.getDouble();
+        switch (dl.getInt()) {
+            case -1:
+                oneWay = OneWay.TO_FROM;
+                break;
+            case 0:
+                oneWay = OneWay.NO;
+                break;
+            case 1:
+                oneWay = OneWay.FROM_TO;
+                break;
+            default:
+                oneWay = OneWay.NO;
+                System.err.println("Assuming no restrictions on edge.");
+        }
+        assert(fN != null);
+        if (tN == null) {
+            System.out.println(toNode);
+            System.out.println(nodeMap.containsKey(toNode));
+            System.out.println(roadname);
+            assert(tN != null);
+        }
         this.line = new Line2D.Double(
                 fN.X_COORD,
                 fN.Y_COORD,
@@ -111,8 +110,23 @@ public class Edge
                 tN.Y_COORD);
     }
 
-    public RoadType getType()
+    public CommonRoadType getType()
     {
-        return TYPE;
+        return type;
+    }
+    
+    public double getLength()
+    {
+        return length;
+    }
+    
+    public Line2D getLine()
+    {
+        return line;
+    }
+    
+    public String getRoadname()
+    {
+        return roadname;
     }
 }

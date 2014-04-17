@@ -1,4 +1,4 @@
-package dk.itu.groupe;
+package dk.itu.groupe.parsing.krak;
 
 import java.util.HashMap;
 
@@ -54,7 +54,7 @@ public class DataLine
      */
     private String nextToken()
     {
-        if (line.charAt(next) != '`') {
+        if (line.charAt(next) != '\'') {
             int comma = line.indexOf(',', next);
             String token;
             if (comma >= 0) { // Comma separator found
@@ -66,14 +66,14 @@ public class DataLine
             }
             return token;
         } else {
-            int quote = line.indexOf('`', next + 1);
+            int quote = line.indexOf('\'', next + 1);
             String token;
             if (quote >= 0) { // End of string found
                 token = line.substring(next + 1, quote);
                 next = quote + 2;
             } else {          // Malformed string
                 next = line.length();
-                throw new IllegalArgumentException("Cannot parse: " + line.substring(next));
+                throw new IllegalArgumentException("Cannot parse: " + line);
             }
             return token;
         }

@@ -15,7 +15,9 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -74,7 +76,6 @@ public class Controller implements
     @Override
     public void mouseClicked(MouseEvent me)
     {
-
     }
 
     @Override
@@ -86,11 +87,7 @@ public class Controller implements
     @Override
     public void mousePressed(MouseEvent me)
     {
-        //Right click to reset.
-        if (me.getButton() == 3) {
-            model.reset();
-            model.notifyObservers();
-        } else {
+        if (SwingUtilities.isLeftMouseButton(me)) {
             model.setPressed(me.getPoint());
             model.setDragged(me.getPoint());
         }
@@ -99,15 +96,17 @@ public class Controller implements
     @Override
     public void mouseReleased(MouseEvent me)
     {
-        if (me.getButton() == 1 && model.getMouseTool() == MouseTool.ZOOM) {
-            if (model.getPressed().x == model.getDragged().x && model.getPressed().y == model.getDragged().y) {
-                model.setPressed(null);
-                model.setDragged(null);
-                return;
+        if (SwingUtilities.isLeftMouseButton(me) && model.getMouseTool() == MouseTool.ZOOM) {
+            if (model.getPressed().x != model.getDragged().x && model.getPressed().y != model.getDragged().y) {
+                model.zoomRect(model.getPressed().x, model.getPressed().y, model.getDragged().x, model.getDragged().y);
+                model.notifyObservers();
             }
-            model.zoomRect(model.getPressed().x, model.getPressed().y, model.getDragged().x, model.getDragged().y);
             model.setPressed(null);
             model.setDragged(null);
+        }
+        //Right click to reset.
+        if (SwingUtilities.isRightMouseButton(me)) {
+            model.reset();
             model.notifyObservers();
         }
     }
@@ -121,13 +120,15 @@ public class Controller implements
     @Override
     public void mouseDragged(MouseEvent me)
     {
-        if (model.getMouseTool() == MouseTool.MOVE) {
-            if (model.getPressed() != null) {
-                model.moveMap(model.getDragged().x - me.getX(), model.getDragged().y - me.getY());
+        if (SwingUtilities.isLeftMouseButton(me)) {
+            if (model.getMouseTool() == MouseTool.MOVE) {
+                if (model.getPressed() != null) {
+                    model.moveMap(model.getDragged().x - me.getX(), model.getDragged().y - me.getY());
+                }
             }
+            model.setDragged(me.getPoint());
+            model.notifyObservers();
         }
-        model.setDragged(me.getPoint());
-        model.notifyObservers();
     }
 
     @Override
@@ -211,11 +212,24 @@ public class Controller implements
 
     public static void main(String[] args)
     {
+        String dataset = (String) JOptionPane.showInputDialog(null,
+                "Do you want to use KRAK data or OpenStreetMap-data?\n"
+                + "Krak is a smaller and older dataset, but loads faster\n"
+                + "OpenStreetMap is newer and contains more data.",
+                "Choose data",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new String[]{"Krak", "OpenStreetMap"},
+                "OpenStreetMap");
+        if (dataset == null) {
+            return;
+        }
+        long time = System.currentTimeMillis();
         JFrame frame = new JFrame("GroupE-map");
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setIconImage(new ImageIcon("res/Icon.png").getImage());
-        Model model = new Model();
+        Model model = new Model(dataset);
         View view = new View(model);
         model.addObserver(view);
         Controller controller = new Controller(model, view);
@@ -227,7 +241,7 @@ public class Controller implements
         frame.setContentPane(view);
         frame.pack();
         frame.setVisible(true);
-        model.reset();
-        model.notifyObservers();
+
+        System.out.println((System.currentTimeMillis() - time) / 1000.0);
     }
 }

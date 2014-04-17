@@ -1,7 +1,11 @@
 package dk.itu.groupe;
 
 import java.awt.Point;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,18 +30,19 @@ public class Model extends Observable
 
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
-    private final static double lowestX_COORD = 442254.35659;
-    private final static double highestX_COORD = 892658.21706;
-    private final static double lowestY_COORD = 6049914.43018;
-    private final static double highestY_COORD = 6402050.98297;
+    private final double lowestX_COORD;
+    private final double highestX_COORD;
+    private final double lowestY_COORD;
+    private final double highestY_COORD;
 
     // Bounds of the window.
     private double leftX, bottomY, rightX, topY;
     private double factor;
     private double ratioX;
     private double ratioY;
+    private final float minFactor = 0.5f;
 
-    private final Map<RoadType, KDTree> treeMap;
+    private Map<CommonRoadType, KDTree> treeMap;
 
     private String roadname;
 
@@ -47,42 +52,79 @@ public class Model extends Observable
     private int width, height;
 
     private boolean reset;
+    public final boolean osm;
 
     /**
      * On creation of the Model, it will start to load in the data.
      *
      * This takes around 10 seconds on a decent computer. After loading it will
      * create the 2DTree structures for every roadtype in the dataset.
+     *
+     * @param data
      */
-    public Model()
+    public Model(String data)
     {
-        treeMap = new HashMap<>();
-        String dir = "./res/data/";
-        mouseTool = MouseTool.MOVE;
+        double xLow = 0, yLow = 0, xHigh = 0, yHigh = 0;
+        int maxNodes = 0, maxEdges = 0;
+        String dir;
+        if (data.equals("OpenStreetMap")) {
+            dir = "./res/data/osm/";
+            osm = true;
+        } else {
+            dir = "./res/data/krak/";
+            osm = false;
+        }
 
-        final Map<Integer, Node> nodeMap = new HashMap<>();
-        final Map<RoadType, List<Edge>> edgeMap = new HashMap<>();
-        for (RoadType rt : RoadType.values()) {
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dir + "info.csv")));
+            xLow = Double.parseDouble(br.readLine());
+            yLow = Double.parseDouble(br.readLine());
+            xHigh = Double.parseDouble(br.readLine());
+            yHigh = Double.parseDouble(br.readLine());
+            maxNodes = Integer.parseInt(br.readLine());
+            maxEdges = Integer.parseInt(br.readLine());
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
+        }
+        final LoadingFrame lf = new LoadingFrame(maxNodes, maxEdges);
+        lowestX_COORD = xLow;
+        lowestY_COORD = yLow;
+        highestX_COORD = xHigh;
+        highestY_COORD = yHigh;
+
+        treeMap = new HashMap<>();
+
+        mouseTool = MouseTool.MOVE;
+        final List<Edge> coastlines = new LinkedList<>();
+        final Map<Long, Node> nodeMap = new HashMap<>();
+        final Map<CommonRoadType, List<Edge>> edgeMap = new HashMap<>();
+        for (CommonRoadType rt : CommonRoadType.values()) {
             edgeMap.put(rt, new LinkedList<Edge>());
         }
-        KrakLoader loader = new KrakLoader()
+        Loader loader = new Loader()
         {
             @Override
             public void processNode(Node nd)
             {
-                SplashLoader.countNode();
-                nodeMap.put(nd.KDV, nd);
+                nodeMap.put(nd.ID, nd);
+                lf.countNode();
             }
 
             @Override
             public void processEdge(Edge ed)
             {
-                SplashLoader.countEdge();
                 edgeMap.get(ed.getType()).add(ed);
+                lf.countEdge();
+            }
+
+            @Override
+            public void processCoastline(Coastline cl)
+            {
+                coastlines.add(cl);
             }
         };
         try {
-            loader.load(dir + "kdv_node_unload.txt", dir + "kdv_unload.txt", nodeMap);
+            loader.load(dir + "nodes.csv", dir + "edges.csv", nodeMap);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(
                     null,
@@ -96,16 +138,28 @@ public class Model extends Observable
 
         ExecutorService es = Executors.newFixedThreadPool(4);
 
-        for (final RoadType rt : RoadType.values()) {
-            es.execute(new Runnable()
-            {
-                @Override
-                public void run()
+        for (final CommonRoadType rt : CommonRoadType.values()) {
+            if (rt == CommonRoadType.COASTLINE) {
+                es.execute(new Runnable()
                 {
-                    treeMap.put(rt, new KDTree(edgeMap.get(rt), lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
-                    SplashLoader.countTree();
-                }
-            });
+                    @Override
+                    public void run()
+                    {
+                        treeMap.put(rt, new KDTree(coastlines, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
+                    }
+                });
+            } else {
+                es.execute(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        if (edgeMap.get(rt).size() > 0) {
+                            treeMap.put(rt, new KDTree(edgeMap.get(rt), lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
+                        }
+                    }
+                });
+            }
         }
         try {
             es.shutdown();
@@ -116,6 +170,7 @@ public class Model extends Observable
         height = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 100;
         width = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
         reset();
+        lf.dispose();
         System.gc();
     }
 
@@ -205,6 +260,11 @@ public class Model extends Observable
         setChanged();
     }
 
+    public boolean isOsm()
+    {
+        return osm;
+    }
+
     /**
      * Moves the map x pixels horizontally and y pixels vertically.
      *
@@ -224,16 +284,18 @@ public class Model extends Observable
      */
     public void zoomIn()
     {
-        reset = false;
-        double x = (rightX + leftX) / 2;
-        double y = (topY + bottomY) / 2;
-        leftX = leftX + (30 * ratioX);
-        rightX = rightX - (30 * ratioX);
-        topY = topY - (30 * ratioY);
-        bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
-        center(x, y);
-        calculateFactor();
-        setChanged();
+        if (factor > minFactor) {
+            reset = false;
+            double x = (rightX + leftX) / 2;
+            double y = (topY + bottomY) / 2;
+            leftX = leftX + (30 * ratioX);
+            rightX = rightX - (30 * ratioX);
+            topY = topY - (30 * ratioY);
+            bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
+            center(x, y);
+            calculateFactor();
+            setChanged();
+        }
     }
 
     /**
@@ -265,18 +327,20 @@ public class Model extends Observable
      */
     public void zoomInScroll(int x, int y)
     {
-        reset = false;
-        // Map coordinates before zoom
-        Point.Double p = translatePoint(x, y);
-        zoomIn();
-        // Map coordinates after zoom
-        Point.Double p1 = translatePoint(x, y);
+        if (factor > minFactor) {
+            reset = false;
+            // Map coordinates before zoom
+            Point.Double p = translatePoint(x, y);
+            zoomIn();
+            // Map coordinates after zoom
+            Point.Double p1 = translatePoint(x, y);
 
-        // Restore the previous map-coordinates to (x, y)
-        moveHorizontal(p.x - p1.x);
-        moveVertical(p.y - p1.y);
+            // Restore the previous map-coordinates to (x, y)
+            moveHorizontal(p.x - p1.x);
+            moveVertical(p.y - p1.y);
 
-        setChanged();
+            setChanged();
+        }
     }
 
     /**
@@ -318,34 +382,36 @@ public class Model extends Observable
      */
     public void zoomRect(int xLeft, int yTop, int xRight, int yBottom)
     {
-        reset = false;
-        Point.Double leftTop = translatePoint(xLeft, yTop), rightBottom = translatePoint(xRight, yBottom);
+        if (factor > minFactor) {
+            reset = false;
+            Point.Double leftTop = translatePoint(xLeft, yTop), rightBottom = translatePoint(xRight, yBottom);
 
-        double x2 = rightBottom.x, x1 = leftTop.x;
-        double y2 = rightBottom.y, y1 = leftTop.y;
+            double x2 = rightBottom.x, x1 = leftTop.x;
+            double y2 = rightBottom.y, y1 = leftTop.y;
 
-        if (x1 > x2) {
-            double tmp = x1;
-            x1 = x2;
-            x2 = tmp;
+            if (x1 > x2) {
+                double tmp = x1;
+                x1 = x2;
+                x2 = tmp;
+            }
+            if (y2 > y1) {
+                double tmp = y1;
+                y1 = y2;
+                y2 = tmp;
+            }
+            double ratio = (double) width / (double) height;
+            leftX = x1;
+            topY = y1;
+            if (Math.abs(x2 - x1) / width > Math.abs(y1 - y2) / height) {
+                rightX = x2;
+                bottomY = (topY - (rightX - leftX) / ratio);
+            } else {
+                bottomY = y2;
+                rightX = leftX + (topY - bottomY) * ratio;
+            }
+            calculateFactor();
+            setChanged();
         }
-        if (y2 > y1) {
-            double tmp = y1;
-            y1 = y2;
-            y2 = tmp;
-        }
-        double ratio = (double) width / (double) height;
-        leftX = x1;
-        topY = y1;
-        if (Math.abs(x2 - x1) / width > Math.abs(y1 - y2) / height) {
-            rightX = x2;
-            bottomY = (topY - (rightX - leftX) / ratio);
-        } else {
-            bottomY = y2;
-            rightX = leftX + (topY - bottomY) * ratio;
-        }
-        calculateFactor();
-        setChanged();
     }
 
     /**
@@ -359,29 +425,26 @@ public class Model extends Observable
     {
         Point.Double p = translatePoint(x, y);
         List<Edge> edges = new LinkedList<>();
-        for (RoadType rt : RoadType.values()) {
+        for (CommonRoadType rt : CommonRoadType.values()) {
             KDTree tree = treeMap.get(rt);
             if (tree != null) {
                 Edge e = tree.getNearest(p.x, p.y);
                 if (e != null) {
                     edges.add(e);
                 }
-            } else {
-                System.err.println(rt);
-                throw new RuntimeException("Check above statement to see which tree is null");
             }
         }
         Edge near = null;
         double dist = Double.MAX_VALUE;
         for (Edge edge : edges) {
-            if (edge.line.ptSegDist(p) < dist) {
-                dist = edge.line.ptSegDist(p);
+            if (edge.getLine().ptSegDist(p) < dist) {
+                dist = edge.getLine().ptSegDist(p);
                 near = edge;
             }
         }
         // If there are no "nearest" edges
         if (near != null) {
-            roadname = near.VEJNAVN;
+            roadname = near.getRoadname();
         } else {
             roadname = " ";
         }
@@ -464,9 +527,14 @@ public class Model extends Observable
      * @return A list of edges, containing the edges of roadtype <code>rt</code>
      * within the specified rectangle.
      */
-    public List<Edge> getEdges(RoadType rt, double xLeft, double yBottom, double xRight, double yTop)
+    @SuppressWarnings("unchecked")
+    public List<Edge> getEdges(CommonRoadType rt, double xLeft, double yBottom, double xRight, double yTop)
     {
-        return treeMap.get(rt).getEdges(xLeft, yBottom, xRight, yTop);
+        if (treeMap.get(rt) != null) {
+            return treeMap.get(rt).getEdges(xLeft, yBottom, xRight, yTop);
+        } else {
+            return Collections.EMPTY_LIST;
+        }
     }
 
     /**
