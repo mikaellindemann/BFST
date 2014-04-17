@@ -64,13 +64,13 @@ public abstract class Loader
             processEdge(new Edge(line, nodeMap));
         }
         
-        br = new BufferedReader(new InputStreamReader(new FileInputStream("./res/data/osm/coastline.csv")));
+        /*br = new BufferedReader(new InputStreamReader(new FileInputStream("./res/data/osm/coastline.csv")));
         br.readLine();
         while ((line = br.readLine()) != null) {
             DataLine l = new DataLine(line);
             Node from = nodeMap.get(l.getLong());
             Node to = nodeMap.get(l.getLong());
             processCoastline(new Coastline(from, to));
-        }
+        }*/
     }
 }

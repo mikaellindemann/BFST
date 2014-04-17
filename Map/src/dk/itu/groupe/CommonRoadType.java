@@ -101,9 +101,9 @@ public enum CommonRoadType
      * OSM:.
      * KRAK: Ferry(80).
      */
-    FERRY(14, CommonRoadType.firstFactor),
+    FERRY(14, CommonRoadType.firstFactor);
     
-    COASTLINE(-1, CommonRoadType.firstFactor);
+    //COASTLINE(-1, CommonRoadType.firstFactor);
 
     private final static int firstFactor = Integer.MAX_VALUE, secondFactor = 65, thirdFactor = 10;
     private final int type;

@@ -139,28 +139,28 @@ public class Model extends Observable
         ExecutorService es = Executors.newFixedThreadPool(4);
 
         for (final CommonRoadType rt : CommonRoadType.values()) {
-            if (rt == CommonRoadType.COASTLINE) {
-                es.execute(new Runnable()
+            /*if (rt == CommonRoadType.COASTLINE) {
+             es.execute(new Runnable()
+             {
+             @Override
+             public void run()
+             {
+             treeMap.put(rt, new KDTree(coastlines, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
+             }
+             });
+             } else {*/
+            es.execute(new Runnable()
+            {
+                @Override
+                public void run()
                 {
-                    @Override
-                    public void run()
-                    {
-                        treeMap.put(rt, new KDTree(coastlines, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
+                    if (edgeMap.get(rt).size() > 0) {
+                        treeMap.put(rt, new KDTree(edgeMap.get(rt), lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
                     }
-                });
-            } else {
-                es.execute(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        if (edgeMap.get(rt).size() > 0) {
-                            treeMap.put(rt, new KDTree(edgeMap.get(rt), lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
-                        }
-                    }
-                });
-            }
+                }
+            });
         }
+
         try {
             es.shutdown();
             es.awaitTermination(1, TimeUnit.DAYS);
