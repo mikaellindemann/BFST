@@ -3,6 +3,7 @@ package dk.itu.groupe.parsing.osm;
 import de.jotschi.geoconvert.GeoConvert;
 import dk.itu.groupe.OneWay;
 import java.awt.geom.Point2D;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -14,6 +15,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import org.xml.sax.Attributes;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
@@ -59,15 +62,30 @@ public class OSMParser extends DefaultHandler
 
     public static void main(String[] args) throws Exception
     {
-        String filename = "denmark-latest.osm";
-        //String filename = "copenhagen.osm";
-        //String filename = "Taulov.osm";
+        File f = null;
+        JFileChooser j = new JFileChooser();
+        j.setAcceptAllFileFilterUsed(false);
+        FileNameExtensionFilter fnef = new FileNameExtensionFilter("OpenStreetMap XML-file", "osm", "xml");
+        j.setFileFilter(fnef);
+        j.setVisible(true);
+        int status = j.showOpenDialog(null);
+        switch (status) {
+            case JFileChooser.CANCEL_OPTION:
+                return;
+            case JFileChooser.APPROVE_OPTION:
+                f = j.getSelectedFile();
+                break;
+            case JFileChooser.ERROR_OPTION:
+            default:
+                System.exit(404);
+
+        }
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
         SAXParser saxParser = spf.newSAXParser();
         XMLReader xmlReader = saxParser.getXMLReader();
         xmlReader.setContentHandler(new OSMParser());
-        xmlReader.parse(filename);
+        xmlReader.parse(f.getAbsolutePath());
     }
 
     @Override
