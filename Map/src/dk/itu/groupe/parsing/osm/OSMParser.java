@@ -13,10 +13,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
@@ -60,32 +60,39 @@ public class OSMParser extends DefaultHandler
     private PrintWriter nodeStream;
     private PrintWriter coastlineStream;
 
+    private static File f;
+
     public static void main(String[] args) throws Exception
     {
-        File f = null;
-        JFileChooser j = new JFileChooser();
-        j.setAcceptAllFileFilterUsed(false);
-        FileNameExtensionFilter fnef = new FileNameExtensionFilter("OpenStreetMap XML-file", "osm", "xml");
-        j.setFileFilter(fnef);
-        j.setVisible(true);
-        int status = j.showOpenDialog(null);
-        switch (status) {
-            case JFileChooser.CANCEL_OPTION:
-                return;
-            case JFileChooser.APPROVE_OPTION:
-                f = j.getSelectedFile();
-                break;
-            case JFileChooser.ERROR_OPTION:
-            default:
-                System.exit(404);
-
-        }
+        selectFile();
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
         SAXParser saxParser = spf.newSAXParser();
         XMLReader xmlReader = saxParser.getXMLReader();
         xmlReader.setContentHandler(new OSMParser());
+        assert (f != null && f.exists());
         xmlReader.parse(f.getAbsolutePath());
+    }
+
+    private static void selectFile()
+    {
+        JFileChooser j = new JFileChooser();
+        j.setAcceptAllFileFilterUsed(false);
+        FileNameExtensionFilter fnef = new FileNameExtensionFilter("OpenStreetMap XML-file", "osm", "xml");
+        j.setFileFilter(fnef);
+        j.setVisible(true);
+        int status = j.showDialog(null, "Parse");
+        switch (status) {
+            case JFileChooser.CANCEL_OPTION:
+                System.exit(0);
+            case JFileChooser.APPROVE_OPTION:
+                f = j.getSelectedFile();
+                break;
+            case JFileChooser.ERROR_OPTION:
+            default:
+                System.err.println("Error picking file. Exiting...");
+                System.exit(404);
+        }
     }
 
     @Override
