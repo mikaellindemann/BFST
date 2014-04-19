@@ -41,6 +41,7 @@ public class Model extends Observable
     private double ratioX;
     private double ratioY;
     private final float minFactor = 0.5f;
+    private final double initialFactor;
 
     private Map<CommonRoadType, KDTree> treeMap;
 
@@ -170,6 +171,7 @@ public class Model extends Observable
         height = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 100;
         width = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
         reset();
+        initialFactor = factor;
         lf.dispose();
         System.gc();
     }
@@ -303,16 +305,18 @@ public class Model extends Observable
      */
     public void zoomOut()
     {
-        reset = false;
-        double x = (rightX + leftX) / 2;
-        double y = (topY + bottomY) / 2;
-        leftX = leftX - (30 * ratioX);
-        rightX = rightX + (30 * ratioX);
-        topY = topY + (30 * ratioY);
-        bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
-        center(x, y);
-        calculateFactor();
-        setChanged();
+        if (factor < initialFactor) {
+            reset = false;
+            double x = (rightX + leftX) / 2;
+            double y = (topY + bottomY) / 2;
+            leftX = leftX - (30 * ratioX);
+            rightX = rightX + (30 * ratioX);
+            topY = topY + (30 * ratioY);
+            bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
+            center(x, y);
+            calculateFactor();
+            setChanged();
+        }
     }
 
     /**
@@ -355,18 +359,20 @@ public class Model extends Observable
      */
     public void zoomOutScroll(int x, int y)
     {
-        reset = false;
-        // Map coordinates before zoom
-        Point.Double p = translatePoint(x, y);
-        zoomOut();
-        // Map coordinates after zoom
-        Point.Double p1 = translatePoint(x, y);
+        if (factor < initialFactor) {
+            reset = false;
+            // Map coordinates before zoom
+            Point.Double p = translatePoint(x, y);
+            zoomOut();
+            // Map coordinates after zoom
+            Point.Double p1 = translatePoint(x, y);
 
-        // Restore the previous map-coordinates to (x, y)
-        moveHorizontal(p.x - p1.x);
-        moveVertical(p.y - p1.y);
+            // Restore the previous map-coordinates to (x, y)
+            moveHorizontal(p.x - p1.x);
+            moveVertical(p.y - p1.y);
 
-        setChanged();
+            setChanged();
+        }
     }
 
     /**
