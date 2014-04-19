@@ -78,7 +78,7 @@ public class OSMParser extends DefaultHandler
     {
         JFileChooser j = new JFileChooser();
         j.setAcceptAllFileFilterUsed(false);
-        FileNameExtensionFilter fnef = new FileNameExtensionFilter("OpenStreetMap XML-file", "osm", "xml");
+        FileNameExtensionFilter fnef = new FileNameExtensionFilter("OpenStreetMap XML-file (.osm)", "osm");
         j.setFileFilter(fnef);
         j.setVisible(true);
         int status = j.showDialog(null, "Parse");
@@ -111,6 +111,7 @@ public class OSMParser extends DefaultHandler
         nodemap = new TreeMap<>();
 
         try {
+            new File("./res/data/osm").mkdirs();
             edgeStream = new PrintWriter("./res/data/osm/edges.csv");
             edgeStream.println("FNODE,TNODE,LENGTH,ID,TYPE,VEJNAVN,FRAKOERSEL,SPEED,DRIVETIME,ONE_WAY");
             coastlineStream = new PrintWriter("./res/data/osm/coastline.csv");
