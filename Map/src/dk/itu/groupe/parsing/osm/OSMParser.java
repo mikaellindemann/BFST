@@ -135,7 +135,6 @@ public class OSMParser extends DefaultHandler
         double xMin, xMax, yMin, yMax;
         xMin = yMin = Double.MAX_VALUE;
         xMax = yMax = Double.MIN_VALUE;
-        int numberOfNodes = 0;
         //Clear memory (shouldn't be necessary but looks good)
         resetInterner();
         // For each of the used nodeIDs:
@@ -147,18 +146,11 @@ public class OSMParser extends DefaultHandler
                 Point2D p = nd.getPoint();
                 double x = p.getX();
                 double y = p.getY();
-                if (x < xMin) {
-                    xMin = x;
-                } else if (x > xMax) {
-                    xMax = x;
-                }
-                if (y < yMin) {
-                    yMin = y;
-                } else if (y > yMax) {
-                    yMax = y;
-                }
+                xMin = Math.min(x, xMin);
+                xMax = Math.max(x, xMax);
+                yMin = Math.min(y, yMin);
+                yMax = Math.max(y, yMax);
                 nodeStream.println(nd.toString());
-                numberOfNodes++;
             }
         }
         // Close the streams to make sure all data has been flushed to the files.
@@ -171,7 +163,7 @@ public class OSMParser extends DefaultHandler
             info.println(yMin);
             info.println(xMax);
             info.println(yMax);
-            info.println(numberOfNodes);
+            info.println(nodeRef.size());
             info.println(numberOfEdges);
             info.close();
         } catch (FileNotFoundException ex) {

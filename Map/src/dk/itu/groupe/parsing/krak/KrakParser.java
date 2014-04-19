@@ -11,13 +11,13 @@ import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.JOptionPane;
 
-
 /**
  *
  * @author Mikael
  */
 public class KrakParser
 {
+
     private static Set<Integer> usedNodes;
     private static List<EdgeData> edges;
 
@@ -42,7 +42,7 @@ public class KrakParser
                 edges.add(ed);
             }
         };
-        
+
         try {
             loader.load(dir + "kdv_node_unload.txt", dir + "kdv_unload.txt", nodeMap);
         } catch (IOException ex) {
@@ -54,39 +54,44 @@ public class KrakParser
             ex.printStackTrace(System.err);
             System.exit(300);
         }
-        
-        try {
-            double xMin, xMax, yMin, yMax;
-            xMin = yMin = Double.MAX_VALUE;
-            xMax = yMax = Double.MIN_VALUE;
-            PrintWriter nodeStream = new PrintWriter(dir + "krak/nodes.csv");
-            nodeStream.println("id,x,y");
-            PrintWriter edgeStream = new PrintWriter(dir + "krak/edges.csv");
+
+        double xMin, xMax, yMin, yMax;
+        xMin = yMin = Double.MAX_VALUE;
+        xMax = yMax = Double.MIN_VALUE;
+        try (PrintWriter edgeStream = new PrintWriter(dir + "krak/edges.csv")) {
             edgeStream.println("FNODE,TNODE,LENGTH,DAV_DK,TYPE,VEJNAVN,FRAKOERSEL,SPEED,DRIVETIME,ONE_WAY");
             for (EdgeData ed : edges) {
                 usedNodes.add(ed.FNODE);
                 usedNodes.add(ed.TNODE);
                 edgeStream.println(ed.toString());
             }
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace(System.err);
+        }
+        
+        try (PrintWriter nodeStream = new PrintWriter(dir + "krak/nodes.csv")) {
+            nodeStream.println("id,x,y");
+
             for (Integer i : usedNodes) {
                 NodeData n = nodeMap.get(i);
-                if (n.X_COORD < xMin) xMin = n.X_COORD;
-                else if (n.X_COORD > xMax) xMax = n.X_COORD;
-                if (n.Y_COORD < yMin) yMin = n.Y_COORD;
-                else if (n.Y_COORD > yMax) yMax = n.Y_COORD;
+                xMin = Math.min(n.X_COORD, xMin);
+                xMax = Math.max(n.X_COORD, xMax);
+                yMin = Math.min(n.Y_COORD, yMin);
+                yMax = Math.max(n.Y_COORD, yMax);
                 nodeStream.println(n.toString());
             }
-            PrintWriter info = new PrintWriter(dir + "krak/info.csv");
+            nodeStream.close();
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace(System.err);
+        }
+        
+        try (PrintWriter info = new PrintWriter(dir + "krak/info.csv")) {
             info.println(xMin);
             info.println(yMin);
             info.println(xMax);
             info.println(yMax);
             info.println(usedNodes.size());
             info.println(edges.size());
-            
-            info.close();
-            nodeStream.close();
-            edgeStream.close();
         } catch (FileNotFoundException ex) {
             ex.printStackTrace(System.err);
         }
