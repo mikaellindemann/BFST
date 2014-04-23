@@ -1,8 +1,13 @@
 package dk.itu.groupe;
 
+import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -18,7 +23,7 @@ public class KDTree
         X, Y
     };
     @SuppressWarnings("unchecked")
-    private final List<Edge> empty = (List<Edge>) Collections.EMPTY_LIST;
+    private final Set<Edge> empty = (Set<Edge>) Collections.EMPTY_SET;
     private KDTree HIGH, LOW;
     private final Edge centerEdge;
     private final double xmin, ymin, xmax, ymax;
@@ -50,7 +55,7 @@ public class KDTree
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
                 Edge edge = edges.remove(0);
-                if (edge.getLine().getX1() < centerEdge.getLine().getX1()) {
+                if (edge.getShape().getBounds2D().getCenterX() < centerEdge.getShape().getBounds2D().getCenterX()) {
                     low.add(edge);
                 } else {
                     high.add(edge);
@@ -62,7 +67,7 @@ public class KDTree
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
                 Edge edge = edges.remove(0);
-                if (edge.getLine().getY1() < centerEdge.getLine().getY1()) {
+                if (edge.getShape().getBounds2D().getCenterY() < centerEdge.getShape().getBounds2D().getCenterY()) {
                     low.add(edge);
                 } else {
                     high.add(edge);
@@ -75,10 +80,10 @@ public class KDTree
         if (dim == Dimension.X) {
             lowBounds[0] = xmin;
             lowBounds[1] = ymin;
-            lowBounds[2] = centerEdge.getLine().getX1();
+            lowBounds[2] = centerEdge.getShape().getBounds2D().getCenterX();
             lowBounds[3] = ymax;
 
-            highBounds[0] = centerEdge.getLine().getX1();
+            highBounds[0] = centerEdge.getShape().getBounds2D().getCenterX();
             highBounds[1] = ymin;
             highBounds[2] = xmax;
             highBounds[3] = ymax;
@@ -86,10 +91,10 @@ public class KDTree
             lowBounds[0] = xmin;
             lowBounds[1] = ymin;
             lowBounds[2] = xmax;
-            lowBounds[3] = centerEdge.getLine().getY1();
+            lowBounds[3] = centerEdge.getShape().getBounds2D().getCenterY();
 
             highBounds[0] = xmin;
-            highBounds[1] = centerEdge.getLine().getY1();
+            highBounds[1] = centerEdge.getShape().getBounds2D().getCenterY();
             highBounds[2] = xmax;
             highBounds[3] = ymax;
         }
@@ -112,14 +117,39 @@ public class KDTree
      */
     public Edge getNearest(double x, double y)
     {
-        List<Edge> ns = getEdges(x, y, x, y);
+        Point2D p = new Point2D.Double(x, y);
+        Set<Edge> ns = getEdges(x- 100, y - 100, x + 100, y + 100);
         double dist = 100;
         Edge nearest = null;
         for (Edge edge : ns) {
-            double d = edge.getLine().ptSegDist(x, y);
-            if (d < dist) {
-                dist = d;
-                nearest = edge;
+            Point2D start = null;
+            Point2D last = null;
+            for (PathIterator pi = edge.getShape().getPathIterator(null); !pi.isDone(); pi.next()) {
+                double[] coords = new double[6];
+                int type = pi.currentSegment(coords);
+                switch (type) {
+                    case PathIterator.SEG_MOVETO:
+                        start = last = new Point2D.Double(coords[0], coords[1]);
+                        break;
+                    case PathIterator.SEG_LINETO:
+                        Point2D.Double pd = new Point2D.Double(coords[0], coords[1]);
+                        Line2D line = new Line2D.Double(last, pd);
+                        last = pd;
+                        double d = line.ptSegDist(p);
+                        if (d < dist) {
+                            dist = d;
+                            nearest = edge;
+                        }
+                        break;
+                    case PathIterator.SEG_CLOSE:
+                        line = new Line2D.Double(last, start);
+                        d = line.ptSegDist(p);
+                        if (d < dist) {
+                            dist = d;
+                            nearest = edge;
+                        }
+                        break;
+                }
             }
         }
         return nearest;
@@ -137,9 +167,9 @@ public class KDTree
      * @return A list of edgedata containing the edges that are inside the
      * rectangle.
      */
-    public List<Edge> getEdges(double leftX, double bottomY, double rightX, double topY)
+    public Set<Edge> getEdges(double leftX, double bottomY, double rightX, double topY)
     {
-        int offset = 1000;
+        int offset = 2000;
         if (dim == Dimension.X) {
             if (rightX + offset < xmin || leftX - offset > xmax) {
                 return empty;
@@ -150,25 +180,24 @@ public class KDTree
             }
         }
 
-        List<Edge> edgeList;
+        Set<Edge> edgeList;
         if (LOW != null) {
             edgeList = LOW.getEdges(leftX, bottomY, rightX, topY);
             if (edgeList.isEmpty()) {
-                edgeList = new LinkedList<>();
+                edgeList = new HashSet<>();
             }
-            edgeList.add(centerEdge);
             if (HIGH != null) {
                 edgeList.addAll(HIGH.getEdges(leftX, bottomY, rightX, topY));
             }
-        } else if (HIGH
-                != null) {
+        } else if (HIGH != null) {
             edgeList = HIGH.getEdges(leftX, bottomY, rightX, topY);
             if (edgeList.isEmpty()) {
-                edgeList = new LinkedList<>();
+                edgeList = new HashSet<>();
             }
-            edgeList.add(centerEdge);
         } else {
-            edgeList = new LinkedList<>();
+            edgeList = new HashSet<>();
+        }
+        if (centerEdge.getShape().intersects(leftX, bottomY, rightX - leftX, topY - bottomY)) {
             edgeList.add(centerEdge);
         }
         return edgeList;

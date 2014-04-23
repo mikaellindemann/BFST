@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import javax.swing.JFileChooser;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -45,25 +47,32 @@ public class OSMParser extends DefaultHandler
     private int exitNumber;
     private int speedLimit;
     private OneWay oneWay;
+    private boolean area;
 
     private boolean edge, way, coastline;
     private int numberOfEdges;
     // List used to connect a single edge in the OSM-file.
     private List<Long> nodeList;
     // If this set contains a nodeID it has been used for an edge.
-    private Set<Long> nodeRef;
+    private Set<Long> nodeRef, coastlineRef;
     // This stores the nodes so they can be looked up by their ID.
     private Map<Long, Node> nodemap;
 
     // OutputStreams.
     private PrintWriter edgeStream;
     private PrintWriter nodeStream;
+    private PrintWriter coastlineNodeStream;
     private PrintWriter coastlineStream;
 
     private static File f;
 
     public static void main(String[] args) throws Exception
     {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            ex.printStackTrace(System.err);
+        }
         selectFile();
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
@@ -101,6 +110,7 @@ public class OSMParser extends DefaultHandler
         // Initializes all the lists and maps that are used to parse the OSM-file.
         // It also writes the first lines containing information about fields.
         nodeRef = new TreeSet<>();
+        coastlineRef = new TreeSet<>();
         rtMap = new HashMap<>();
         for (OSMRoadType rt : OSMRoadType.values()) {
             for (String s : rt.getOSMTypes()) {
@@ -112,12 +122,14 @@ public class OSMParser extends DefaultHandler
 
         try {
             new File("./res/data/osm").mkdirs();
+            new File("./res/data/coastline").mkdirs();
             edgeStream = new PrintWriter("./res/data/osm/edges.csv");
-            edgeStream.println("FNODE,TNODE,LENGTH,ID,TYPE,VEJNAVN,FRAKOERSEL,SPEED,DRIVETIME,ONE_WAY");
-            coastlineStream = new PrintWriter("./res/data/osm/coastline.csv");
-            coastlineStream.println("FNODE,TNODE");
+            edgeStream.println("ID,TYPE,VEJNAVN,FRAKOERSEL,SPEED,ONE_WAY,NODES...");
+            coastlineStream = new PrintWriter("./res/data/coastline/edges.csv");
+            coastlineStream.println("AREA,NODES...");
         } catch (FileNotFoundException ex) {
             // This happens if the printwriters are about to write a file to a nonexisting folder.
+            // Which shouldn't happen because the folders are created on document-start.
             ex.printStackTrace(System.err);
         }
     }
@@ -127,6 +139,8 @@ public class OSMParser extends DefaultHandler
     {
         try {
             nodeStream = new PrintWriter("./res/data/osm/nodes.csv");
+            coastlineNodeStream = new PrintWriter("./res/data/coastline/nodes.csv");
+            coastlineNodeStream.println("id,x,y");
             nodeStream.println("id,x,y");
         } catch (FileNotFoundException ex) {
             ex.printStackTrace(System.err);
@@ -142,6 +156,13 @@ public class OSMParser extends DefaultHandler
             // This should always return true, but I havent checked.
             if (nodemap.containsKey(id)) {
                 // Write the node to the node-file.
+                nodeStream.println(nodemap.get(id).toString());
+            }
+        }
+        for (long id : coastlineRef) {
+            // This should always return true, but I havent checked.
+            if (nodemap.containsKey(id)) {
+                // Write the node to the coastline-node-file.
                 Node nd = nodemap.get(id);
                 Point2D p = nd.getPoint();
                 double x = p.getX();
@@ -150,11 +171,12 @@ public class OSMParser extends DefaultHandler
                 xMax = Math.max(x, xMax);
                 yMin = Math.min(y, yMin);
                 yMax = Math.max(y, yMax);
-                nodeStream.println(nd.toString());
+                coastlineNodeStream.println(nd.toString());
             }
         }
         // Close the streams to make sure all data has been flushed to the files.
         nodeStream.close();
+        coastlineNodeStream.close();
         edgeStream.close();
         coastlineStream.close();
 
@@ -237,6 +259,7 @@ public class OSMParser extends DefaultHandler
         exitNumber = 0;
         speedLimit = 0;
         coastline = false;
+        area = false;
         oneWay = OneWay.NO;
     }
 
@@ -259,6 +282,12 @@ public class OSMParser extends DefaultHandler
             case "highway":
                 roadType = rtMap.get(atts.getValue("v"));
                 if (roadType != null) {
+                    way = true;
+                }
+                break;
+            case "route":
+                if (atts.getValue("v").equals("ferry")) {
+                    roadType = OSMRoadType.FERRY;
                     way = true;
                 }
                 break;
@@ -286,40 +315,59 @@ public class OSMParser extends DefaultHandler
                         oneWay = OneWay.TO_FROM;
                         break;
                 }
+                break;
             case "natural":
                 if (atts.getValue("v").equals("coastline")) {
                     coastline = true;
                     way = true;
+                }/* else if (atts.getValue("v").equals("water")) {
+                 coastline = true;
+                 way = true;
+                 }*/
+
+                break;
+            case "area":
+                if (atts.getValue("v").equals("yes")) {
+                    area = true;
                 }
+                break;
+            case "place":
+                roadType = OSMRoadType.PLACES;
+                way = true;
+                break;
         }
     }
 
     private void writeEdge()
     {
-        Node fnode;
-        Node tnode = null;
-        for (long id : nodeList) {
-            if (!nodemap.containsKey(id)) {
-                System.err.println("A node has been used without existing??!?");
-                continue;
+        long[] nodeIds = new long[nodeList.size()];
+        // Copy and mark the nodes used.
+        for (int i = 0; i < nodeIds.length; i++) {
+            long node = nodeList.get(i);
+            // If nodemap does not contain the key, something went very wrong.
+            assert (nodemap.containsKey(node));
+            nodeIds[i] = node;
+            if (coastline) {
+                coastlineRef.add(node);
+            } else {
+                nodeRef.add(node);
             }
-            fnode = tnode;
-            tnode = nodemap.get(id);
-            assert tnode != null;
-            if (fnode == null) {
-                continue;
+        }
+        if (!coastline) {
+            Edge ed = new Edge(edgeID, roadType, name, exitNumber, speedLimit, oneWay, nodeIds);
+            edgeStream.println(ed.toString());
+            numberOfEdges++;
+        } else {
+            String s = "";
+            if (area) {
+                s += "1";
+            } else {
+                s += "0";
             }
-            if (name != null) {
-                nodeRef.add(fnode.getId());
-                nodeRef.add(tnode.getId());
-                if (!coastline) {
-                    Edge ed = new Edge(fnode, tnode, edgeID, roadType, name, exitNumber, speedLimit, oneWay);
-                    edgeStream.println(ed.toString());
-                    numberOfEdges++;
-                } else {
-                    coastlineStream.println(fnode.getId() + "," + tnode.getId());
-                }
+            for (long node : nodeIds) {
+                s += "," + node;
             }
+            coastlineStream.println(s);
         }
     }
 }

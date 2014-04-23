@@ -44,16 +44,17 @@ public class EdgeData
     @Override
     public String toString()
     {
-        return FNODE + ","
+        return /*FNODE + ","
                 + TNODE + ","
                 + LENGTH + ","
-                + DAV_DK + ","
+                + */DAV_DK + ","
                 + TYPE.getNewTypeNumber() + ","
                 + "`" + VEJNAVN + "`,"
                 + FRAKOERSEL + ","
                 + SPEED + ","
-                + DRIVETIME + ","
-                + ONE_WAY.getNumber();
+                //+ DRIVETIME + ","
+                + ONE_WAY.getNumber() + ","
+                + FNODE + "," + TNODE;
     }
 
     public EdgeData(String line, Map<Integer, NodeData> nodeMap)

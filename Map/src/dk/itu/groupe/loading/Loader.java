@@ -1,10 +1,16 @@
-package dk.itu.groupe;
+package dk.itu.groupe.loading;
 
+import dk.itu.groupe.Coastline;
+import dk.itu.groupe.Edge;
+import dk.itu.groupe.Node;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,7 +38,7 @@ public abstract class Loader
      * @param ed The <code>Edge</code> to process.
      */
     public abstract void processEdge(Edge ed);
-    
+
     public abstract void processCoastline(Coastline cl);
 
     /**
@@ -63,14 +69,27 @@ public abstract class Loader
         while ((line = br.readLine()) != null) {
             processEdge(new Edge(line, nodeMap));
         }
-        
-        /*br = new BufferedReader(new InputStreamReader(new FileInputStream("./res/data/osm/coastline.csv")));
+
+        Map<Long, Node> coastlinemap = new HashMap<>();
+        br = new BufferedReader(new InputStreamReader(new FileInputStream("./res/data/coastline/nodes.csv")));
+        br.readLine();
+        while ((line = br.readLine()) != null) {
+            Node n = new Node(line);
+            coastlinemap.put(n.ID, n);
+        }
+        br.close();
+
+        br = new BufferedReader(new InputStreamReader(new FileInputStream("./res/data/coastline/edges.csv")));
         br.readLine();
         while ((line = br.readLine()) != null) {
             DataLine l = new DataLine(line);
-            Node from = nodeMap.get(l.getLong());
-            Node to = nodeMap.get(l.getLong());
-            processCoastline(new Coastline(from, to));
-        }*/
+            int a = l.getInt();
+            boolean area = (a == 1);
+            List<Node> nodes = new LinkedList<>();
+            while (l.hasNext()) {
+                nodes.add(coastlinemap.get(l.getLong()));
+            }
+            processCoastline(new Coastline(nodes.toArray(new Node[0]), area));
+        }
     }
 }

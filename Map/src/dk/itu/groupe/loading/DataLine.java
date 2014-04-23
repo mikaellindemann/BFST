@@ -1,4 +1,4 @@
-package dk.itu.groupe;
+package dk.itu.groupe.loading;
 
 import java.util.HashMap;
 
@@ -123,6 +123,11 @@ public class DataLine
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(s + " is not a double!");
         }
+    }
+    
+    public boolean hasNext()
+    {
+        return next < line.length();
     }
 
     /**

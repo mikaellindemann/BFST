@@ -1,6 +1,12 @@
 package dk.itu.groupe;
 
+import dk.itu.groupe.loading.LoadingPanel;
+import dk.itu.groupe.loading.Loader;
+import dk.itu.groupe.loading.DataLine;
 import java.awt.Point;
+import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +48,7 @@ public class Model extends Observable
     private double ratioX;
     private double ratioY;
     private final float minFactor = 0.5f;
-    private final double initialFactor;
+    private double initialFactor;
 
     private Map<CommonRoadType, KDTree> treeMap;
 
@@ -53,7 +60,10 @@ public class Model extends Observable
     private int width, height;
 
     private boolean reset;
-    public final boolean osm;
+
+    private final String dir;
+    private final LoadingPanel lf;
+    
 
     /**
      * On creation of the Model, it will start to load in the data.
@@ -66,16 +76,12 @@ public class Model extends Observable
     public Model(String data)
     {
         double xLow = 0, yLow = 0, xHigh = 0, yHigh = 0;
-        int maxNodes = 0, maxEdges = 0;
-        String dir;
         if (data.equals("OpenStreetMap")) {
             dir = "./res/data/osm/";
-            osm = true;
         } else {
             dir = "./res/data/krak/";
-            osm = false;
         }
-
+        int maxNodes = 0, maxEdges = 0;
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dir + "info.csv")));
             xLow = Double.parseDouble(br.readLine());
@@ -87,7 +93,9 @@ public class Model extends Observable
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
         }
-        final LoadingFrame lf = new LoadingFrame(maxNodes, maxEdges);
+
+        lf = new LoadingPanel(maxNodes, maxEdges);
+        
         lowestX_COORD = xLow;
         lowestY_COORD = yLow;
         highestX_COORD = xHigh;
@@ -96,7 +104,16 @@ public class Model extends Observable
         treeMap = new HashMap<>();
 
         mouseTool = MouseTool.MOVE;
-        final List<Edge> coastlines = new LinkedList<>();
+    }
+
+    public LoadingPanel getLoadingPanel()
+    {
+        return lf;
+    }
+    
+    public void load()
+    {
+        
         final Map<Long, Node> nodeMap = new HashMap<>();
         final Map<CommonRoadType, List<Edge>> edgeMap = new HashMap<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
@@ -121,7 +138,7 @@ public class Model extends Observable
             @Override
             public void processCoastline(Coastline cl)
             {
-                coastlines.add(cl);
+                edgeMap.get(CommonRoadType.COASTLINE).add(cl);
             }
         };
         try {
@@ -137,19 +154,9 @@ public class Model extends Observable
         }
         DataLine.resetInterner();
 
-        ExecutorService es = Executors.newFixedThreadPool(4);
+        ExecutorService es = Executors.newCachedThreadPool();
 
         for (final CommonRoadType rt : CommonRoadType.values()) {
-            /*if (rt == CommonRoadType.COASTLINE) {
-             es.execute(new Runnable()
-             {
-             @Override
-             public void run()
-             {
-             treeMap.put(rt, new KDTree(coastlines, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
-             }
-             });
-             } else {*/
             es.execute(new Runnable()
             {
                 @Override
@@ -168,11 +175,10 @@ public class Model extends Observable
         } catch (InterruptedException ex) {
             ex.printStackTrace(System.err);
         }
-        height = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 100;
+        height = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 110;
         width = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
         reset();
         initialFactor = factor;
-        lf.dispose();
         System.gc();
     }
 
@@ -260,11 +266,6 @@ public class Model extends Observable
             moveVertical(-distance * factor);
         }
         setChanged();
-    }
-
-    public boolean isOsm()
-    {
-        return osm;
     }
 
     /**
@@ -432,20 +433,47 @@ public class Model extends Observable
         Point.Double p = translatePoint(x, y);
         List<Edge> edges = new LinkedList<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
-            KDTree tree = treeMap.get(rt);
-            if (tree != null) {
-                Edge e = tree.getNearest(p.x, p.y);
-                if (e != null) {
-                    edges.add(e);
+            if (rt.isEnabled(factor)) {
+                KDTree tree = treeMap.get(rt);
+                if (tree != null) {
+                    Edge e = tree.getNearest(p.x, p.y);
+                    if (e != null) {
+                        edges.add(e);
+                    }
                 }
             }
         }
         Edge near = null;
         double dist = Double.MAX_VALUE;
         for (Edge edge : edges) {
-            if (edge.getLine().ptSegDist(p) < dist) {
-                dist = edge.getLine().ptSegDist(p);
-                near = edge;
+            Point2D start = null;
+            Point2D last = null;
+            for (PathIterator pi = edge.getShape().getPathIterator(null); !pi.isDone(); pi.next()) {
+                double[] coords = new double[6];
+                int type = pi.currentSegment(coords);
+                switch (type) {
+                    case PathIterator.SEG_MOVETO:
+                        start = last = new Point2D.Double(coords[0], coords[1]);
+                        break;
+                    case PathIterator.SEG_LINETO:
+                        Point2D.Double pd = new Point2D.Double(coords[0], coords[1]);
+                        Line2D line = new Line2D.Double(last, pd);
+                        last = pd;
+                        double d = line.ptSegDist(p);
+                        if (d < dist) {
+                            dist = d;
+                            near = edge;
+                        }
+                        break;
+                    case PathIterator.SEG_CLOSE:
+                        line = new Line2D.Double(last, start);
+                        d = line.ptSegDist(p);
+                        if (d < dist) {
+                            dist = d;
+                            near = edge;
+                        }
+                        break;
+                }
             }
         }
         // If there are no "nearest" edges
@@ -534,12 +562,12 @@ public class Model extends Observable
      * within the specified rectangle.
      */
     @SuppressWarnings("unchecked")
-    public List<Edge> getEdges(CommonRoadType rt, double xLeft, double yBottom, double xRight, double yTop)
+    public Set<Edge> getEdges(CommonRoadType rt, double xLeft, double yBottom, double xRight, double yTop)
     {
         if (treeMap.get(rt) != null) {
             return treeMap.get(rt).getEdges(xLeft, yBottom, xRight, yTop);
         } else {
-            return Collections.EMPTY_LIST;
+            return (Set<Edge>) Collections.EMPTY_SET;
         }
     }
 

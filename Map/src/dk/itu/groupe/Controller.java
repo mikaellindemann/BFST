@@ -1,5 +1,6 @@
 package dk.itu.groupe;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -16,8 +17,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  *
@@ -212,8 +216,13 @@ public class Controller implements
 
     public static void main(String[] args)
     {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            ex.printStackTrace(System.err);
+        }
         String dataset = (String) JOptionPane.showInputDialog(null,
-                "Do you want to use KRAK data or OpenStreetMap-data?\n"
+                "Do you want to use Krak data or OpenStreetMap-data?\n"
                 + "Krak is a smaller and older dataset, but loads faster\n"
                 + "OpenStreetMap is newer and contains more data.",
                 "Choose data",
@@ -225,11 +234,17 @@ public class Controller implements
             return;
         }
         long time = System.currentTimeMillis();
-        JFrame frame = new JFrame("GroupE-map");
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        JFrame frame = new JFrame("GroupE-map Loading");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setIconImage(new ImageIcon("res/Icon.png").getImage());
         Model model = new Model(dataset);
+        frame.add(model.getLoadingPanel());
+        frame.pack();
+        frame.setVisible(true);
+        model.load();
+        frame.setVisible(false);
+        frame.remove(model.getLoadingPanel());
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         View view = new View(model);
         model.addObserver(view);
         Controller controller = new Controller(model, view);
@@ -238,10 +253,13 @@ public class Controller implements
         view.getMap().addMouseMotionListener(controller);
         view.getMap().addMouseWheelListener(controller);
         frame.addWindowStateListener(controller);
-        frame.setContentPane(view);
+        JPanel glassPane = new JPanel(new BorderLayout());
+        glassPane.setOpaque(false);
+        frame.setGlassPane(glassPane);
+        frame.add(view);
+        frame.setTitle("GroupE-map");
         frame.pack();
         frame.setVisible(true);
-
         System.out.println((System.currentTimeMillis() - time) / 1000.0);
     }
 }

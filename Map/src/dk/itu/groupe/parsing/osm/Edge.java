@@ -1,7 +1,6 @@
 package dk.itu.groupe.parsing.osm;
 
 import dk.itu.groupe.OneWay;
-import java.util.Locale;
 
 /**
  * Represents the raw data from a line in edges.csv.
@@ -12,24 +11,18 @@ import java.util.Locale;
 public class Edge
 {
 
-    private final Node fromNode;
-    private final Node toNode;
-    private final double length;
     private final long id;
     private final OSMRoadType type;
     private final String roadname;
     private final int exitNumber;
     private final int speedLimit;
-    private final double driveTime;
     private final OneWay oneWay;
+    private final long[] nodeIds;
 
     @Override
     public String toString()
     {
-        String s = fromNode.getId() + ","
-                + toNode.getId() + ","
-                + String.format(Locale.ENGLISH, "%.2f,", length)
-                + id + ","
+        String s = id + ","
                 + type.getTypeNo() + ",";
         if (roadname != null) {
             s += "`" + roadname + "`,";
@@ -38,36 +31,32 @@ public class Edge
         }
         s += exitNumber + ","
                 + speedLimit + ","
-                + String.format(Locale.ENGLISH, "%.2f,", driveTime)
                 + oneWay.getNumber();
+        for (long node : nodeIds) {
+            s += "," + node;
+        }
         return s;
     }
 
-    public Edge(Node fromNode,
-            Node toNode,
-            long id,
+    public Edge(long id,
             OSMRoadType type,
             String roadname,
             int exitNumber,
             int speedLimit,
-            OneWay oneWay)
+            OneWay oneWay,
+            long[] nodes)
     {
-        this.fromNode = fromNode;
-        this.toNode = toNode;
-        length = fromNode.getPoint().distance(toNode.getPoint());
         this.id = id;
         this.type = type;
         this.roadname = roadname;
         this.exitNumber = exitNumber;
-        this.speedLimit = speedLimit;
-        if (speedLimit != 0) {
-            // length is in meters.
-            driveTime = length / (speedLimit * 1000 / 60) * 1.15;
-            // driveTime is now in minutes.
+        if (speedLimit == 0) {
+            this.speedLimit = type.getSpeed();
         } else {
-            driveTime = length / (type.getSpeed() * 1000 / 60) * 1.15;
+            this.speedLimit = speedLimit;
         }
         this.oneWay = oneWay;
+        this.nodeIds = nodes;
     }
 
     public OSMRoadType getType()
@@ -78,5 +67,10 @@ public class Edge
     public String getRoadname()
     {
         return roadname;
+    }
+    
+    public long[] getNodeIds()
+    {
+        return nodeIds;
     }
 }

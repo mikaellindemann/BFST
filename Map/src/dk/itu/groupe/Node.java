@@ -1,5 +1,7 @@
 package dk.itu.groupe;
 
+import dk.itu.groupe.loading.DataLine;
+
 /**
  * An object storing the raw node data from the parsed krak data file.
  *

@@ -7,105 +7,87 @@ package dk.itu.groupe;
 public enum CommonRoadType
 {
 
+    COASTLINE(0, CommonRoadType.always),
     /**
-     * OSM: Motorway.
-     * KRAK: Highway(1) and Proj_Highway(21).
+     * OSM: Motorway. KRAK: Highway(1) and Proj_Highway(21).
      */
-    MOTORWAY(1, CommonRoadType.firstFactor),
+    MOTORWAY(1, CommonRoadType.always),
     /**
-     * OSM: Trunk.
-     * KRAK: Expressway(2) and Proj_Expressway(22).
+     * OSM: Trunk. KRAK: Expressway(2) and Proj_Expressway(22).
      */
-    TRUNK(2, CommonRoadType.firstFactor),
+    TRUNK(2, CommonRoadType.always),
     /**
-     * OSM: Primary.
-     * KRAK: PrimaryRoute(3) and Proj_PrimaryRoute(23).
+     * OSM: Primary. KRAK: PrimaryRoute(3) and Proj_PrimaryRoute(23).
      */
-    PRIMARY(3, CommonRoadType.firstFactor),
+    PRIMARY(3, CommonRoadType.secondFactor),
     /**
-     * OSM: Secondary.
-     * KRAK: SecondaryRoute(4) and Proj_SecondaryRoute(24).
+     * OSM: Secondary. KRAK: SecondaryRoute(4) and Proj_SecondaryRoute(24).
      */
     SECONDARY(4, CommonRoadType.secondFactor),
     /**
-     * OSM: Tertiary.
-     * KRAK: Road(5) and Proj_Road(25).
+     * OSM: Tertiary. KRAK: Road(5) and Proj_Road(25).
      */
     TERTIARY(5, CommonRoadType.secondFactor),
     /**
-     * OSM: Unclassified and Byway.
-     * KRAK: OtherRoad(6) and Proj_OtherRoad(26).
+     * OSM: Unclassified and Byway. KRAK: OtherRoad(6) and Proj_OtherRoad(26).
      */
     UNCLASSIFIED(6, CommonRoadType.thirdFactor),
     /**
-     * OSM: Residential, Living_Street, Living_Street;Footway, Mini_Roundabout and service.
-     * KRAK:.
+     * OSM: Residential, Living_Street, Living_Street;Footway, Mini_Roundabout
+     * and service. KRAK:.
      */
     RESIDENTIAL(7, CommonRoadType.thirdFactor),
     /**
-     * OSM: Motorway_Link.
-     * KRAK: HighwayExit(31).
+     * OSM: Motorway_Link. KRAK: HighwayExit(31).
      */
-    MOTORWAY_LINK(21, CommonRoadType.firstFactor),
+    MOTORWAY_LINK(21, CommonRoadType.always),
     /**
-     * OSM: Trunk_Link.
-     * KRAK: ExpresswayExit(32).
+     * OSM: Trunk_Link. KRAK: ExpresswayExit(32).
      */
-    TRUNK_LINK(22, CommonRoadType.firstFactor),
+    TRUNK_LINK(22, CommonRoadType.always),
     /**
-     * OSM: Primary_Link.
-     * KRAK: PrimaryRouteExit(33).
+     * OSM: Primary_Link. KRAK: PrimaryRouteExit(33).
      */
-    PRIMARY_LINK(23, CommonRoadType.firstFactor),
+    PRIMARY_LINK(23, CommonRoadType.secondFactor),
     /**
-     * OSM: Secondary_Link.
-     * KRAK: SecondaryRouteExit(34).
+     * OSM: Secondary_Link. KRAK: SecondaryRouteExit(34).
      */
     SECONDARY_LINK(24, CommonRoadType.secondFactor),
     /**
-     * OSM: Tertiary_Link.
-     * KRAK:.
+     * OSM: Tertiary_Link. KRAK:.
      */
     TERTIARY_LINK(25, CommonRoadType.secondFactor),
     /**
-     * OSM: Pedestrian.
-     * KRAK: PedestrianZone(11).
+     * OSM: Pedestrian. KRAK: PedestrianZone(11).
      */
     PEDESTRIAN(8, CommonRoadType.thirdFactor),
     /**
-     * OSM: Track.
-     * KRAK: DirtRoad(10).
+     * OSM: Track. KRAK: DirtRoad(10).
      */
     TRACK(9, CommonRoadType.thirdFactor),
     /**
-     * OSM: Road, Yes, Tr, Rfe and Turning_Loop.
-     * KRAK: Unknown(0) and AlsoUnknown(95).
+     * OSM: Road, Yes, Tr, Rfe and Turning_Loop. KRAK: Unknown(0) and
+     * AlsoUnknown(95).
      */
     ROAD(10, CommonRoadType.secondFactor),
     /**
-     * OSM: Path and Path;Track.
-     * KRAK: Path(8) and Proj_Path(28).
+     * OSM: Path and Path;Track. KRAK: Path(8) and Proj_Path(28).
      */
     PATH(11, CommonRoadType.thirdFactor),
     /**
-     * OSM: Tunnel.
-     * KRAK: HighwayTunnel(41) and ExpresswayTunnel(42).
+     * OSM: Tunnel. KRAK: HighwayTunnel(41) and ExpresswayTunnel(42).
      */
-    TUNNEL(12, CommonRoadType.firstFactor),
+    TUNNEL(12, CommonRoadType.always),
     /**
-     * OSM:.
-     * KRAK: ExactLocationUnknown(99).
+     * OSM:. KRAK: ExactLocationUnknown(99).
      */
-    PLACES(13, 3),
+    PLACES(13, CommonRoadType.placeNames),
     /**
-     * OSM:.
-     * KRAK: Ferry(80).
+     * OSM:. KRAK: Ferry(80).
      */
-    FERRY(14, CommonRoadType.firstFactor);
-    
-    //COASTLINE(-1, CommonRoadType.firstFactor);
+    FERRY(14, CommonRoadType.always);
 
-    private final static int firstFactor = Integer.MAX_VALUE, secondFactor = 65, thirdFactor = 10;
+    private final static int always = Integer.MAX_VALUE, secondFactor = 65, thirdFactor = 10, placeNames = 3;
     private final int type;
     private final int factorActivate;
 
@@ -119,7 +101,7 @@ public enum CommonRoadType
     {
         return type;
     }
-    
+
     public boolean isEnabled(double factor)
     {
         return factorActivate >= factor;

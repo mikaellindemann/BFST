@@ -1,8 +1,12 @@
 package dk.itu.groupe;
 
-import java.awt.geom.Line2D;
+import dk.itu.groupe.loading.DataLine;
+import java.awt.Shape;
+import java.awt.geom.Area;
+import java.awt.geom.Path2D;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,45 +20,44 @@ public class Edge
 
     private static HashMap<Integer, CommonRoadType> rtMap;
 
-    private final long fromNode;
-    private final long toNode;
-    private final double length;
     private final long id;
     private final CommonRoadType type;
     private final String roadname;
     private final int exitNumber;
     private final int speedLimit;
-    private final double driveTime;
     private final OneWay oneWay;
-    private final Line2D line;
+    private final Shape path;
 
     @Override
     public String toString()
     {
-        return fromNode + ","
-                + toNode + ","
-                + String.format(Locale.ENGLISH, "%.5f,", length)
-                + id + ","
+        throw new UnsupportedOperationException("Edges should not be printed");
+        /*return id + ","
                 + type.getTypeNo() + ","
                 + "`" + roadname + "`,"
                 + exitNumber + ","
                 + speedLimit + ","
-                + String.format(Locale.ENGLISH, "%.3f,", driveTime)
-                + oneWay.getNumber();
+                + oneWay.getNumber();*/
     }
     
-    protected Edge(Node from, Node to) {
-        line = new Line2D.Double(from.X_COORD, from.Y_COORD, to.X_COORD, to.Y_COORD);
-        fromNode = 0;
-        toNode = 0;
-        length = 0;
+    protected Edge(Node[] nodes, boolean area) {
         id = 0;
         type = null;
         roadname = null;
         exitNumber = 0;
         speedLimit = 0;
-        driveTime = 0;
         oneWay = null;
+        Path2D p = new Path2D.Double();
+        p.moveTo(nodes[0].X_COORD, nodes[0].Y_COORD);
+        for (int i = 1; i < nodes.length; i++) {
+            p.lineTo(nodes[i].X_COORD, nodes[i].Y_COORD);
+        }
+        if (area) {
+            p.closePath();
+            path = new Area(p);
+        } else {
+            path = p;
+        }
     }
 
     public Edge(String line, Map<Long, Node> nodeMap)
@@ -66,11 +69,6 @@ public class Edge
             }
         }
         DataLine dl = new DataLine(line);
-        fromNode = dl.getLong();
-        toNode = dl.getLong();
-        Node fN = nodeMap.get(fromNode);
-        Node tN = nodeMap.get(toNode);
-        length = dl.getDouble();
         id = dl.getLong();
         int typ = dl.getInt();
         type = rtMap.get(typ);
@@ -81,7 +79,6 @@ public class Edge
         roadname = dl.getString();
         exitNumber = dl.getInt();
         speedLimit = dl.getInt();
-        driveTime = dl.getDouble();
         switch (dl.getInt()) {
             case -1:
                 oneWay = OneWay.TO_FROM;
@@ -96,18 +93,16 @@ public class Edge
                 oneWay = OneWay.NO;
                 System.err.println("Assuming no restrictions on edge.");
         }
-        assert(fN != null);
-        if (tN == null) {
-            System.out.println(toNode);
-            System.out.println(nodeMap.containsKey(toNode));
-            System.out.println(roadname);
-            assert(tN != null);
+        List<Node> nodes = new ArrayList<>();
+        while (dl.hasNext()) {
+            nodes.add(nodeMap.get(dl.getLong()));
         }
-        this.line = new Line2D.Double(
-                fN.X_COORD,
-                fN.Y_COORD,
-                tN.X_COORD,
-                tN.Y_COORD);
+        Path2D p = new Path2D.Double();
+        p.moveTo(nodes.get(0).X_COORD, nodes.get(0).Y_COORD);
+        for (int i = 1; i < nodes.size(); i++) {
+            p.lineTo(nodes.get(i).X_COORD, nodes.get(i).Y_COORD);
+        }
+        path = p;
     }
 
     public CommonRoadType getType()
@@ -115,14 +110,9 @@ public class Edge
         return type;
     }
     
-    public double getLength()
+    public Shape getShape()
     {
-        return length;
-    }
-    
-    public Line2D getLine()
-    {
-        return line;
+        return path;
     }
     
     public String getRoadname()
