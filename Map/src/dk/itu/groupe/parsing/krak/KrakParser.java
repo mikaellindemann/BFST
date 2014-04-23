@@ -1,5 +1,6 @@
 package dk.itu.groupe.parsing.krak;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -61,7 +62,7 @@ public class KrakParser
             ex.printStackTrace(System.err);
             System.exit(300);
         }
-
+        new File(dir + "krak").mkdirs();
         double xMin, xMax, yMin, yMax;
         xMin = yMin = Double.MAX_VALUE;
         xMax = yMax = Double.MIN_VALUE;
