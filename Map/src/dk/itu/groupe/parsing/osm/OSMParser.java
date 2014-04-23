@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,11 @@ public class OSMParser extends DefaultHandler
     private Set<Long> nodeRef, coastlineRef;
     // This stores the nodes so they can be looked up by their ID.
     private Map<Long, Node> nodemap;
+    private Set<Edge> placeEdges;
+
+    private OSMRoadType placeType;
+    private String placeName;
+    private long lastNodeId;
 
     // OutputStreams.
     private PrintWriter edgeStream;
@@ -111,6 +117,7 @@ public class OSMParser extends DefaultHandler
         // It also writes the first lines containing information about fields.
         nodeRef = new TreeSet<>();
         coastlineRef = new TreeSet<>();
+        placeEdges = new HashSet<>();
         rtMap = new HashMap<>();
         for (OSMRoadType rt : OSMRoadType.values()) {
             for (String s : rt.getOSMTypes()) {
@@ -174,6 +181,12 @@ public class OSMParser extends DefaultHandler
                 coastlineNodeStream.println(nd.toString());
             }
         }
+
+        for (Edge ed : placeEdges) {
+            edgeStream.println(ed.toString());
+            numberOfEdges++;
+            nodeRef.add(ed.getNodeIds()[0]);
+        }
         // Close the streams to make sure all data has been flushed to the files.
         nodeStream.close();
         coastlineNodeStream.close();
@@ -200,6 +213,7 @@ public class OSMParser extends DefaultHandler
         switch (localName) {
             case "node":
                 nodeID = Long.parseLong(atts.getValue("id"));
+                lastNodeId = nodeID;
                 lat = Double.parseDouble(atts.getValue("lat"));
                 lon = Double.parseDouble(atts.getValue("lon"));
                 break;
@@ -215,6 +229,23 @@ public class OSMParser extends DefaultHandler
             case "tag":
                 if (edge) {
                     getWayInfo(atts);
+                } else {
+                    switch (atts.getValue("k")) {
+                        case "name":
+                            placeName = atts.getValue("v");
+                            if(placeType != null) {
+                                placeEdges.add(new Edge(-1, placeType, placeName, 0, 0, OneWay.NO, new long[]{lastNodeId}));
+                                nodeRef.add(lastNodeId);
+                            }
+                            break;
+                        case "place":
+                            placeType = OSMRoadType.PLACES;
+                            if (placeName != null) {
+                                placeEdges.add(new Edge(-1, placeType, placeName, 0, 0, OneWay.NO, new long[]{lastNodeId}));
+                                nodeRef.add(lastNodeId);
+                            }
+                            break;
+                    }
                 }
                 break;
             case "nd":
@@ -261,6 +292,8 @@ public class OSMParser extends DefaultHandler
         coastline = false;
         area = false;
         oneWay = OneWay.NO;
+        placeType = null;
+        placeName = null;
     }
 
     private static String intern(String s)
@@ -330,10 +363,6 @@ public class OSMParser extends DefaultHandler
                 if (atts.getValue("v").equals("yes")) {
                     area = true;
                 }
-                break;
-            case "place":
-                roadType = OSMRoadType.PLACES;
-                way = true;
                 break;
         }
     }

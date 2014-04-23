@@ -40,19 +40,18 @@ public class View extends JComponent implements Observer
 {
 
     private final JLabel roadName;
-    private final JPanel remotePanel, keyPad, directionPanel;
+    private final JPanel remotePanel, keyPad, directionPanel, leftPanelOpen;
     private final JComponent map;
     private final Model model;
     private final Color BGColor = Color.decode("#457B85");
 
     private BufferedImage image;
-    private JPanel flowPanel, leftPanel, leftPanelOpen;
+    private JPanel flowPanel, leftPanel;
     private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut, searchButton;
     private JLabel label_from, label_to;
     private JTextField textField_from, textField_to;
     private JRadioButton mouseMove, mouseZoom;
     private ButtonGroup mouse;
-    boolean toggle_direction = false;
     private static final Font uiFont = new Font("calibri", Font.PLAIN, 15);
 
     public View(final Model model)
@@ -128,16 +127,20 @@ public class View extends JComponent implements Observer
 
     private class MyMouseListener implements MouseListener
     {
+
         JPanel empty;
+        private boolean visible = false;
+
         @Override
         public void mouseEntered(MouseEvent e)
         {
-            if (toggle_direction == false) {
-                empty = new JPanel();
-                empty.setPreferredSize(flowPanel.getSize());
-                
+            if (!visible) {
+                if (empty == null) {
+                    empty = new JPanel();
+                    empty.setPreferredSize(flowPanel.getSize());
+                }
                 leftPanelOpen.addMouseListener(this);
-                JPanel glassPane = ((JPanel)((JFrame) getTopLevelAncestor()).getGlassPane());
+                JPanel glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());
                 glassPane.add(leftPanelOpen, BorderLayout.WEST);
                 add(empty, BorderLayout.SOUTH);
                 glassPane.add(flowPanel, BorderLayout.SOUTH);
@@ -145,7 +148,7 @@ public class View extends JComponent implements Observer
                 glassPane.setVisible(true);
                 leftPanelOpen.repaint();
                 revalidate();
-                toggle_direction = true;
+                visible = true;
             }
         }
 
@@ -170,15 +173,15 @@ public class View extends JComponent implements Observer
         @Override
         public void mouseExited(MouseEvent e)
         {
-            if (toggle_direction == true) {
-                JComponent glassPane = ((JComponent)((JFrame) getTopLevelAncestor()).getGlassPane());
+            if (visible && !leftPanelOpen.getBounds().contains(e.getPoint())) {
+                JComponent glassPane = ((JComponent) ((JFrame) getTopLevelAncestor()).getGlassPane());
                 glassPane.setVisible(false);
                 add(leftPanel, BorderLayout.WEST);
                 remove(empty);
                 add(flowPanel, BorderLayout.SOUTH);
                 leftPanel.repaint();
                 revalidate();
-                toggle_direction = false;
+                visible = false;
             }
         }
     }
@@ -241,7 +244,6 @@ public class View extends JComponent implements Observer
 
         searchButton = new JButton("Search");
         searchButton.setMaximumSize(new Dimension(100, 40));
-        searchButton.addMouseListener(new MyMouseListener());
         searchButton.addActionListener(new ActionListener()
         {
             @Override
@@ -270,11 +272,9 @@ public class View extends JComponent implements Observer
     {
         textField_from = new JTextField();
         textField_from.setPreferredSize(new Dimension(180, 20));
-        textField_from.addMouseListener(new MyMouseListener());
 
         textField_to = new JTextField();
         textField_to.setPreferredSize(new Dimension(180, 20));
-        textField_to.addMouseListener(new MyMouseListener());
     }
 
     public JComponent getMap()
@@ -289,6 +289,7 @@ public class View extends JComponent implements Observer
             roadName.setText(model.getRoadname());
         } else {
             map.repaint();
+
         }
     }
 
@@ -332,7 +333,10 @@ public class View extends JComponent implements Observer
                 }
             } else {
                 image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+
                 Graphics2D gB = image.createGraphics();
+                gB.setColor(Color.WHITE);
+                gB.fillRect(0, 0, getWidth(), getHeight());
                 gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 final double factor = model.getFactor();
                 //gB.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
@@ -344,21 +348,21 @@ public class View extends JComponent implements Observer
 
                 for (CommonRoadType rt : CommonRoadType.values()) {
                     if (rt.isEnabled(factor)) {
-                        gB.setStroke(new BasicStroke(4f));
+                        gB.setStroke(new BasicStroke(4));
                         switch (rt) {
                             case MOTORWAY:
                             case MOTORWAY_LINK:
-                                gB.setStroke(new BasicStroke(15f));
+                                gB.setStroke(new BasicStroke(15));
                                 gB.setColor(Color.RED);
                                 break;
                             case TRUNK:
                             case TRUNK_LINK:
-                                gB.setStroke(new BasicStroke(10f));
+                                gB.setStroke(new BasicStroke(10));
                                 gB.setColor(Color.ORANGE);
                                 break;
                             case PRIMARY:
                             case PRIMARY_LINK:
-                                gB.setStroke(new BasicStroke(8f));
+                                gB.setStroke(new BasicStroke(8));
                                 gB.setColor(Color.YELLOW);
                                 break;
                             case SECONDARY:
@@ -367,17 +371,17 @@ public class View extends JComponent implements Observer
                             case ROAD:
                             case UNCLASSIFIED:
                             case SECONDARY_LINK:
-                                gB.setStroke(new BasicStroke(3f));
+                                gB.setStroke(new BasicStroke(3));
                                 gB.setColor(Color.GRAY);
                                 break;
                             case PATH:
                             case TRACK:
                                 gB.setColor(Color.LIGHT_GRAY);
-                                gB.setStroke(new BasicStroke(1f));
+                                gB.setStroke(new BasicStroke(1));
                                 break;
                             case PEDESTRIAN:
                                 gB.setColor(Color.BLUE);
-                                gB.setStroke(new BasicStroke(1f));
+                                gB.setStroke(new BasicStroke(1));
                                 break;
                             case TUNNEL:
                                 gB.setColor(Color.GREEN);
@@ -388,11 +392,11 @@ public class View extends JComponent implements Observer
                                 break;
                             case COASTLINE:
                                 gB.setColor(Color.BLACK);
-                                gB.setStroke(new BasicStroke(4f));
+                                gB.setStroke(new BasicStroke(4));
                                 break;
                             case RESIDENTIAL:
                                 gB.setColor(Color.DARK_GRAY.darker());
-                                gB.setStroke(new BasicStroke(2f));
+                                gB.setStroke(new BasicStroke(2));
                                 break;
                             case PLACES:
                                 gB.setColor(Color.BLACK);

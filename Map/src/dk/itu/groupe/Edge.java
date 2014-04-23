@@ -4,6 +4,7 @@ import dk.itu.groupe.loading.DataLine;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,14 +34,15 @@ public class Edge
     {
         throw new UnsupportedOperationException("Edges should not be printed");
         /*return id + ","
-                + type.getTypeNo() + ","
-                + "`" + roadname + "`,"
-                + exitNumber + ","
-                + speedLimit + ","
-                + oneWay.getNumber();*/
+         + type.getTypeNo() + ","
+         + "`" + roadname + "`,"
+         + exitNumber + ","
+         + speedLimit + ","
+         + oneWay.getNumber();*/
     }
-    
-    protected Edge(Node[] nodes, boolean area) {
+
+    protected Edge(Node[] nodes, boolean area)
+    {
         id = 0;
         type = null;
         roadname = null;
@@ -97,24 +99,31 @@ public class Edge
         while (dl.hasNext()) {
             nodes.add(nodeMap.get(dl.getLong()));
         }
-        Path2D p = new Path2D.Double();
-        p.moveTo(nodes.get(0).X_COORD, nodes.get(0).Y_COORD);
-        for (int i = 1; i < nodes.size(); i++) {
-            p.lineTo(nodes.get(i).X_COORD, nodes.get(i).Y_COORD);
+        if (nodes.size() > 1) {
+            Path2D p = new Path2D.Double();
+            p.moveTo(nodes.get(0).X_COORD, nodes.get(0).Y_COORD);
+            for (int i = 1; i < nodes.size(); i++) {
+                p.lineTo(nodes.get(i).X_COORD, nodes.get(i).Y_COORD);
+            }
+            path = p;
+        } else {
+            Path2D p = new Path2D.Double();
+            p.moveTo(nodes.get(0).X_COORD, nodes.get(0).Y_COORD);
+            p.lineTo(nodes.get(0).X_COORD, nodes.get(0).Y_COORD);
+            path = p;
         }
-        path = p;
     }
 
     public CommonRoadType getType()
     {
         return type;
     }
-    
+
     public Shape getShape()
     {
         return path;
     }
-    
+
     public String getRoadname()
     {
         return roadname;
