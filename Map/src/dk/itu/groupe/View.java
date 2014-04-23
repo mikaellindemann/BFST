@@ -98,7 +98,7 @@ public class View extends JComponent implements Observer
         leftPanel.setPreferredSize(new Dimension(20, map.getHeight()));
         directionPanel.add(leftPanel);
 
-        leftPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+        leftPanel = new JPanel();
         leftPanel.addMouseListener(new MyMouseListener());
 
         flowPanel.setBackground(BGColor);
@@ -109,7 +109,7 @@ public class View extends JComponent implements Observer
         leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
         flowPanel.add(remotePanel);
 
-        leftPanelOpen = new JPanel();
+        leftPanelOpen = new JPanel(new FlowLayout(FlowLayout.LEADING));
         leftPanelOpen.add(label_from);
         leftPanelOpen.add(textField_from);
         leftPanelOpen.add(label_to);
@@ -259,13 +259,13 @@ public class View extends JComponent implements Observer
 
     private void createLabels()
     {
-        label_from = new JLabel();
-        label_from.setText("From:");
+        label_from = new JLabel("From:");
         label_from.setFont(uiFont);
+        label_from.setForeground(Color.WHITE);
 
-        label_to = new JLabel();
-        label_to.setText("To:");
+        label_to = new JLabel("To:");
         label_to.setFont(uiFont);
+        label_to.setForeground(Color.WHITE);
     }
 
     private void createTextField()
