@@ -4,7 +4,6 @@ import dk.itu.groupe.loading.DataLine;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +27,7 @@ public class Edge
     private final int speedLimit;
     private final OneWay oneWay;
     private final Shape path;
+    private final Node[] nodes;
 
     @Override
     public String toString()
@@ -41,7 +41,7 @@ public class Edge
          + oneWay.getNumber();*/
     }
 
-    protected Edge(Node[] nodes, boolean area)
+    protected Edge(Node[] nodes)
     {
         id = 0;
         type = null;
@@ -54,12 +54,9 @@ public class Edge
         for (int i = 1; i < nodes.length; i++) {
             p.lineTo(nodes[i].X_COORD, nodes[i].Y_COORD);
         }
-        if (area) {
-            p.closePath();
-            path = new Area(p);
-        } else {
-            path = p;
-        }
+        p.closePath();
+        path = new Area(p);
+        this.nodes = nodes;
     }
 
     public Edge(String line, Map<Long, Node> nodeMap)
@@ -99,6 +96,7 @@ public class Edge
         while (dl.hasNext()) {
             nodes.add(nodeMap.get(dl.getLong()));
         }
+        this.nodes = nodes.toArray(new Node[0]);
         if (nodes.size() > 1) {
             Path2D p = new Path2D.Double();
             p.moveTo(nodes.get(0).X_COORD, nodes.get(0).Y_COORD);
@@ -127,5 +125,10 @@ public class Edge
     public String getRoadname()
     {
         return roadname;
+    }
+    
+    public Node[] getNodes()
+    {
+        return nodes;
     }
 }

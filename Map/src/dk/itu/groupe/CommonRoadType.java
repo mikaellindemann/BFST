@@ -87,7 +87,7 @@ public enum CommonRoadType
      */
     FERRY(14, CommonRoadType.always);
 
-    private final static int always = Integer.MAX_VALUE, secondFactor = 65, thirdFactor = 10, placeNames = thirdFactor;
+    private final static int always = Integer.MAX_VALUE, secondFactor = 65, thirdFactor = 8, placeNames = 30;
     private final int type;
     private final int factorActivate;
 

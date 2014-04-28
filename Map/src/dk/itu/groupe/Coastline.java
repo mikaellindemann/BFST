@@ -6,8 +6,8 @@ package dk.itu.groupe;
  */
 public class Coastline extends Edge
 {
-    public Coastline(Node[] nodes, boolean area)
+    public Coastline(Node[] nodes)
     {
-        super(nodes, area);
+        super(nodes);
     }
 }

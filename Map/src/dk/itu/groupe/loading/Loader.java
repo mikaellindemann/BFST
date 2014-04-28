@@ -39,8 +39,9 @@ public abstract class Loader
      */
     public abstract void processEdge(Edge ed);
 
-    public abstract void processCoastline(Coastline cl);
+    public abstract void processLand(Coastline cl);
 
+    //public abstract void processWater(Coastline cl);
     /**
      * Load krak-data from given files, invoking processNode and processEdge
      * once for each node- and edge- specification in the input file,
@@ -70,26 +71,32 @@ public abstract class Loader
             processEdge(new Edge(line, nodeMap));
         }
 
+        loadCl("./res/data/coastline/");
+    }
+
+    private void loadCl(String dir) throws IOException
+    {
         Map<Long, Node> coastlinemap = new HashMap<>();
-        br = new BufferedReader(new InputStreamReader(new FileInputStream("./res/data/coastline/nodes.csv")));
-        br.readLine();
+        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dir + "nodes.csv")));
+        //br.readLine();
+        String line;
         while ((line = br.readLine()) != null) {
             Node n = new Node(line);
             coastlinemap.put(n.ID, n);
         }
         br.close();
 
-        br = new BufferedReader(new InputStreamReader(new FileInputStream("./res/data/coastline/edges.csv")));
-        br.readLine();
+        br = new BufferedReader(new InputStreamReader(new FileInputStream(dir + "edges.csv")));
+        //br.readLine();
         while ((line = br.readLine()) != null) {
             DataLine l = new DataLine(line);
-            int a = l.getInt();
-            boolean area = (a == 1);
             List<Node> nodes = new LinkedList<>();
             while (l.hasNext()) {
-                nodes.add(coastlinemap.get(l.getLong()));
+                Node lo = coastlinemap.get(l.getLong());
+                assert lo != null;
+                nodes.add(lo);
             }
-            processCoastline(new Coastline(nodes.toArray(new Node[0]), area));
+            processLand(new Coastline(nodes.toArray(new Node[0])));
         }
     }
 }

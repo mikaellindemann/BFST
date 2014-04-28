@@ -12,12 +12,14 @@ import java.util.Locale;
 public class Node
 {
 
-    private final long id;
+    private long id;
     private final double x;
     private final double y;
+    private boolean marked;
 
     public Node(long id, double x, double y)
     {
+        marked = false;
         this.id = id;
         this.x = x;
         this.y = y;
@@ -31,6 +33,19 @@ public class Node
     public Point2D.Double getPoint()
     {
         return new Point2D.Double(x, y);
+    }
+
+    public boolean isMarked()
+    {
+        return marked;
+    }
+
+    public void setNewId(long id)
+    {
+        if (!marked) {
+            this.id = id;
+            marked = true;
+        }
     }
 
     /**

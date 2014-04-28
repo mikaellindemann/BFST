@@ -3,6 +3,7 @@ package dk.itu.groupe;
 import dk.itu.groupe.loading.LoadingPanel;
 import dk.itu.groupe.loading.Loader;
 import dk.itu.groupe.loading.DataLine;
+import edu.princeton.cs.algs4.EdgeWeightedGraph;
 import java.awt.Point;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
@@ -34,7 +35,6 @@ import javax.swing.JOptionPane;
  */
 public class Model extends Observable
 {
-
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
     private final double lowestX_COORD;
@@ -50,7 +50,7 @@ public class Model extends Observable
     private final float minFactor = 0.5f;
     private double initialFactor;
 
-    private Map<CommonRoadType, KDTree> treeMap;
+    private final Map<CommonRoadType, KDTree> treeMap;
 
     private String roadname;
 
@@ -63,7 +63,6 @@ public class Model extends Observable
 
     private final String dir;
     private final LoadingPanel lf;
-    
 
     /**
      * On creation of the Model, it will start to load in the data.
@@ -95,7 +94,6 @@ public class Model extends Observable
         }
 
         lf = new LoadingPanel(maxNodes, maxEdges);
-        
         lowestX_COORD = xLow;
         lowestY_COORD = yLow;
         highestX_COORD = xHigh;
@@ -110,7 +108,7 @@ public class Model extends Observable
     {
         return lf;
     }
-    
+
     public void load()
     {
         
@@ -136,7 +134,7 @@ public class Model extends Observable
             }
 
             @Override
-            public void processCoastline(Coastline cl)
+            public void processLand(Coastline cl)
             {
                 edgeMap.get(CommonRoadType.COASTLINE).add(cl);
             }
@@ -217,9 +215,7 @@ public class Model extends Observable
     public void goUp(int distance)
     {
         reset = false;
-        if (topY < highestY_COORD) {
-            moveVertical(distance * factor);
-        }
+        moveVertical(distance * factor);
         setChanged();
     }
 
@@ -232,9 +228,7 @@ public class Model extends Observable
     public void goLeft(int distance)
     {
         reset = false;
-        if (leftX > lowestX_COORD) {
-            moveHorizontal(-distance * factor);
-        }
+        moveHorizontal(-distance * factor);
         setChanged();
     }
 
@@ -247,9 +241,7 @@ public class Model extends Observable
     public void goRight(int distance)
     {
         reset = false;
-        if (rightX < highestX_COORD) {
-            moveHorizontal(distance * factor);
-        }
+        moveHorizontal(distance * factor);
         setChanged();
     }
 
@@ -262,9 +254,7 @@ public class Model extends Observable
     public void goDown(int distance)
     {
         reset = false;
-        if (bottomY > lowestY_COORD) {
-            moveVertical(-distance * factor);
-        }
+        moveVertical(-distance * factor);
         setChanged();
     }
 
@@ -669,8 +659,11 @@ public class Model extends Observable
      */
     private void moveHorizontal(double distance)
     {
-        leftX += distance;
-        rightX += distance;
+        double centerX = (rightX + leftX) / 2;
+        if (distance > 0 && centerX < highestX_COORD || distance < 0 && centerX > lowestX_COORD) {
+            leftX += distance;
+            rightX += distance;
+        }
     }
 
     /**
@@ -680,8 +673,11 @@ public class Model extends Observable
      */
     private void moveVertical(double distance)
     {
-        bottomY += distance;
-        topY += distance;
+        double centerY = (topY + bottomY) / 2;
+        if (distance > 0 && centerY < highestY_COORD || distance < 0 && centerY > lowestY_COORD) {
+            bottomY += distance;
+            topY += distance;
+        }
     }
 
     /**

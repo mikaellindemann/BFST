@@ -231,7 +231,7 @@ public class Controller implements
                 new String[]{"Krak", "OpenStreetMap"},
                 "OpenStreetMap");
         if (dataset == null) {
-            return;
+            System.exit(0);
         }
         long time = System.currentTimeMillis();
         JFrame frame = new JFrame("GroupE-map Loading");
@@ -240,6 +240,7 @@ public class Controller implements
         Model model = new Model(dataset);
         frame.add(model.getLoadingPanel());
         frame.pack();
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         model.load();
         frame.setVisible(false);

@@ -44,6 +44,7 @@ public class View extends JComponent implements Observer
     private final JComponent map;
     private final Model model;
     private final Color BGColor = Color.decode("#457B85");
+    private final Color groundColor = Color.decode("#96FF70");
 
     private BufferedImage image;
     private JPanel flowPanel, leftPanel;
@@ -335,7 +336,7 @@ public class View extends JComponent implements Observer
                 image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
 
                 Graphics2D gB = image.createGraphics();
-                gB.setColor(Color.WHITE);
+                gB.setColor(Color.BLUE.darker().darker());
                 gB.fillRect(0, 0, getWidth(), getHeight());
                 gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 final double factor = model.getFactor();
@@ -391,7 +392,7 @@ public class View extends JComponent implements Observer
                                 gB.setColor(Color.BLUE.darker());
                                 break;
                             case COASTLINE:
-                                gB.setColor(Color.BLACK);
+                                gB.setColor(groundColor);
                                 gB.setStroke(new BasicStroke(4));
                                 break;
                             case RESIDENTIAL:
@@ -411,7 +412,11 @@ public class View extends JComponent implements Observer
                                     gB.drawString(edge.getRoadname(), (int) b.getCenterX(), (int) b.getCenterY());
                                     continue;
                                 }
-                                gB.draw(edge.getShape());
+                                if (rt == CommonRoadType.COASTLINE) {
+                                    gB.fill(edge.getShape());
+                                } else {
+                                    gB.draw(edge.getShape());
+                                }
                             }
                         }
                     }

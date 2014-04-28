@@ -169,7 +169,7 @@ public class KDTree
      */
     public Set<Edge> getEdges(double leftX, double bottomY, double rightX, double topY)
     {
-        int offset = 2000;
+        int offset = 20000;
         if (dim == Dimension.X) {
             if (rightX + offset < xmin || leftX - offset > xmax) {
                 return empty;
