@@ -1,6 +1,7 @@
 package dk.itu.groupe.parsing.osm;
 
 import dk.itu.groupe.OneWay;
+import java.util.Locale;
 
 /**
  * Represents the raw data from a line in edges.csv.
@@ -14,8 +15,10 @@ public class Edge
     private final long id;
     private final OSMRoadType type;
     private final String roadname;
+    private final double length;
     private final int exitNumber;
     private final int speedLimit;
+    private final double driveTime;
     private final OneWay oneWay;
     private final long[] nodeIds;
 
@@ -29,8 +32,10 @@ public class Edge
         } else {
             s += ",";
         }
-        s += exitNumber + ","
+        s += String.format(Locale.ENGLISH, "%.2f", length) + ","
+                + exitNumber + ","
                 + speedLimit + ","
+                + String.format(Locale.ENGLISH, "%.2f", driveTime) + ","
                 + oneWay.getNumber();
         for (long node : nodeIds) {
             s += "," + node;
@@ -41,6 +46,7 @@ public class Edge
     public Edge(long id,
             OSMRoadType type,
             String roadname,
+            double length,
             int exitNumber,
             int speedLimit,
             OneWay oneWay,
@@ -49,12 +55,14 @@ public class Edge
         this.id = id;
         this.type = type;
         this.roadname = roadname;
+        this.length = length;
         this.exitNumber = exitNumber;
         if (speedLimit == 0) {
             this.speedLimit = type.getSpeed();
         } else {
             this.speedLimit = speedLimit;
         }
+        driveTime = (length / (this.speedLimit * 1000 / 60)) * 1.15;
         this.oneWay = oneWay;
         this.nodeIds = nodes;
     }

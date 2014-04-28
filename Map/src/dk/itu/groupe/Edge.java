@@ -23,8 +23,10 @@ public class Edge
     private final long id;
     private final CommonRoadType type;
     private final String roadname;
+    private final double length;
     private final int exitNumber;
     private final int speedLimit;
+    private final double driveTime;
     private final OneWay oneWay;
     private final Shape path;
     private final Node[] nodes;
@@ -46,8 +48,10 @@ public class Edge
         id = 0;
         type = null;
         roadname = null;
+        length = 0;
         exitNumber = 0;
         speedLimit = 0;
+        driveTime = 0;
         oneWay = null;
         Path2D p = new Path2D.Double();
         p.moveTo(nodes[0].X_COORD, nodes[0].Y_COORD);
@@ -76,8 +80,10 @@ public class Edge
             assert (type != null);
         }
         roadname = dl.getString();
+        length = dl.getDouble();
         exitNumber = dl.getInt();
         speedLimit = dl.getInt();
+        driveTime = dl.getDouble();
         switch (dl.getInt()) {
             case -1:
                 oneWay = OneWay.TO_FROM;
@@ -92,22 +98,22 @@ public class Edge
                 oneWay = OneWay.NO;
                 System.err.println("Assuming no restrictions on edge.");
         }
-        List<Node> nodes = new ArrayList<>();
+        List<Node> nodeList = new ArrayList<>();
         while (dl.hasNext()) {
-            nodes.add(nodeMap.get(dl.getLong()));
+            nodeList.add(nodeMap.get(dl.getLong()));
         }
-        this.nodes = nodes.toArray(new Node[0]);
-        if (nodes.size() > 1) {
+        this.nodes = nodeList.toArray(new Node[0]);
+        if (nodeList.size() > 1) {
             Path2D p = new Path2D.Double();
-            p.moveTo(nodes.get(0).X_COORD, nodes.get(0).Y_COORD);
-            for (int i = 1; i < nodes.size(); i++) {
-                p.lineTo(nodes.get(i).X_COORD, nodes.get(i).Y_COORD);
+            p.moveTo(nodeList.get(0).X_COORD, nodeList.get(0).Y_COORD);
+            for (int i = 1; i < nodeList.size(); i++) {
+                p.lineTo(nodeList.get(i).X_COORD, nodeList.get(i).Y_COORD);
             }
             path = p;
         } else {
             Path2D p = new Path2D.Double();
-            p.moveTo(nodes.get(0).X_COORD, nodes.get(0).Y_COORD);
-            p.lineTo(nodes.get(0).X_COORD, nodes.get(0).Y_COORD);
+            p.moveTo(nodeList.get(0).X_COORD, nodeList.get(0).Y_COORD);
+            p.lineTo(nodeList.get(0).X_COORD, nodeList.get(0).Y_COORD);
             path = p;
         }
     }
@@ -131,4 +137,16 @@ public class Edge
     {
         return nodes;
     }
+
+    public double getLength()
+    {
+        return length;
+    }
+
+    public double getDriveTime()
+    {
+        return driveTime;
+    }
+    
+    
 }

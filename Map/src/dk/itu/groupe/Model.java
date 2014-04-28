@@ -3,7 +3,6 @@ package dk.itu.groupe;
 import dk.itu.groupe.loading.LoadingPanel;
 import dk.itu.groupe.loading.Loader;
 import dk.itu.groupe.loading.DataLine;
-import edu.princeton.cs.algs4.EdgeWeightedGraph;
 import java.awt.Point;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;

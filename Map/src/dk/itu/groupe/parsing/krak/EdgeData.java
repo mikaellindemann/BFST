@@ -46,13 +46,14 @@ public class EdgeData
     {
         return /*FNODE + ","
                 + TNODE + ","
-                + LENGTH + ","
+                
                 + */DAV_DK + ","
                 + TYPE.getNewTypeNumber() + ","
                 + "`" + VEJNAVN + "`,"
+                + LENGTH + ","
                 + FRAKOERSEL + ","
                 + SPEED + ","
-                //+ DRIVETIME + ","
+                + DRIVETIME + ","
                 + ONE_WAY.getNumber() + ","
                 + FNODE + "," + TNODE;
     }

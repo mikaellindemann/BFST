@@ -259,7 +259,7 @@ public class OSMParser extends DefaultHandler
                 if (placeType != null && placeName != null) {
                     Node nn = nodemap.get(lastNodeId);
                     nn.setNewId(nodeIdNew++);
-                    placeEdges.add(new Edge(-1, placeType, placeName, 0, 0, OneWay.NO, new long[]{nn.getId()}));
+                    placeEdges.add(new Edge(-1, placeType, placeName, 0, 0, 0, OneWay.NO, new long[]{nn.getId()}));
                     nodeRef.add(lastNodeId);
                 }
                 resetElement();
@@ -351,6 +351,8 @@ public class OSMParser extends DefaultHandler
     {
         long[] nodeIds = new long[nodeList.size()];
         // Copy and mark the nodes used.
+        double length = 0;
+        Node lastNode = null;
         for (int i = 0; i < nodeIds.length; i++) {
             long node = nodeList.get(i);
             // If nodemap does not contain the key, something went very wrong.
@@ -359,6 +361,11 @@ public class OSMParser extends DefaultHandler
             if (!n.isMarked()) {
                 n.setNewId(nodeIdNew++);
             }
+            if (i > 0) {
+                assert(lastNode != null);
+                length += n.getPoint().distance(lastNode.getPoint());
+            }
+            lastNode = n;
             nodeIds[i] = n.getId();
             if (roadType == OSMRoadType.FERRY) {
                 ferryRef.add(node);
@@ -366,7 +373,7 @@ public class OSMParser extends DefaultHandler
                 nodeRef.add(node);
             }
         }
-        Edge ed = new Edge(edgeID, roadType, name, exitNumber, speedLimit, oneWay, nodeIds);
+        Edge ed = new Edge(edgeID, roadType, name, length, exitNumber, speedLimit, oneWay, nodeIds);
         edgeStream.println(ed.toString());
         numberOfEdges++;
     }
