@@ -62,6 +62,10 @@ public class Controller implements
     @Override
     public void mouseMoved(MouseEvent me)
     {
+        if (model.pathPointSet()) {
+            model.setMoved(me.getPoint());
+            model.notifyObservers();
+        }
         model.updateRoadname(me.getX(), me.getY());
         model.notifyObservers("updateRoadname");
     }
@@ -80,6 +84,9 @@ public class Controller implements
     @Override
     public void mouseClicked(MouseEvent me)
     {
+        if (model.getMouseTool() == MouseTool.PATH) {
+            model.setFromNode(me.getPoint());
+        }
     }
 
     @Override
@@ -203,6 +210,9 @@ public class Controller implements
                 case ZOOM_OUT:
                     model.zoomOut();
                     break;
+                case MOUSE_PATH:
+                    model.setMouseTool(MouseTool.PATH);
+                    return;
                 case MOUSE_MOVE:
                     model.setMouseTool(MouseTool.MOVE);
                     return;

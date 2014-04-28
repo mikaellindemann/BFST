@@ -67,7 +67,7 @@ public class KrakParser
         xMin = yMin = Double.MAX_VALUE;
         xMax = yMax = Double.MIN_VALUE;
         try (PrintWriter edgeStream = new PrintWriter(dir + "krak/edges.csv")) {
-            edgeStream.println("FNODE,TNODE,LENGTH,DAV_DK,TYPE,VEJNAVN,FRAKOERSEL,SPEED,DRIVETIME,ONE_WAY");
+            edgeStream.println("ID,TYPE,VEJNAVN,LÆNGDE,FRAKOERSEL,SPEED,DRIVETIME,ONEWAY,NODES...");
             for (EdgeData ed : edges) {
                 usedNodes.add(ed.FNODE);
                 usedNodes.add(ed.TNODE);

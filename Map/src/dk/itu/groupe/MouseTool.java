@@ -7,7 +7,10 @@ package dk.itu.groupe;
  */
 public enum MouseTool
 {
-
+    /**
+     * The mouse is used for path-finding.
+     */
+    PATH,
     /**
      * Enum stating that the mouse is used for zoom.
      */

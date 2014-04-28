@@ -10,7 +10,7 @@ import dk.itu.groupe.loading.DataLine;
  */
 public class Node
 {
-    public final long ID;
+    public final int ID;
     public final double X_COORD;
     public final double Y_COORD;
 
@@ -23,7 +23,7 @@ public class Node
     public Node(String line)
     {
         DataLine dl = new DataLine(line);
-        ID = dl.getLong();
+        ID = dl.getInt();
         X_COORD = dl.getDouble();
         Y_COORD = dl.getDouble();
     }

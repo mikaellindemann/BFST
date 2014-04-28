@@ -51,7 +51,7 @@ public class View extends JComponent implements Observer
     private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut, searchButton;
     private JLabel label_from, label_to;
     private JTextField textField_from, textField_to;
-    private JRadioButton mouseMove, mouseZoom;
+    private JRadioButton mousePath, mouseMove, mouseZoom;
     private ButtonGroup mouse;
     private static final Font uiFont = new Font("calibri", Font.PLAIN, 15);
 
@@ -83,6 +83,7 @@ public class View extends JComponent implements Observer
         flowPanel.setBackground(BGColor);
         remotePanel.add(flowPanel);
         flowPanel = new JPanel(new GridLayout(2, 0));
+        flowPanel.add(mousePath);
         flowPanel.add(mouseZoom);
         flowPanel.add(mouseMove);
         flowPanel.setBackground(BGColor);
@@ -220,6 +221,16 @@ public class View extends JComponent implements Observer
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
         buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
 
+        mousePath = new JRadioButton("Path");
+        mousePath.setFont(uiFont);
+        mousePath.addActionListener(Action.MOUSE_PATH.getListener(model));
+        if (model.getMouseTool() == MouseTool.PATH) {
+            mousePath.setSelected(true);
+        } else {
+            mousePath.setSelected(false);
+        }
+        mousePath.setBackground(BGColor);
+
         mouseZoom = new JRadioButton("Zoom");
         mouseZoom.setFont(uiFont);
         mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
@@ -240,6 +251,7 @@ public class View extends JComponent implements Observer
         }
         mouseMove.setBackground(BGColor);
         mouse = new ButtonGroup();
+        mouse.add(mousePath);
         mouse.add(mouseZoom);
         mouse.add(mouseMove);
 
@@ -421,6 +433,17 @@ public class View extends JComponent implements Observer
                         }
                     }
                 }
+                if (model.getMouseTool() == MouseTool.PATH && model.pathPointSet()) {
+                    Iterable<Edge> edges = model.getPathTo(model.getMoved());
+                    if (edges != null) {
+                        gB.setColor(Color.RED);
+                        gB.setStroke(new BasicStroke(6 * (float) model.getFactor()));
+                        for (Edge ed : edges) {
+                            gB.draw(ed.getShape());
+                        }
+                    }
+                }
+
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setPaint(new TexturePaint(image, new Rectangle2D.Double(0, 0, image.getWidth(), image.getHeight())));
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

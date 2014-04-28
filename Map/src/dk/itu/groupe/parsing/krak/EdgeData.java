@@ -55,7 +55,7 @@ public class EdgeData
                 + SPEED + ","
                 + DRIVETIME + ","
                 + ONE_WAY.getNumber() + ","
-                + FNODE + "," + TNODE;
+                + (FNODE - 1) + "," + (TNODE - 1);
     }
 
     public EdgeData(String line, Map<Integer, NodeData> nodeMap)

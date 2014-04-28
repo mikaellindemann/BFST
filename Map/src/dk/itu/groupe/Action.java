@@ -8,7 +8,7 @@ package dk.itu.groupe;
 public enum Action
 {
 
-    RESET, UP, DOWN, LEFT, RIGHT, ZOOM_IN, ZOOM_OUT, MOUSE_MOVE, MOUSE_ZOOM;
+    RESET, UP, DOWN, LEFT, RIGHT, ZOOM_IN, ZOOM_OUT, MOUSE_PATH, MOUSE_MOVE, MOUSE_ZOOM;
 
     private Model model;
     private Controller.Listener listener;

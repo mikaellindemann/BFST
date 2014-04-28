@@ -34,6 +34,8 @@ import javax.swing.JOptionPane;
  */
 public class Model extends Observable
 {
+
+    EdgeWeightedDigraph g;
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
     private final double lowestX_COORD;
@@ -53,12 +55,15 @@ public class Model extends Observable
 
     private String roadname;
 
-    private Point pressed, dragged;
+    private Point pressed, dragged, moved;
     private MouseTool mouseTool;
 
     private int width, height;
 
+    DijkstraSP shortestPath;
+
     private boolean reset;
+    private Map<Integer, Node> nodeMap;
 
     private final String dir;
     private final LoadingPanel lf;
@@ -91,6 +96,7 @@ public class Model extends Observable
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
         }
+        g = new EdgeWeightedDigraph(maxNodes);
 
         lf = new LoadingPanel(maxNodes, maxEdges);
         lowestX_COORD = xLow;
@@ -110,8 +116,8 @@ public class Model extends Observable
 
     public void load()
     {
-        
-        final Map<Long, Node> nodeMap = new HashMap<>();
+
+        nodeMap = new HashMap<>();
         final Map<CommonRoadType, List<Edge>> edgeMap = new HashMap<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
             edgeMap.put(rt, new LinkedList<Edge>());
@@ -126,10 +132,24 @@ public class Model extends Observable
             }
 
             @Override
-            public void processEdge(Edge ed)
+            public void processEdge(Edge ed, boolean wholeEdge)
             {
                 edgeMap.get(ed.getType()).add(ed);
-                lf.countEdge();
+                switch (ed.getOneWay()) {
+                    case NO:
+                        g.addEdge(ed);
+                        g.addEdge(ed.revert());
+                        break;
+                    case FROM_TO:
+                        g.addEdge(ed);
+                        break;
+                    case TO_FROM:
+                        g.addEdge(ed.revert());
+                        break;
+                }
+                if (wholeEdge) {
+                    lf.countEdge();
+                }
             }
 
             @Override
@@ -420,51 +440,7 @@ public class Model extends Observable
     public void updateRoadname(int x, int y)
     {
         Point.Double p = translatePoint(x, y);
-        List<Edge> edges = new LinkedList<>();
-        for (CommonRoadType rt : CommonRoadType.values()) {
-            if (rt.isEnabled(factor)) {
-                KDTree tree = treeMap.get(rt);
-                if (tree != null) {
-                    Edge e = tree.getNearest(p.x, p.y);
-                    if (e != null) {
-                        edges.add(e);
-                    }
-                }
-            }
-        }
-        Edge near = null;
-        double dist = Double.MAX_VALUE;
-        for (Edge edge : edges) {
-            Point2D start = null;
-            Point2D last = null;
-            for (PathIterator pi = edge.getShape().getPathIterator(null); !pi.isDone(); pi.next()) {
-                double[] coords = new double[6];
-                int type = pi.currentSegment(coords);
-                switch (type) {
-                    case PathIterator.SEG_MOVETO:
-                        start = last = new Point2D.Double(coords[0], coords[1]);
-                        break;
-                    case PathIterator.SEG_LINETO:
-                        Point2D.Double pd = new Point2D.Double(coords[0], coords[1]);
-                        Line2D line = new Line2D.Double(last, pd);
-                        last = pd;
-                        double d = line.ptSegDist(p);
-                        if (d < dist) {
-                            dist = d;
-                            near = edge;
-                        }
-                        break;
-                    case PathIterator.SEG_CLOSE:
-                        line = new Line2D.Double(last, start);
-                        d = line.ptSegDist(p);
-                        if (d < dist) {
-                            dist = d;
-                            near = edge;
-                        }
-                        break;
-                }
-            }
-        }
+        Edge near = nearest(p, true);
         // If there are no "nearest" edges
         if (near != null) {
             roadname = near.getRoadname();
@@ -601,6 +577,60 @@ public class Model extends Observable
         setChanged();
     }
 
+    public void setMoved(Point e)
+    {
+        moved = e;
+        setChanged();
+    }
+
+    public boolean pathPointSet()
+    {
+        return shortestPath != null;
+    }
+
+    public void resetPointSet()
+    {
+        shortestPath = null;
+    }
+
+    public void setFromNode(Point e)
+    {
+        int from;
+        Point.Double p = translatePoint(e.x, e.y);
+        Edge near = nearest(p, true);
+        if (near == null) {
+            System.err.println("No point found");
+            return;
+        }
+        Node[] nodes = near.getNodes();
+        if (new Point.Double(nodes[0].X_COORD, nodes[0].Y_COORD).distance(p)
+                < new Point.Double(nodes[1].X_COORD, nodes[1].Y_COORD).distance(p)) {
+            from = nodes[0].ID;
+        } else {
+            from = nodes[1].ID;
+        }
+        shortestPath = new DijkstraSP(g, from, true);
+    }
+
+    public Iterable<Edge> getPathTo(Point e)
+    {
+        int to;
+        Point.Double p = translatePoint(e.x, e.y);
+        Edge near = nearest(p, false);
+        if (near == null) {
+            return null;
+        }
+        Node[] nodes = near.getNodes();
+        if (new Point.Double(nodes[0].X_COORD, nodes[0].Y_COORD).distance(p)
+                < new Point.Double(nodes[1].X_COORD, nodes[1].Y_COORD).distance(p)) {
+            to = nodes[0].ID;
+        } else {
+            to = nodes[1].ID;
+        }
+
+        return shortestPath.pathTo(to);
+    }
+
     public Point getDragged()
     {
         return dragged;
@@ -609,6 +639,11 @@ public class Model extends Observable
     public Point getPressed()
     {
         return pressed;
+    }
+
+    public Point getMoved()
+    {
+        return moved;
     }
 
     /**
@@ -677,6 +712,56 @@ public class Model extends Observable
             bottomY += distance;
             topY += distance;
         }
+    }
+
+    private Edge nearest(Point.Double p, boolean factorAware)
+    {
+        List<Edge> edges = new LinkedList<>();
+        for (CommonRoadType rt : CommonRoadType.values()) {
+            if (!factorAware || rt.isEnabled(factor)) {
+                KDTree tree = treeMap.get(rt);
+                if (tree != null) {
+                    Edge e = tree.getNearest(p.x, p.y);
+                    if (e != null) {
+                        edges.add(e);
+                    }
+                }
+            }
+        }
+        Edge near = null;
+        double dist = Double.MAX_VALUE;
+        for (Edge edge : edges) {
+            Point2D start = null;
+            Point2D last = null;
+            for (PathIterator pi = edge.getShape().getPathIterator(null); !pi.isDone(); pi.next()) {
+                double[] coords = new double[6];
+                int type = pi.currentSegment(coords);
+                switch (type) {
+                    case PathIterator.SEG_MOVETO:
+                        start = last = new Point2D.Double(coords[0], coords[1]);
+                        break;
+                    case PathIterator.SEG_LINETO:
+                        Point2D.Double pd = new Point2D.Double(coords[0], coords[1]);
+                        Line2D line = new Line2D.Double(last, pd);
+                        last = pd;
+                        double d = line.ptSegDist(p);
+                        if (d < dist) {
+                            dist = d;
+                            near = edge;
+                        }
+                        break;
+                    case PathIterator.SEG_CLOSE:
+                        line = new Line2D.Double(last, start);
+                        d = line.ptSegDist(p);
+                        if (d < dist) {
+                            dist = d;
+                            near = edge;
+                        }
+                        break;
+                }
+            }
+        }
+        return near;
     }
 
     /**

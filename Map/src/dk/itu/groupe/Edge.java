@@ -3,6 +3,7 @@ package dk.itu.groupe;
 import dk.itu.groupe.loading.DataLine;
 import java.awt.Shape;
 import java.awt.geom.Area;
+import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ public class Edge
 
     private static HashMap<Integer, CommonRoadType> rtMap;
 
-    private final long id;
+    private final int id;
     private final CommonRoadType type;
     private final String roadname;
     private final double length;
@@ -63,59 +64,19 @@ public class Edge
         this.nodes = nodes;
     }
 
-    public Edge(String line, Map<Long, Node> nodeMap)
+    public Edge(int id, CommonRoadType type, String roadname, double length, int exitNumber, int speedLimit, double driveTime, OneWay oneWay, Node from, Node to)
     {
-        if (rtMap == null) {
-            rtMap = new HashMap<>();
-            for (CommonRoadType rt : CommonRoadType.values()) {
-                rtMap.put(rt.getTypeNo(), rt);
-            }
-        }
-        DataLine dl = new DataLine(line);
-        id = dl.getLong();
-        int typ = dl.getInt();
-        type = rtMap.get(typ);
-        if (type == null) {
-            System.err.println(typ);
-            assert (type != null);
-        }
-        roadname = dl.getString();
-        length = dl.getDouble();
-        exitNumber = dl.getInt();
-        speedLimit = dl.getInt();
-        driveTime = dl.getDouble();
-        switch (dl.getInt()) {
-            case -1:
-                oneWay = OneWay.TO_FROM;
-                break;
-            case 0:
-                oneWay = OneWay.NO;
-                break;
-            case 1:
-                oneWay = OneWay.FROM_TO;
-                break;
-            default:
-                oneWay = OneWay.NO;
-                System.err.println("Assuming no restrictions on edge.");
-        }
-        List<Node> nodeList = new ArrayList<>();
-        while (dl.hasNext()) {
-            nodeList.add(nodeMap.get(dl.getLong()));
-        }
-        this.nodes = nodeList.toArray(new Node[0]);
-        if (nodeList.size() > 1) {
-            Path2D p = new Path2D.Double();
-            p.moveTo(nodeList.get(0).X_COORD, nodeList.get(0).Y_COORD);
-            for (int i = 1; i < nodeList.size(); i++) {
-                p.lineTo(nodeList.get(i).X_COORD, nodeList.get(i).Y_COORD);
-            }
-            path = p;
-        } else {
-            Path2D p = new Path2D.Double();
-            p.moveTo(nodeList.get(0).X_COORD, nodeList.get(0).Y_COORD);
-            p.lineTo(nodeList.get(0).X_COORD, nodeList.get(0).Y_COORD);
-            path = p;
-        }
+        this.id = id;
+        this.type = type;
+        this.roadname = roadname;
+        this.length = length;
+        this.exitNumber = exitNumber;
+        this.speedLimit = speedLimit;
+        this.driveTime = driveTime;
+        this.oneWay = oneWay;
+        nodes = new Node[]{from, to};
+        assert nodes.length == 2;
+        path = new Line2D.Double(from.X_COORD, from.Y_COORD, to.X_COORD, to.Y_COORD);
     }
 
     public CommonRoadType getType()
@@ -132,21 +93,32 @@ public class Edge
     {
         return roadname;
     }
-    
+
     public Node[] getNodes()
     {
         return nodes;
     }
 
-    public double getLength()
+    public double getWeight(boolean length)
     {
-        return length;
-    }
-
-    public double getDriveTime()
-    {
+        if (length) {
+            return this.length;
+        }
         return driveTime;
     }
+
+    public OneWay getOneWay()
+    {
+        return oneWay;
+    }
     
-    
+    public Edge revert()
+    {
+        return new Edge(id, type, roadname, length, exitNumber, speedLimit, driveTime, oneWay, nodes[1], nodes[0]);
+    }
+
+    /*public static Edge[] parseEdges(String line, Map<Integer, Node> nodeMap)
+    {
+        
+    }*/
 }

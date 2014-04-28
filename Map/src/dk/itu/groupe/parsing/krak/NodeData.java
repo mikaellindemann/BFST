@@ -42,6 +42,6 @@ public class NodeData
     @Override
     public String toString()
     {
-        return ID + "," + X_COORD + "," + Y_COORD;
+        return (ID - 1) + "," + X_COORD + "," + Y_COORD;
     }
 }

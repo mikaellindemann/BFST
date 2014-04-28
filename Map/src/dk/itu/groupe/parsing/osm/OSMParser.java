@@ -133,7 +133,7 @@ public class OSMParser extends DefaultHandler
         try {
             new File("./res/data/osm").mkdirs();
             edgeStream = new PrintWriter("./res/data/osm/edges.csv");
-            edgeStream.println("ID,TYPE,VEJNAVN,FRAKOERSEL,SPEED,ONE_WAY,NODES...");
+            edgeStream.println("ID,TYPE,VEJNAVN,LÆNGDE,FRAKOERSEL,SPEED,DRIVETIME,ONEWAY,NODES...");
         } catch (FileNotFoundException ex) {
             // This happens if the printwriters are about to write a file to a nonexisting folder.
             // Which shouldn't happen because the folders are created on document-start.
