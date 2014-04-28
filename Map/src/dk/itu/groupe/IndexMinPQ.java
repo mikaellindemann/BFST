@@ -55,6 +55,7 @@ public class IndexMinPQ<Key extends Comparable<Key>> implements Iterable<Integer
      * @param NMAX the keys on the priority queue are index from 0 to NMAX-1
      * @throws java.lang.IllegalArgumentException if NMAX < 0
      */
+    @SuppressWarnings("unchecked")
     public IndexMinPQ(int NMAX) {
         if (NMAX < 0) throw new IllegalArgumentException();
         this.NMAX = NMAX;

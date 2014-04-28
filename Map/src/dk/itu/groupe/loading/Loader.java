@@ -28,7 +28,7 @@ import java.util.Map;
 public abstract class Loader
 {
 
-    private Map<Integer, CommonRoadType> rtMap;
+    private final Map<Integer, CommonRoadType> rtMap;
 
     public Loader()
     {
@@ -134,7 +134,6 @@ public abstract class Loader
     {
         Map<Integer, Node> coastlinemap = new HashMap<>();
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dir + "nodes.csv")));
-        //br.readLine();
         String line;
         while ((line = br.readLine()) != null) {
             Node n = new Node(line);
@@ -143,7 +142,6 @@ public abstract class Loader
         br.close();
 
         br = new BufferedReader(new InputStreamReader(new FileInputStream(dir + "edges.csv")));
-        //br.readLine();
         while ((line = br.readLine()) != null) {
             DataLine l = new DataLine(line);
             List<Node> nodes = new LinkedList<>();

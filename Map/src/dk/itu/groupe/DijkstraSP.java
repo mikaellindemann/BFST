@@ -101,7 +101,7 @@ public class DijkstraSP
     // relax edge e and update pq if changed
     private void relax(Edge e)
     {
-        int v = e.getNodes()[0].ID, w = e.getNodes()[1].ID;
+        int v = e.from().ID, w = e.to().ID;
         if (distTo[w] > distTo[v] + e.getWeight(length)) {
             distTo[w] = distTo[v] + e.getWeight(length);
             edgeTo[w] = e;
@@ -154,7 +154,7 @@ public class DijkstraSP
             return null;
         }
         Stack<Edge> path = new Stack<>();
-        for (Edge e = edgeTo[v]; e != null; e = edgeTo[e.getNodes()[0].ID]) {
+        for (Edge e = edgeTo[v]; e != null; e = edgeTo[e.from().ID]) {
             path.push(e);
         }
         return path;
@@ -192,7 +192,7 @@ public class DijkstraSP
         // check that all edges e = v->w satisfy distTo[w] <= distTo[v] + e.weight()
         for (int v = 0; v < G.V(); v++) {
             for (Edge e : G.adj(v)) {
-                int w = e.getNodes()[1].ID;
+                int w = e.to().ID;
                 if (distTo[v] + e.getWeight(length) < distTo[w]) {
                     System.err.println("edge " + e + " not relaxed");
                     return false;
@@ -206,8 +206,8 @@ public class DijkstraSP
                 continue;
             }
             Edge e = edgeTo[w];
-            int v = e.getNodes()[0].ID;
-            if (w != e.getNodes()[1].ID) {
+            int v = e.from().ID;
+            if (w != e.to().ID) {
                 return false;
             }
             if (distTo[v] + e.getWeight(length) != distTo[w]) {

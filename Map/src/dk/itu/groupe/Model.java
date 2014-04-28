@@ -63,7 +63,6 @@ public class Model extends Observable
     DijkstraSP shortestPath;
 
     private boolean reset;
-    private Map<Integer, Node> nodeMap;
 
     private final String dir;
     private final LoadingPanel lf;
@@ -117,7 +116,7 @@ public class Model extends Observable
     public void load()
     {
 
-        nodeMap = new HashMap<>();
+        final Map<Integer, Node> nodeMap = new HashMap<>();
         final Map<CommonRoadType, List<Edge>> edgeMap = new HashMap<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
             edgeMap.put(rt, new LinkedList<Edge>());
@@ -602,33 +601,41 @@ public class Model extends Observable
             System.err.println("No point found");
             return;
         }
-        Node[] nodes = near.getNodes();
-        if (new Point.Double(nodes[0].X_COORD, nodes[0].Y_COORD).distance(p)
-                < new Point.Double(nodes[1].X_COORD, nodes[1].Y_COORD).distance(p)) {
-            from = nodes[0].ID;
+        Node fr = near.from();
+        Node to = near.to();
+
+        if (new Point.Double(fr.X_COORD, fr.Y_COORD).distance(p)
+                < new Point.Double(to.X_COORD, to.Y_COORD).distance(p)) {
+            from = fr.ID;
         } else {
-            from = nodes[1].ID;
+            from = to.ID;
         }
         shortestPath = new DijkstraSP(g, from, true);
     }
 
+    @SuppressWarnings("unchecked")
     public Iterable<Edge> getPathTo(Point e)
     {
         int to;
         Point.Double p = translatePoint(e.x, e.y);
         Edge near = nearest(p, false);
         if (near == null) {
-            return null;
+            return Collections.EMPTY_SET;
         }
-        Node[] nodes = near.getNodes();
-        if (new Point.Double(nodes[0].X_COORD, nodes[0].Y_COORD).distance(p)
-                < new Point.Double(nodes[1].X_COORD, nodes[1].Y_COORD).distance(p)) {
-            to = nodes[0].ID;
+        Node from = near.from();
+        Node t = near.to();
+        assert from != null;
+        assert t != null;
+        if (new Point.Double(from.X_COORD, from.Y_COORD).distance(p)
+                < new Point.Double(t.X_COORD, t.Y_COORD).distance(p)) {
+            to = from.ID;
         } else {
-            to = nodes[1].ID;
+            to = t.ID;
         }
-
-        return shortestPath.pathTo(to);
+        if (shortestPath.hasPathTo(to)) {
+            return shortestPath.pathTo(to);
+        }
+        return Collections.EMPTY_SET;
     }
 
     public Point getDragged()
@@ -718,6 +725,9 @@ public class Model extends Observable
     {
         List<Edge> edges = new LinkedList<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
+            if (rt == CommonRoadType.PLACES ||rt == CommonRoadType.COASTLINE) {
+                continue;
+            }
             if (!factorAware || rt.isEnabled(factor)) {
                 KDTree tree = treeMap.get(rt);
                 if (tree != null) {

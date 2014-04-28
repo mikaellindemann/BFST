@@ -53,6 +53,7 @@ public class EdgeWeightedDigraph {
      * @param V the number of vertices.
      * @throws java.lang.IllegalArgumentException if <tt>V</tt> < 0
      */
+    @SuppressWarnings("unchecked")
     public EdgeWeightedDigraph(int V) {
         if (V < 0) throw new IllegalArgumentException("Number of vertices in a Digraph must be nonnegative");
         this.V = V;
@@ -83,7 +84,7 @@ public class EdgeWeightedDigraph {
      * @param e the edge
      */
     public void addEdge(Edge e) {
-        int v = e.getNodes()[0].ID;
+        int v = e.from().ID;
         adj[v].add(e);
         E++;
     }

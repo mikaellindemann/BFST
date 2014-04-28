@@ -1,14 +1,9 @@
 package dk.itu.groupe;
 
-import dk.itu.groupe.loading.DataLine;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Represents the raw data from a line in edges.csv.
@@ -18,9 +13,6 @@ import java.util.Map;
  */
 public class Edge
 {
-
-    private static HashMap<Integer, CommonRoadType> rtMap;
-
     private final int id;
     private final CommonRoadType type;
     private final String roadname;
@@ -30,19 +22,7 @@ public class Edge
     private final double driveTime;
     private final OneWay oneWay;
     private final Shape path;
-    private final Node[] nodes;
-
-    @Override
-    public String toString()
-    {
-        throw new UnsupportedOperationException("Edges should not be printed");
-        /*return id + ","
-         + type.getTypeNo() + ","
-         + "`" + roadname + "`,"
-         + exitNumber + ","
-         + speedLimit + ","
-         + oneWay.getNumber();*/
-    }
+    private Node from, to;
 
     protected Edge(Node[] nodes)
     {
@@ -61,7 +41,6 @@ public class Edge
         }
         p.closePath();
         path = new Area(p);
-        this.nodes = nodes;
     }
 
     public Edge(int id, CommonRoadType type, String roadname, double length, int exitNumber, int speedLimit, double driveTime, OneWay oneWay, Node from, Node to)
@@ -74,8 +53,8 @@ public class Edge
         this.speedLimit = speedLimit;
         this.driveTime = driveTime;
         this.oneWay = oneWay;
-        nodes = new Node[]{from, to};
-        assert nodes.length == 2;
+        this.from = from;
+        this.to = to;
         path = new Line2D.Double(from.X_COORD, from.Y_COORD, to.X_COORD, to.Y_COORD);
     }
 
@@ -94,9 +73,14 @@ public class Edge
         return roadname;
     }
 
-    public Node[] getNodes()
+    public Node from()
     {
-        return nodes;
+        return from;
+    }
+    
+    public Node to()
+    {
+        return to;
     }
 
     public double getWeight(boolean length)
@@ -114,11 +98,6 @@ public class Edge
     
     public Edge revert()
     {
-        return new Edge(id, type, roadname, length, exitNumber, speedLimit, driveTime, oneWay, nodes[1], nodes[0]);
+        return new Edge(id, type, roadname, length, exitNumber, speedLimit, driveTime, oneWay, to, from);
     }
-
-    /*public static Edge[] parseEdges(String line, Map<Integer, Node> nodeMap)
-    {
-        
-    }*/
 }
