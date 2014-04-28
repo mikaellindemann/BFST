@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package dk.itu.groupe.loading;
 
 import java.awt.Color;
@@ -12,7 +7,8 @@ import javax.swing.JComponent;
 
 /**
  *
- * @author Mikael
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk)
  */
 public class LoadingPanel extends JComponent
 {
@@ -58,11 +54,11 @@ public class LoadingPanel extends JComponent
     {
         int promille = (int)((nodes / (double)maxNodes) * 300 + (edges / (double)maxEdges) * 700);
         if (promille < 300) {
-            g.drawString("Loading nodes", getWidth() / 4, getHeight() / 2);
+            g.drawString("Loading nodes...", 10, 130);
         } else if (promille < 1000) {
-            g.drawString("Loading edges", getWidth() / 4, getHeight() / 2);
+            g.drawString("Loading edges...", 10, 130);
         } else {
-            g.drawString("Building structures", getWidth() / 4, getHeight() / 2);
+            g.drawString("Building structures...", 10, 130);
         }
         g.drawRect(10, getHeight() - 20, getWidth() - 20, 10);
         g.fillRect(10, getHeight() - 20, (int)(promille / 1000.0 * (getWidth() - 20)), 10);
