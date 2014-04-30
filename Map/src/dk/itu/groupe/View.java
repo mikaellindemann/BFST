@@ -385,11 +385,11 @@ public class View extends JComponent implements Observer
                             case UNCLASSIFIED:
                             case SECONDARY_LINK:
                                 gB.setStroke(new BasicStroke(3));
-                                gB.setColor(Color.GRAY);
+                                gB.setColor(Color.DARK_GRAY);
                                 break;
                             case PATH:
                             case TRACK:
-                                gB.setColor(Color.LIGHT_GRAY);
+                                gB.setColor(Color.GRAY);
                                 gB.setStroke(new BasicStroke(1));
                                 break;
                             case PEDESTRIAN:
