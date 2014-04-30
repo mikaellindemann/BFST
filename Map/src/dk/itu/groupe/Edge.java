@@ -4,6 +4,7 @@ import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Represents the raw data from a line in edges.csv.
@@ -23,8 +24,9 @@ public class Edge
     private final OneWay oneWay;
     private final Shape path;
     private Node from, to;
+    private final double centerX, centerY;
 
-    protected Edge(Node[] nodes)
+    public Edge(Node[] nodes)
     {
         id = 0;
         type = null;
@@ -35,12 +37,15 @@ public class Edge
         driveTime = 0;
         oneWay = null;
         Path2D p = new Path2D.Double();
-        p.moveTo(nodes[0].X_COORD, nodes[0].Y_COORD);
+        p.moveTo(nodes[0].x(), nodes[0].y());
         for (int i = 1; i < nodes.length; i++) {
-            p.lineTo(nodes[i].X_COORD, nodes[i].Y_COORD);
+            p.lineTo(nodes[i].x(), nodes[i].y());
         }
         p.closePath();
         path = new Area(p);
+        Rectangle2D bounds = path.getBounds2D();
+        centerX = bounds.getCenterX();
+        centerY = bounds.getCenterY();
     }
 
     public Edge(int id, CommonRoadType type, String roadname, double length, int exitNumber, int speedLimit, double driveTime, OneWay oneWay, Node from, Node to)
@@ -55,7 +60,9 @@ public class Edge
         this.oneWay = oneWay;
         this.from = from;
         this.to = to;
-        path = new Line2D.Double(from.X_COORD, from.Y_COORD, to.X_COORD, to.Y_COORD);
+        path = new Line2D.Double(from.x(), from.y(), to.x(), to.y());
+        centerX = (from.x() + to.x()) / 2;
+        centerY = (from.y() + to.y()) / 2;
     }
 
     public CommonRoadType getType()
@@ -100,4 +107,15 @@ public class Edge
     {
         return new Edge(id, type, roadname, length, exitNumber, speedLimit, driveTime, oneWay, to, from);
     }
+
+    public double getCenterX()
+    {
+        return centerX;
+    }
+
+    public double getCenterY()
+    {
+        return centerY;
+    }
+    
 }

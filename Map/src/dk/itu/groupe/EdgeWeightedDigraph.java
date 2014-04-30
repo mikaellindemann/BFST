@@ -84,7 +84,7 @@ public class EdgeWeightedDigraph {
      * @param e the edge
      */
     public void addEdge(Edge e) {
-        int v = e.from().ID;
+        int v = e.from().id();
         adj[v].add(e);
         E++;
     }

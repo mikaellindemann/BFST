@@ -67,10 +67,6 @@ public class Controller implements
     @Override
     public void mouseMoved(MouseEvent me)
     {
-        if (model.pathPointSet()) {
-            model.setMoved(me.getPoint());
-            model.notifyObservers();
-        }
         model.updateRoadname(me.getX(), me.getY());
         model.notifyObservers("updateRoadname");
     }
@@ -89,9 +85,6 @@ public class Controller implements
     @Override
     public void mouseClicked(MouseEvent me)
     {
-        if (model.getMouseTool() == MouseTool.PATH) {
-            model.setFromNode(me.getPoint());
-        }
     }
 
     @Override
@@ -103,9 +96,16 @@ public class Controller implements
     @Override
     public void mousePressed(MouseEvent me)
     {
-        if (SwingUtilities.isLeftMouseButton(me)) {
+        if (model.getMouseTool() != MouseTool.PATH && SwingUtilities.isLeftMouseButton(me)) {
             model.setPressed(me.getPoint());
             model.setDragged(me.getPoint());
+        }
+        if (SwingUtilities.isRightMouseButton(me) && model.getMouseTool() == MouseTool.PATH && model.pathPointSet()) {
+            model.setMoved(me.getPoint());
+            model.notifyObservers();
+        }
+        if (SwingUtilities.isLeftMouseButton(me) && model.getMouseTool() == MouseTool.PATH) {
+            model.setFromNode(me.getPoint());
         }
     }
 
@@ -121,7 +121,7 @@ public class Controller implements
             model.setDragged(null);
         }
         //Right click to reset.
-        if (SwingUtilities.isRightMouseButton(me)) {
+        if (model.getMouseTool() != MouseTool.PATH && SwingUtilities.isRightMouseButton(me)) {
             model.reset();
             model.notifyObservers();
         }
@@ -257,12 +257,12 @@ public class Controller implements
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-        
+
         BufferedImage bgImage = ImageIO.read(new File("res/Loading.png"));
         JLabel bgLabel = new JLabel(new ImageIcon(bgImage));
         bgLabel.setBounds(0, 0, 380, 160);
         frame.add(bgLabel);
-        
+
         model.load();
         frame.setVisible(false);
         frame.remove(model.getLoadingPanel());

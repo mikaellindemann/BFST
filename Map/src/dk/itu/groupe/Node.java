@@ -10,9 +10,9 @@ import dk.itu.groupe.loading.DataLine;
  */
 public class Node
 {
-    public final int ID;
-    public final double X_COORD;
-    public final double Y_COORD;
+    private final int id;
+    private final double x;
+    private final double y;
 
     /**
      * Parses node data from line, throws an IOException if something unexpected
@@ -23,9 +23,24 @@ public class Node
     public Node(String line)
     {
         DataLine dl = new DataLine(line);
-        ID = dl.getInt();
-        X_COORD = dl.getDouble();
-        Y_COORD = dl.getDouble();
+        id = dl.getInt();
+        x = dl.getDouble();
+        y = dl.getDouble();
+    }
+    
+    public int id()
+    {
+        return id;
+    }
+    
+    public double x()
+    {
+        return x;
+    }
+    
+    public double y()
+    {
+        return y;
     }
 
     /**
@@ -37,6 +52,6 @@ public class Node
     @Override
     public String toString()
     {
-        return ID + "," + X_COORD + "," + Y_COORD;
+        return id + "," + x + "," + y;
     }
 }

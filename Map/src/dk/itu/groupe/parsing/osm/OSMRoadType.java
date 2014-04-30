@@ -26,11 +26,11 @@ public enum OSMRoadType
     /**
      * OSM: Tertiary. KRAK: Road(5) and Proj_Road(25).
      */
-    TERTIARY(5, OSMRoadType.secondFactor, 80, "tertiary"),
+    TERTIARY(5, OSMRoadType.secondFactor, 50, "tertiary"),
     /**
      * OSM: Unclassified and Byway. KRAK: OtherRoad(6) and Proj_OtherRoad(26).
      */
-    UNCLASSIFIED(6, OSMRoadType.thirdFactor, 80, "unclassified", "byway"),
+    UNCLASSIFIED(6, OSMRoadType.thirdFactor, 50, "unclassified", "byway"),
     /**
      * OSM: Residential, Living_Street, Living_Street;Footway, Mini_Roundabout
      * and service. KRAK:.

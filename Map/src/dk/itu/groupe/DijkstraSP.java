@@ -55,6 +55,12 @@ public class DijkstraSP
     private final Edge[] edgeTo;    // edgeTo[v] = last edge on shortest s->v path
     private final IndexMinPQ<Double> pq;    // priority queue of vertices
     private final boolean length;
+    private static double[] x, y;
+
+    private double h(int s, int t)
+    {
+        return Math.sqrt(Math.pow(x[s] - x[t], 2) + Math.pow(y[s] - y[t], 2));
+    }
 
     /**
      * Computes a shortest paths tree from <tt>s</tt> to every other vertex in
@@ -62,18 +68,30 @@ public class DijkstraSP
      *
      * @param G the edge-weighted digraph
      * @param s the source vertex
+     * @param t
      * @param length If true the weight is determined by the length of the edge.
      * The drivetime is used as weight otherwise.
      * @throws IllegalArgumentException if an edge weight is negative
      * @throws IllegalArgumentException unless 0 &le; <tt>s</tt> &le; <tt>V</tt>
      * - 1
      */
-    public DijkstraSP(EdgeWeightedDigraph G, int s, boolean length)
+    public DijkstraSP(EdgeWeightedDigraph G, int s, int t, boolean length)
     {
         this.length = length;
-        for (Edge e : G.edges()) {
-            if (e.getWeight(length) < 0) {
-                throw new IllegalArgumentException("edge " + e + " has negative weight");
+        if (x == null) {
+            x = new double[G.V()];
+            y = new double[G.V()];
+            for (Edge e : G.edges()) {
+                int id = e.from().id();
+                if (x[id] != 0) {
+                    x[id] = e.from().x();
+                    y[id] = e.from().y();
+                }
+                id = e.to().id();
+                if (x[id] != 0) {
+                    x[id] = e.from().x();
+                    y[id] = e.from().y();
+                }
             }
         }
 
@@ -89,8 +107,11 @@ public class DijkstraSP
         pq.insert(s, distTo[s]);
         while (!pq.isEmpty()) {
             int v = pq.delMin();
+            if (v == t) {
+                return;
+            }
             for (Edge e : G.adj(v)) {
-                relax(e);
+                relax(e, t);
             }
         }
 
@@ -99,16 +120,16 @@ public class DijkstraSP
     }
 
     // relax edge e and update pq if changed
-    private void relax(Edge e)
+    private void relax(Edge e, int t)
     {
-        int v = e.from().ID, w = e.to().ID;
+        int v = e.from().id(), w = e.to().id();
         if (distTo[w] > distTo[v] + e.getWeight(length)) {
             distTo[w] = distTo[v] + e.getWeight(length);
             edgeTo[w] = e;
             if (pq.contains(w)) {
-                pq.decreaseKey(w, distTo[w]);
+                pq.decreaseKey(w, distTo[w] + h(w, t));
             } else {
-                pq.insert(w, distTo[w]);
+                pq.insert(w, distTo[w] + h(w, t));
             }
         }
     }
@@ -154,7 +175,7 @@ public class DijkstraSP
             return null;
         }
         Stack<Edge> path = new Stack<>();
-        for (Edge e = edgeTo[v]; e != null; e = edgeTo[e.from().ID]) {
+        for (Edge e = edgeTo[v]; e != null; e = edgeTo[e.from().id()]) {
             path.push(e);
         }
         return path;
@@ -192,7 +213,7 @@ public class DijkstraSP
         // check that all edges e = v->w satisfy distTo[w] <= distTo[v] + e.weight()
         for (int v = 0; v < G.V(); v++) {
             for (Edge e : G.adj(v)) {
-                int w = e.to().ID;
+                int w = e.to().id();
                 if (distTo[v] + e.getWeight(length) < distTo[w]) {
                     System.err.println("edge " + e + " not relaxed");
                     return false;
@@ -206,8 +227,8 @@ public class DijkstraSP
                 continue;
             }
             Edge e = edgeTo[w];
-            int v = e.from().ID;
-            if (w != e.to().ID) {
+            int v = e.from().id();
+            if (w != e.to().id()) {
                 return false;
             }
             if (distTo[v] + e.getWeight(length) != distTo[w]) {

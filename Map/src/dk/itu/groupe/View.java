@@ -417,7 +417,8 @@ public class View extends JComponent implements Observer
                             default:
                                 gB.setColor(Color.MAGENTA);
                         }
-                        for (Edge edge : model.getEdges(rt, topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)) {
+                        for (Object ed : model.getEdges(rt, topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)) {
+                            Edge edge = (Edge) ed;
                             if (edge.getShape().intersects(topLeft.x, bottomRight.y, bottomRight.x - topLeft.x, topLeft.y - bottomRight.y)) {
                                 if (rt == CommonRoadType.PLACES) {
                                     Rectangle2D b = edge.getShape().getBounds2D();

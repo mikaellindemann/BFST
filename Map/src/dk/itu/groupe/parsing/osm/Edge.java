@@ -20,27 +20,19 @@ public class Edge
     private final int speedLimit;
     private final double driveTime;
     private final OneWay oneWay;
-    private final long[] nodeIds;
+    private final long fromId, toId;
 
     @Override
     public String toString()
     {
-        String s = id + ","
-                + type.getTypeNo() + ",";
+        StringBuilder s = new StringBuilder(id + "," + type.getTypeNo() + ",");
         if (roadname != null) {
-            s += "`" + roadname + "`,";
+            s.append("`").append(roadname).append("`,");
         } else {
-            s += ",";
+            s.append(",");
         }
-        s += String.format(Locale.ENGLISH, "%.2f", length) + ","
-                + exitNumber + ","
-                + speedLimit + ","
-                + String.format(Locale.ENGLISH, "%.2f", driveTime) + ","
-                + oneWay.getNumber();
-        for (long node : nodeIds) {
-            s += "," + node;
-        }
-        return s;
+        s.append(String.format(Locale.ENGLISH, "%.2f", length)).append(",").append(exitNumber).append(",").append(speedLimit).append(",").append(String.format(Locale.ENGLISH, "%.2f", driveTime)).append(",").append(oneWay.getNumber()).append(",").append(fromId).append(",").append(toId);
+        return s.toString();
     }
 
     public Edge(long id,
@@ -50,7 +42,7 @@ public class Edge
             int exitNumber,
             int speedLimit,
             OneWay oneWay,
-            long[] nodes)
+            long fromId, long toId)
     {
         this.id = id;
         this.type = type;
@@ -64,7 +56,8 @@ public class Edge
         }
         driveTime = (length / (this.speedLimit * 1000 / 60)) * 1.15;
         this.oneWay = oneWay;
-        this.nodeIds = nodes;
+        this.fromId = fromId;
+        this.toId = toId;
     }
 
     public OSMRoadType getType()
@@ -76,9 +69,14 @@ public class Edge
     {
         return roadname;
     }
-    
-    public long[] getNodeIds()
+
+    public long getFromId()
     {
-        return nodeIds;
+        return fromId;
+    }
+    
+    public long getToId()
+    {
+        return toId;
     }
 }

@@ -7,10 +7,6 @@ import java.awt.Point;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -21,7 +17,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import javax.swing.JOptionPane;
 
 /**
  * The model contains all the information about the map.
@@ -50,6 +45,8 @@ public class Model extends Observable
     private double ratioY;
     private final float minFactor = 0.5f;
     private double initialFactor;
+    
+    private int from;
 
     private final Map<CommonRoadType, KDTree> treeMap;
 
@@ -77,31 +74,19 @@ public class Model extends Observable
      */
     public Model(String data)
     {
-        double xLow = 0, yLow = 0, xHigh = 0, yHigh = 0;
         if (data.equals("OpenStreetMap")) {
             dir = "./res/data/osm/";
         } else {
             dir = "./res/data/krak/";
         }
-        int maxNodes = 0, maxEdges = 0;
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dir + "info.csv")));
-            xLow = Double.parseDouble(br.readLine());
-            yLow = Double.parseDouble(br.readLine());
-            xHigh = Double.parseDouble(br.readLine());
-            yHigh = Double.parseDouble(br.readLine());
-            maxNodes = Integer.parseInt(br.readLine());
-            maxEdges = Integer.parseInt(br.readLine());
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-        }
-        g = new EdgeWeightedDigraph(maxNodes);
+        Loader.Info info = Loader.loadInfo(dir);
+        g = new EdgeWeightedDigraph(info.maxNodes);
 
-        lf = new LoadingPanel(maxNodes, maxEdges);
-        lowestX_COORD = xLow;
-        lowestY_COORD = yLow;
-        highestX_COORD = xHigh;
-        highestY_COORD = yHigh;
+        lf = new LoadingPanel(info.maxNodes, info.maxEdges);
+        lowestX_COORD = info.xLow;
+        lowestY_COORD = info.yLow;
+        highestX_COORD = info.xHigh;
+        highestY_COORD = info.yHigh;
 
         treeMap = new HashMap<>();
 
@@ -115,23 +100,22 @@ public class Model extends Observable
 
     public void load()
     {
-
-        final Map<Integer, Node> nodeMap = new HashMap<>();
         final Map<CommonRoadType, List<Edge>> edgeMap = new HashMap<>();
+        final Map<Integer, Node> nodeMap = new HashMap<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
             edgeMap.put(rt, new LinkedList<Edge>());
         }
-        Loader loader = new Loader()
+        final Loader loader = new Loader()
         {
             @Override
             public void processNode(Node nd)
             {
-                nodeMap.put(nd.ID, nd);
+                nodeMap.put(nd.id(), nd);
                 lf.countNode();
             }
 
             @Override
-            public void processEdge(Edge ed, boolean wholeEdge)
+            public void processEdge(Edge ed)
             {
                 edgeMap.get(ed.getType()).add(ed);
                 switch (ed.getOneWay()) {
@@ -146,55 +130,68 @@ public class Model extends Observable
                         g.addEdge(ed.revert());
                         break;
                 }
-                if (wholeEdge) {
-                    lf.countEdge();
-                }
+                lf.countEdge();
             }
 
             @Override
-            public void processLand(Coastline cl)
+            public void processLand(Edge cl)
             {
                 edgeMap.get(CommonRoadType.COASTLINE).add(cl);
             }
         };
-        try {
-            loader.load(dir + "nodes.csv", dir + "edges.csv", nodeMap);
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "An unexpected error has occured.\nThis program will exit.",
-                    "Error loading",
-                    JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace(System.err);
-            System.exit(300);
-        }
-        DataLine.resetInterner();
-
         ExecutorService es = Executors.newCachedThreadPool();
-
-        for (final CommonRoadType rt : CommonRoadType.values()) {
-            es.execute(new Runnable()
+        es.execute(new Runnable()
+        {
+            @Override
+            public void run()
             {
-                @Override
-                public void run()
-                {
-                    if (edgeMap.get(rt).size() > 0) {
-                        treeMap.put(rt, new KDTree(edgeMap.get(rt), lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
-                    }
-                }
-            });
-        }
-
+                loader.loadMap(dir + "nodes.csv", dir + "edges.csv", nodeMap);
+            }
+        });
+        es.execute(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                loader.loadCoastline("./res/data/coastline/");
+            }
+        });
+        es.shutdown();
         try {
-            es.shutdown();
             es.awaitTermination(1, TimeUnit.DAYS);
         } catch (InterruptedException ex) {
             ex.printStackTrace(System.err);
         }
+        DataLine.resetInterner();
+        es = Executors.newCachedThreadPool();
+        for (final CommonRoadType rt : CommonRoadType.values()) {
+            es.execute(new Runnable()
+            {
+
+                @Override
+                public void run()
+                {
+                    List<Edge> l = edgeMap.get(rt);
+                    if (l.size() > 0) {
+                        treeMap.put(rt, new KDTree(l, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
+                    }
+                }
+
+            });
+        }
+        es.shutdown();
+        try {
+            es.awaitTermination(1, TimeUnit.DAYS);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace(System.err);
+        }
+
         height = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 110;
         width = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
+
         reset();
         initialFactor = factor;
+
         System.gc();
     }
 
@@ -529,9 +526,9 @@ public class Model extends Observable
     public Set<Edge> getEdges(CommonRoadType rt, double xLeft, double yBottom, double xRight, double yTop)
     {
         if (treeMap.get(rt) != null) {
-            return treeMap.get(rt).getEdges(xLeft, yBottom, xRight, yTop);
+            return treeMap.get(rt).getEdges(xLeft, yBottom, xRight, yTop); //(xLeft, yBottom, xRight, yTop);
         } else {
-            return (Set<Edge>) Collections.EMPTY_SET;
+            return Collections.EMPTY_SET;
         }
     }
 
@@ -584,7 +581,7 @@ public class Model extends Observable
 
     public boolean pathPointSet()
     {
-        return shortestPath != null;
+        return from != 0;
     }
 
     public void resetPointSet()
@@ -594,9 +591,8 @@ public class Model extends Observable
 
     public void setFromNode(Point e)
     {
-        int from;
         Point.Double p = translatePoint(e.x, e.y);
-        Edge near = nearest(p, true);
+        Edge near = nearest(p, false);
         if (near == null) {
             System.err.println("No point found");
             return;
@@ -604,16 +600,15 @@ public class Model extends Observable
         Node fr = near.from();
         Node to = near.to();
 
-        if (new Point.Double(fr.X_COORD, fr.Y_COORD).distance(p)
-                < new Point.Double(to.X_COORD, to.Y_COORD).distance(p)) {
-            from = fr.ID;
+        if (new Point.Double(fr.x(), fr.y()).distance(p)
+                < new Point.Double(to.x(), to.y()).distance(p)) {
+            from = fr.id();
         } else {
-            from = to.ID;
+            from = to.id();
         }
-        shortestPath = new DijkstraSP(g, from, true);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "unchecked"})
     public Iterable<Edge> getPathTo(Point e)
     {
         int to;
@@ -622,16 +617,17 @@ public class Model extends Observable
         if (near == null) {
             return Collections.EMPTY_SET;
         }
-        Node from = near.from();
+        Node f = near.from();
         Node t = near.to();
-        assert from != null;
+        assert f != null;
         assert t != null;
-        if (new Point.Double(from.X_COORD, from.Y_COORD).distance(p)
-                < new Point.Double(t.X_COORD, t.Y_COORD).distance(p)) {
-            to = from.ID;
+        if (new Point.Double(f.x(), f.y()).distance(p)
+                < new Point.Double(t.x(), t.y()).distance(p)) {
+            to = f.id();
         } else {
-            to = t.ID;
+            to = t.id();
         }
+        shortestPath = new DijkstraSP(g, from, to, false);
         if (shortestPath.hasPathTo(to)) {
             return shortestPath.pathTo(to);
         }
@@ -725,19 +721,17 @@ public class Model extends Observable
     {
         List<Edge> edges = new LinkedList<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
-            if (rt == CommonRoadType.PLACES ||rt == CommonRoadType.COASTLINE) {
+            if (rt == CommonRoadType.PLACES || rt == CommonRoadType.COASTLINE) {
                 continue;
             }
-            if (!factorAware || rt.isEnabled(factor)) {
-                KDTree tree = treeMap.get(rt);
-                if (tree != null) {
-                    Edge e = tree.getNearest(p.x, p.y);
-                    if (e != null) {
-                        edges.add(e);
-                    }
+            if ((!factorAware || rt.isEnabled(factor)) && treeMap.get(rt) != null) {
+                Edge e = treeMap.get(rt).getNearest(p.x, p.y);
+                if (e != null) {
+                    edges.add(e);
                 }
             }
         }
+
         Edge near = null;
         double dist = Double.MAX_VALUE;
         for (Edge edge : edges) {

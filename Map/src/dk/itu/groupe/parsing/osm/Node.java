@@ -9,7 +9,7 @@ import java.util.Locale;
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)
  */
-public class Node
+public class Node implements Comparable<Node>
 {
 
     private long id;
@@ -60,5 +60,11 @@ public class Node
         return id + ","
                 + String.format(Locale.ENGLISH, "%.2f,", x)
                 + String.format(Locale.ENGLISH, "%.2f", y);
+    }
+
+    @Override
+    public int compareTo(Node that)
+    {
+        return (int) (this.id - that.id);
     }
 }
