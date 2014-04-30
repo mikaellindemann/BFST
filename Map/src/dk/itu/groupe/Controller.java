@@ -12,15 +12,10 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
@@ -229,7 +224,7 @@ public class Controller implements
         }
     }
 
-    public static void main(String[] args) throws IOException
+    public static void main(String[] args)
     {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -257,16 +252,10 @@ public class Controller implements
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-
-        BufferedImage bgImage = ImageIO.read(new File("res/Loading.png"));
-        JLabel bgLabel = new JLabel(new ImageIcon(bgImage));
-        bgLabel.setBounds(0, 0, 380, 160);
-        frame.add(bgLabel);
-
+        
         model.load();
         frame.setVisible(false);
         frame.remove(model.getLoadingPanel());
-        frame.remove(bgLabel);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         View view = new View(model);
         model.addObserver(view);
