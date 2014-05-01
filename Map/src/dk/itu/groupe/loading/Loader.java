@@ -64,7 +64,7 @@ public abstract class Loader
      * @param nodeMap The nodemap to use for looking up nodes in the process of
      * creating the edges.
      */
-    public void loadMap(String nodeFile, String edgeFile, Map<Integer, Node> nodeMap)
+    public void loadMap(String nodeFile, String edgeFile, Node[] nodeMap)
     {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(nodeFile), Charset.forName("UTF-8")));
@@ -87,10 +87,10 @@ public abstract class Loader
                     assert (type != null);
                 }
                 String roadname = dl.getString();
-                double length = dl.getDouble();
+                float length = dl.getFloat();
                 int exitNumber = dl.getInt();
                 int speedLimit = dl.getInt();
-                double driveTime = dl.getDouble();
+                float driveTime = dl.getFloat();
                 OneWay oneWay;
                 switch (dl.getInt()) {
                     case -1:
@@ -108,7 +108,7 @@ public abstract class Loader
                 }
                 Node[] nodes = new Node[dl.tokensLeft()];
                 for (int i = 0; dl.hasNext(); i++) {
-                    nodes[i] = nodeMap.get(dl.getInt());
+                    nodes[i] = nodeMap[dl.getInt()];
                     assert nodes[i] != null;
                 }
                 assert nodes[nodes.length - 1] != null;

@@ -11,8 +11,8 @@ import dk.itu.groupe.loading.DataLine;
 public class Node
 {
     private final int id;
-    private final double x;
-    private final double y;
+    private final float x;
+    private final float y;
 
     /**
      * Parses node data from line, throws an IOException if something unexpected
@@ -24,8 +24,8 @@ public class Node
     {
         DataLine dl = new DataLine(line);
         id = dl.getInt();
-        x = dl.getDouble();
-        y = dl.getDouble();
+        x = dl.getFloat();
+        y = dl.getFloat();
     }
     
     public int id()
@@ -33,12 +33,12 @@ public class Node
         return id;
     }
     
-    public double x()
+    public float x()
     {
         return x;
     }
     
-    public double y()
+    public float y()
     {
         return y;
     }

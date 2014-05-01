@@ -54,7 +54,6 @@ public class DijkstraSP
     private final double[] distTo;          // distTo[v] = distance  of shortest s->v path
     private final Edge[] edgeTo;    // edgeTo[v] = last edge on shortest s->v path
     private final IndexMinPQ<Double> pq;    // priority queue of vertices
-    private final boolean length;
     private static double[] x, y;
 
     private double h(int s, int t)
@@ -69,15 +68,12 @@ public class DijkstraSP
      * @param G the edge-weighted digraph
      * @param s the source vertex
      * @param t
-     * @param length If true the weight is determined by the length of the edge.
-     * The drivetime is used as weight otherwise.
      * @throws IllegalArgumentException if an edge weight is negative
      * @throws IllegalArgumentException unless 0 &le; <tt>s</tt> &le; <tt>V</tt>
      * - 1
      */
-    public DijkstraSP(EdgeWeightedDigraph G, int s, int t, boolean length)
+    public DijkstraSP(EdgeWeightedDigraph G, int s, int t)
     {
-        this.length = length;
         if (x == null) {
             x = new double[G.V()];
             y = new double[G.V()];
@@ -123,8 +119,8 @@ public class DijkstraSP
     private void relax(Edge e, int t)
     {
         int v = e.from().id(), w = e.to().id();
-        if (distTo[w] > distTo[v] + e.getWeight(length)) {
-            distTo[w] = distTo[v] + e.getWeight(length);
+        if (distTo[w] > distTo[v] + e.getLength()) {
+            distTo[w] = distTo[v] + e.getLength();
             edgeTo[w] = e;
             if (pq.contains(w)) {
                 pq.decreaseKey(w, distTo[w] + h(w, t));
@@ -189,7 +185,7 @@ public class DijkstraSP
 
         // check that edge weights are nonnegative
         for (Edge e : G.edges()) {
-            if (e.getWeight(length) < 0) {
+            if (e.getLength() < 0) {
                 System.err.println("negative edge weight detected");
                 return false;
             }
@@ -214,7 +210,7 @@ public class DijkstraSP
         for (int v = 0; v < G.V(); v++) {
             for (Edge e : G.adj(v)) {
                 int w = e.to().id();
-                if (distTo[v] + e.getWeight(length) < distTo[w]) {
+                if (distTo[v] + e.getLength() < distTo[w]) {
                     System.err.println("edge " + e + " not relaxed");
                     return false;
                 }
@@ -231,7 +227,7 @@ public class DijkstraSP
             if (w != e.to().id()) {
                 return false;
             }
-            if (distTo[v] + e.getWeight(length) != distTo[w]) {
+            if (distTo[v] + e.getLength() != distTo[w]) {
                 System.err.println("edge " + e + " on shortest path not tight");
                 return false;
             }

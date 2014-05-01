@@ -125,6 +125,16 @@ public class DataLine
         }
     }
     
+    public float getFloat()
+    {
+        String s = nextToken();
+        try {
+            return Float.parseFloat(s);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(s + " is not a float!");
+        }
+    }
+    
     public boolean hasNext()
     {
         return next < line.length();

@@ -7,9 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 
 /**
  *
@@ -25,13 +23,17 @@ public class LoadingPanel extends JComponent
     private final int maxNodes;
     private BufferedImage image;
 
-    public LoadingPanel(int maxNodes, int maxEdges) throws IOException
+    public LoadingPanel(int maxNodes, int maxEdges)
     {
         edges = 0;
         nodes = 0;
         this.maxNodes = maxNodes;
         this.maxEdges = maxEdges;
-        image = ImageIO.read(new File("res/Loading.png"));
+        try {
+            image = ImageIO.read(new File("res/Loading.png"));
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
+        }
     }
 
     public void countEdge()

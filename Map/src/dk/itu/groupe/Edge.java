@@ -11,16 +11,17 @@ import java.awt.geom.Path2D;
  */
 public class Edge
 {
+
     private final CommonRoadType type;
     private final String roadname;
-    private final double length;
+    private final float length;
     private final int exitNumber;
     private final int speedLimit;
-    private final double driveTime;
+    private final float driveTime;
     private final OneWay oneWay;
     private final Shape path;
     private Node from, to;
-    private final double centerX, centerY;
+    private final float centerX, centerY;
 
     public Edge(Node[] nodes)
     {
@@ -31,11 +32,11 @@ public class Edge
         speedLimit = 0;
         driveTime = 0;
         oneWay = null;
-        double xMin = nodes[0].x();
-        double xMax = nodes[0].x();
-        double yMin = nodes[0].y();
-        double yMax = nodes[0].y();
-        Path2D p = new Path2D.Double();
+        float xMin = nodes[0].x();
+        float xMax = nodes[0].x();
+        float yMin = nodes[0].y();
+        float yMax = nodes[0].y();
+        Path2D p = new Path2D.Float();
         p.moveTo(nodes[0].x(), nodes[0].y());
         for (int i = 1; i < nodes.length; i++) {
             xMin = Math.min(xMin, nodes[i].x());
@@ -50,7 +51,7 @@ public class Edge
         centerY = (yMin + yMax) / 2;
     }
 
-    public Edge(CommonRoadType type, String roadname, double length, int exitNumber, int speedLimit, double driveTime, OneWay oneWay, Node[] nodes)
+    public Edge(CommonRoadType type, String roadname, float length, int exitNumber, int speedLimit, float driveTime, OneWay oneWay, Node[] nodes)
     {
         this.type = type;
         this.roadname = roadname;
@@ -61,10 +62,10 @@ public class Edge
         this.oneWay = oneWay;
         from = nodes[0];
         to = nodes[nodes.length - 1];
-        double xMin = nodes[0].x();
-        double xMax = nodes[0].x();
-        double yMin = nodes[0].y();
-        double yMax = nodes[0].y();
+        float xMin = nodes[0].x();
+        float xMax = nodes[0].x();
+        float yMin = nodes[0].y();
+        float yMax = nodes[0].y();
         Path2D p = new Path2D.Double();
         p.moveTo(nodes[0].x(), nodes[0].y());
         for (int i = 1; i < nodes.length; i++) {
@@ -98,18 +99,15 @@ public class Edge
     {
         return from;
     }
-    
+
     public Node to()
     {
         return to;
     }
 
-    public double getWeight(boolean length)
+    public float getLength()
     {
-        if (length) {
-            return this.length;
-        }
-        return driveTime;
+        return length;
     }
 
     public OneWay getOneWay()
@@ -117,14 +115,14 @@ public class Edge
         return oneWay;
     }
 
-    public double getCenterX()
+    public float getCenterX()
     {
         return centerX;
     }
 
-    public double getCenterY()
+    public float getCenterY()
     {
         return centerY;
     }
-    
+
 }

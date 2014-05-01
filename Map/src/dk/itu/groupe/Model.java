@@ -63,6 +63,9 @@ public class Model extends Observable
 
     private final String dir;
     private final LoadingPanel lf;
+    
+    private final int maxNodes;
+    private Node[] nodeMap;
 
     /**
      * On creation of the Model, it will start to load in the data.
@@ -82,12 +85,11 @@ public class Model extends Observable
         Loader.Info info = Loader.loadInfo(dir);
         g = new EdgeWeightedDigraph(info.maxNodes);
 
-        lf = new LoadingPanel(info.maxNodes, info.maxEdges);
+        lf = new LoadingPanel(maxNodes = info.maxNodes, info.maxEdges);
         lowestX_COORD = info.xLow;
         lowestY_COORD = info.yLow;
         highestX_COORD = info.xHigh;
         highestY_COORD = info.yHigh;
-
         treeMap = new HashMap<>();
 
         mouseTool = MouseTool.MOVE;
@@ -101,7 +103,7 @@ public class Model extends Observable
     public void load()
     {
         final Map<CommonRoadType, List<Edge>> edgeMap = new HashMap<>();
-        final Map<Integer, Node> nodeMap = new HashMap<>();
+        nodeMap = new Node[maxNodes];
         for (CommonRoadType rt : CommonRoadType.values()) {
             edgeMap.put(rt, new LinkedList<Edge>());
         }
@@ -110,7 +112,7 @@ public class Model extends Observable
             @Override
             public void processNode(Node nd)
             {
-                nodeMap.put(nd.id(), nd);
+                nodeMap[nd.id()] = nd;
                 lf.countNode();
             }
 
@@ -181,6 +183,7 @@ public class Model extends Observable
         reset();
         initialFactor = factor;
 
+        nodeMap = null;
         System.gc();
     }
 
@@ -597,7 +600,7 @@ public class Model extends Observable
         }
     }
 
-    @SuppressWarnings({"unchecked", "unchecked"})
+    @SuppressWarnings("unchecked")
     public Iterable<Edge> getPathTo(Point e)
     {
         int to;
@@ -616,7 +619,7 @@ public class Model extends Observable
         } else {
             to = t.id();
         }
-        shortestPath = new DijkstraSP(g, from, to, true);
+        shortestPath = new DijkstraSP(g, from, to);
         if (shortestPath.hasPathTo(to)) {
             return shortestPath.pathTo(to);
         }
