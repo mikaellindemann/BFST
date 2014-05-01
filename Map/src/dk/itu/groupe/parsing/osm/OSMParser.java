@@ -7,7 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -28,6 +30,7 @@ import org.xml.sax.helpers.DefaultHandler;
 public class OSMParser extends DefaultHandler
 {
 
+    private static final String separator = ",";
     //Used for fast lookup from an OSM-roadtype-tag to the OSMRoadType-enum.
     private static Map<String, OSMRoadType> rtMap;
     // Used to limit the amount of RAM that is to be consumed by roadnames.
@@ -52,6 +55,7 @@ public class OSMParser extends DefaultHandler
     private List<Long> nodeList;
     // If this set contains a nodeID it has been used for an edge.
     private Set<Node> nodeRef, ferryRef;
+    private Set<Edge> edgeSet;
     // This stores the nodes so they can be looked up by their ID.
     private Map<Long, Node> nodemap;
 
@@ -116,6 +120,7 @@ public class OSMParser extends DefaultHandler
         // It also writes the first lines containing information about fields.
         ferryRef = new TreeSet<>();
         nodeRef = new TreeSet<>();
+        edgeSet = new HashSet<>();
         rtMap = new HashMap<>();
         for (OSMRoadType rt : OSMRoadType.values()) {
             for (String s : rt.getOSMTypes()) {
@@ -124,21 +129,20 @@ public class OSMParser extends DefaultHandler
         }
         nodeList = new ArrayList<>();
         nodemap = new HashMap<>();
-
-        try {
-            new File("./res/data/osm").mkdirs();
-            edgeStream = new PrintWriter("./res/data/osm/edges.csv");
-            edgeStream.println("ID,TYPE,VEJNAVN,LÆNGDE,FRAKOERSEL,SPEED,DRIVETIME,ONEWAY,NODES...");
-        } catch (FileNotFoundException ex) {
-            // This happens if the printwriters are about to write a file to a nonexisting folder.
-            // Which shouldn't happen because the folders are created on document-start.
-            ex.printStackTrace(System.err);
-        }
     }
 
     @Override
     public void endDocument()
     {
+        try {
+            new File("./res/data/osm").mkdirs();
+            edgeStream = new PrintWriter("./res/data/osm/edges.csv");
+            edgeStream.println("TYPE,VEJNAVN,LÆNGDE,FRAKOERSEL,SPEED,DRIVETIME,ONEWAY,NODES...");
+        } catch (FileNotFoundException ex) {
+            // This happens if the printwriters are about to write a file to a nonexisting folder.
+            // Which shouldn't happen because the folders are created on document-start.
+            ex.printStackTrace(System.err);
+        }
         try {
             nodeStream = new PrintWriter("./res/data/osm/nodes.csv");
             nodeStream.println("id,x,y");
@@ -152,7 +156,7 @@ public class OSMParser extends DefaultHandler
         for (Node n : nodeRef) {
             if (!n.isMarked()) {
                 System.err.println(n);
-                assert(n.isMarked());
+                assert (n.isMarked());
             }
             double x = n.getPoint().x;
             double y = n.getPoint().y;
@@ -166,6 +170,10 @@ public class OSMParser extends DefaultHandler
         for (Node n : ferryRef) {
             assert n.isMarked();
             nodeStream.println(n.toString());
+        }
+
+        for (Edge e : edgeSet) {
+            writeEdge(e);
         }
 
         // Close the streams to make sure all data has been flushed to the files.
@@ -237,15 +245,16 @@ public class OSMParser extends DefaultHandler
                 nodemap.put(n.getId(), n);
                 if (placeType != null && placeName != null) {
                     n.setNewId(nodeIdNew++);
+                    n.addEdge();
                     assert n.isMarked();
-                    edgeStream.println(new Edge(-1, placeType, placeName, 0, 0, 0, OneWay.NO, n.getId(), n.getId()));
+                    edgeSet.add(new Edge(placeType, placeName, 0, 0, OneWay.NO, new long[]{nodeID, nodeID}));
                     nodeRef.add(n);
                 }
                 resetElement();
                 break;
             case "way":
                 if (way) {
-                    writeEdge();
+                    saveEdge();
                     resetElement();
                 }
                 nodeList.clear();
@@ -326,30 +335,72 @@ public class OSMParser extends DefaultHandler
         }
     }
 
-    private void writeEdge()
+    private void saveEdge()
     {
-        for (int i = 1; i < nodeList.size(); i++) {
-            Node lastNode = nodemap.get(nodeList.get(i - 1));
-            Node node = nodemap.get(nodeList.get(i));
-            if (!lastNode.isMarked()) {
-                lastNode.setNewId(nodeIdNew++);
-            }
+        long[] nodeIds = new long[nodeList.size()];
+        for (int i = 0; i < nodeList.size(); i++) {
+            long n = nodeList.get(i);
+            Node node = nodemap.get(n);
             if (!node.isMarked()) {
                 node.setNewId(nodeIdNew++);
             }
-            assert lastNode.isMarked();
-            assert node.isMarked();
+            if (i != 0 && i != nodeList.size() - 1) {
+                node.addEdge();
+            }
+            node.addEdge();
+            nodeIds[i] = n;
             if (roadType == OSMRoadType.FERRY) {
-                ferryRef.add(lastNode);
                 ferryRef.add(node);
             } else {
-                nodeRef.add(lastNode);
                 nodeRef.add(node);
             }
-            double length = lastNode.getPoint().distance(node.getPoint());
-            Edge ed = new Edge(edgeID, roadType, name, length, exitNumber, speedLimit, oneWay, lastNode.getId(), node.getId());
-            edgeStream.println(ed.toString());
+        }
+        edgeSet.add(new Edge(roadType, name, exitNumber, speedLimit, oneWay, nodeIds));
+    }
+
+    public void writeEdge(Edge edge)
+    {
+        long[] nodeIds = edge.getNodeIds();
+        Node[] nodes = new Node[nodeIds.length];
+        for (int i = 0; i < nodes.length; i++) {
+            nodes[i] = nodemap.get(nodeIds[i]);
+            assert nodes[i] != null;
+        }
+        int lastSplitIndex = 0;
+        int index = 1;
+        while (index < nodes.length) {
+            while (!nodes[index].split() && index != nodes.length - 1) {
+                index++;
+            }
+            double length = 0;
+            for (int i = lastSplitIndex + 1; i <= index; i++) {
+                length += nodes[i - 1].getPoint().distance(nodes[i].getPoint());
+            }
+            //edgeStream.println("TYPE,VEJNAVN,LÆNGDE,FRAKOERSEL,SPEED,DRIVETIME,ONEWAY,NODES...");
+            StringBuilder sb = new StringBuilder("");
+            sb.append(edge.getType().getTypeNo());
+            sb.append(separator);
+            sb.append('`');
+            sb.append(edge.getRoadname());
+            sb.append('`');
+            sb.append(separator);
+            sb.append(String.format(Locale.ENGLISH, "%.2f", length));
+            sb.append(separator);
+            sb.append(edge.getExitNumber());
+            sb.append(separator);
+            sb.append(edge.getSpeedLimit());
+            sb.append(separator);
+            sb.append(String.format(Locale.ENGLISH, "%.2f", ((length / (edge.getSpeedLimit() * 1000 / 60)) * 1.15)));
+            sb.append(separator);
+            sb.append(edge.getOneWay().getNumber());
+            for (int i = lastSplitIndex; i <= index; i++) {
+                sb.append(separator);
+                sb.append(nodes[i].getId());
+            }
+            edgeStream.println(sb.toString());
             numberOfEdges++;
+            lastSplitIndex = index;
+            index++;
         }
     }
 }

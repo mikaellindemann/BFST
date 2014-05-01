@@ -84,8 +84,19 @@ public class EdgeWeightedDigraph {
      * @param e the edge
      */
     public void addEdge(Edge e) {
-        int v = e.from().id();
-        adj[v].add(e);
+        switch (e.getOneWay()) {
+            case NO:
+                adj[e.from().id()].add(e);
+                adj[e.to().id()].add(e);
+                E++;
+                break;
+            case FROM_TO:
+                adj[e.from().id()].add(e);
+                break;
+            case TO_FROM:
+                adj[e.to().id()].add(e);
+                break;
+        }
         E++;
     }
 

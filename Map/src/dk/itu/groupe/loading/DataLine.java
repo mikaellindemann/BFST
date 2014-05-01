@@ -129,6 +129,18 @@ public class DataLine
     {
         return next < line.length();
     }
+    
+    public int tokensLeft()
+    {
+        int oldNext = next;
+        int count = 0;
+        while (hasNext()) {
+            nextToken();
+            count++;
+        }
+        next = oldNext;
+        return count;
+    }
 
     /**
      * Returns the next token as a string

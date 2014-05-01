@@ -118,18 +118,7 @@ public class Model extends Observable
             public void processEdge(Edge ed)
             {
                 edgeMap.get(ed.getType()).add(ed);
-                switch (ed.getOneWay()) {
-                    case NO:
-                        g.addEdge(ed);
-                        g.addEdge(ed.revert());
-                        break;
-                    case FROM_TO:
-                        g.addEdge(ed);
-                        break;
-                    case TO_FROM:
-                        g.addEdge(ed.revert());
-                        break;
-                }
+                g.addEdge(ed);
                 lf.countEdge();
             }
 
@@ -627,7 +616,7 @@ public class Model extends Observable
         } else {
             to = t.id();
         }
-        shortestPath = new DijkstraSP(g, from, to, false);
+        shortestPath = new DijkstraSP(g, from, to, true);
         if (shortestPath.hasPathTo(to)) {
             return shortestPath.pathTo(to);
         }

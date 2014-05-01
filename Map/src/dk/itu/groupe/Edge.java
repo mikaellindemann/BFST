@@ -1,10 +1,7 @@
 package dk.itu.groupe;
 
 import java.awt.Shape;
-import java.awt.geom.Area;
-import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Represents the raw data from a line in edges.csv.
@@ -14,7 +11,6 @@ import java.awt.geom.Rectangle2D;
  */
 public class Edge
 {
-    private final int id;
     private final CommonRoadType type;
     private final String roadname;
     private final double length;
@@ -28,7 +24,6 @@ public class Edge
 
     public Edge(Node[] nodes)
     {
-        id = 0;
         type = null;
         roadname = null;
         length = 0;
@@ -36,21 +31,27 @@ public class Edge
         speedLimit = 0;
         driveTime = 0;
         oneWay = null;
+        double xMin = nodes[0].x();
+        double xMax = nodes[0].x();
+        double yMin = nodes[0].y();
+        double yMax = nodes[0].y();
         Path2D p = new Path2D.Double();
         p.moveTo(nodes[0].x(), nodes[0].y());
         for (int i = 1; i < nodes.length; i++) {
+            xMin = Math.min(xMin, nodes[i].x());
+            yMin = Math.min(yMin, nodes[i].y());
+            xMax = Math.max(xMax, nodes[i].x());
+            yMax = Math.max(yMax, nodes[i].y());
             p.lineTo(nodes[i].x(), nodes[i].y());
         }
         p.closePath();
-        path = new Area(p);
-        Rectangle2D bounds = path.getBounds2D();
-        centerX = bounds.getCenterX();
-        centerY = bounds.getCenterY();
+        path = p;
+        centerX = (xMin + xMax) / 2;
+        centerY = (yMin + yMax) / 2;
     }
 
-    public Edge(int id, CommonRoadType type, String roadname, double length, int exitNumber, int speedLimit, double driveTime, OneWay oneWay, Node from, Node to)
+    public Edge(CommonRoadType type, String roadname, double length, int exitNumber, int speedLimit, double driveTime, OneWay oneWay, Node[] nodes)
     {
-        this.id = id;
         this.type = type;
         this.roadname = roadname;
         this.length = length;
@@ -58,11 +59,24 @@ public class Edge
         this.speedLimit = speedLimit;
         this.driveTime = driveTime;
         this.oneWay = oneWay;
-        this.from = from;
-        this.to = to;
-        path = new Line2D.Double(from.x(), from.y(), to.x(), to.y());
-        centerX = (from.x() + to.x()) / 2;
-        centerY = (from.y() + to.y()) / 2;
+        from = nodes[0];
+        to = nodes[nodes.length - 1];
+        double xMin = nodes[0].x();
+        double xMax = nodes[0].x();
+        double yMin = nodes[0].y();
+        double yMax = nodes[0].y();
+        Path2D p = new Path2D.Double();
+        p.moveTo(nodes[0].x(), nodes[0].y());
+        for (int i = 1; i < nodes.length; i++) {
+            xMin = Math.min(xMin, nodes[i].x());
+            yMin = Math.min(yMin, nodes[i].y());
+            xMax = Math.max(xMax, nodes[i].x());
+            yMax = Math.max(yMax, nodes[i].y());
+            p.lineTo(nodes[i].x(), nodes[i].y());
+        }
+        path = p;
+        centerX = (xMin + xMax) / 2;
+        centerY = (yMin + yMax) / 2;
     }
 
     public CommonRoadType getType()
@@ -101,11 +115,6 @@ public class Edge
     public OneWay getOneWay()
     {
         return oneWay;
-    }
-    
-    public Edge revert()
-    {
-        return new Edge(id, type, roadname, length, exitNumber, speedLimit, driveTime, oneWay, to, from);
     }
 
     public double getCenterX()

@@ -284,5 +284,6 @@ public class Controller implements
         frame.pack();
         frame.setVisible(true);
         System.out.println((System.currentTimeMillis() - time) / 1000.0);
+        System.gc();
     }
 }

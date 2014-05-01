@@ -80,7 +80,6 @@ public abstract class Loader
 
             while ((line = br.readLine()) != null) {
                 DataLine dl = new DataLine(line);
-                int id = dl.getInt();
                 int typ = dl.getInt();
                 CommonRoadType type = rtMap.get(typ);
                 if (type == null) {
@@ -107,7 +106,13 @@ public abstract class Loader
                         oneWay = OneWay.NO;
                         System.err.println("Assuming no restrictions on edge.");
                 }
-                processEdge(new Edge(id, type, roadname, length, exitNumber, speedLimit, driveTime, oneWay, nodeMap.get(dl.getInt()), nodeMap.get(dl.getInt())));
+                Node[] nodes = new Node[dl.tokensLeft()];
+                for (int i = 0; dl.hasNext(); i++) {
+                    nodes[i] = nodeMap.get(dl.getInt());
+                    assert nodes[i] != null;
+                }
+                assert nodes[nodes.length - 1] != null;
+                processEdge(new Edge(type, roadname, length, exitNumber, speedLimit, driveTime, oneWay, nodes));
                 assert !dl.hasNext();
             }
         } catch (IOException ex) {

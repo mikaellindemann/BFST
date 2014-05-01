@@ -67,7 +67,7 @@ public class KDTree
             // Put the right elements where it belongs.
             while (!edges.isEmpty()) {
                 Edge edge = edges.remove(0);
-                if (edge.getShape().getBounds2D().getCenterY() < centerEdge.getShape().getBounds2D().getCenterY()) {
+                if (edge.getCenterY() < centerEdge.getCenterY()) {
                     low.add(edge);
                 } else {
                     high.add(edge);
@@ -80,10 +80,10 @@ public class KDTree
         if (dim == Dimension.X) {
             lowBounds[0] = xmin;
             lowBounds[1] = ymin;
-            lowBounds[2] = centerEdge.getShape().getBounds2D().getCenterX();
+            lowBounds[2] = centerEdge.getCenterX();
             lowBounds[3] = ymax;
 
-            highBounds[0] = centerEdge.getShape().getBounds2D().getCenterX();
+            highBounds[0] = centerEdge.getCenterX();
             highBounds[1] = ymin;
             highBounds[2] = xmax;
             highBounds[3] = ymax;
@@ -91,10 +91,10 @@ public class KDTree
             lowBounds[0] = xmin;
             lowBounds[1] = ymin;
             lowBounds[2] = xmax;
-            lowBounds[3] = centerEdge.getShape().getBounds2D().getCenterY();
+            lowBounds[3] = centerEdge.getCenterY();
 
             highBounds[0] = xmin;
-            highBounds[1] = centerEdge.getShape().getBounds2D().getCenterY();
+            highBounds[1] = centerEdge.getCenterY();
             highBounds[2] = xmax;
             highBounds[3] = ymax;
         }
@@ -119,7 +119,7 @@ public class KDTree
     {
         Point2D p = new Point2D.Double(x, y);
         Set<Edge> ns = getEdges(x- 100, y - 100, x + 100, y + 100);
-        double dist = 100;
+        double dist = Double.MAX_VALUE;
         Edge nearest = null;
         for (Edge edge : ns) {
             Point2D start = null;

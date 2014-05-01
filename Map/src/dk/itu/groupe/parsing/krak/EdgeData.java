@@ -45,10 +45,10 @@ public class EdgeData
     public String toString()
     {
         return /*FNODE + ","
-                + TNODE + ","
+                 + TNODE + ","
                 
-                + */DAV_DK + ","
-                + TYPE.getNewTypeNumber() + ","
+                 + DAV_DK + ","
+                 + */ TYPE.getNewTypeNumber() + ","
                 + "`" + VEJNAVN + "`,"
                 + LENGTH + ","
                 + FRAKOERSEL + ","
@@ -87,7 +87,12 @@ public class EdgeData
             System.err.println(typ);
             assert (TYPE != null);
         }
-        VEJNAVN = dl.getString();
+        String s = dl.getString();
+        if (s != null) {
+            VEJNAVN = s;
+        } else {
+            VEJNAVN = "";
+        }
         dl.getInt();
         dl.getInt();
         dl.getInt();

@@ -16,6 +16,7 @@ public class Node implements Comparable<Node>
     private final double x;
     private final double y;
     private boolean marked;
+    private int edgeCount;
 
     public Node(long id, double x, double y)
     {
@@ -46,6 +47,16 @@ public class Node implements Comparable<Node>
             this.id = id;
             marked = true;
         }
+    }
+    
+    public void addEdge()
+    {
+        edgeCount++;
+    }
+    
+    public boolean split()
+    {
+        return edgeCount > 2;
     }
 
     /**
