@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class Model extends Observable
 {
 
-    EdgeWeightedDigraph g;
+    private final EdgeWeightedDigraph g;
     // These are the lowest and highest coordinates in the dataset.
     // If we change dataset, these are likely to change.
     private final double lowestX_COORD;
@@ -45,14 +45,14 @@ public class Model extends Observable
     private double ratioY;
     private final float minFactor = 0.5f;
     private double initialFactor;
-    
+
     private int from;
 
     private final Map<CommonRoadType, KDTree> treeMap;
 
     private String roadname;
 
-    private Point pressed, dragged, moved;
+    private Point2D pressed, dragged, moved;
     private MouseTool mouseTool;
 
     private int width, height;
@@ -63,9 +63,10 @@ public class Model extends Observable
 
     private final String dir;
     private final LoadingPanel lf;
-    
+
     private final int maxNodes;
     private Node[] nodeMap;
+    private final String dataset;
 
     /**
      * On creation of the Model, it will start to load in the data.
@@ -77,6 +78,7 @@ public class Model extends Observable
      */
     public Model(String data)
     {
+        dataset = data;
         if (data.equals("OpenStreetMap")) {
             dir = "./res/data/osm/";
         } else {
@@ -100,6 +102,7 @@ public class Model extends Observable
         return lf;
     }
 
+    @SuppressWarnings("unchecked")
     public void load()
     {
         final Map<CommonRoadType, List<Edge>> edgeMap = new HashMap<>();
@@ -182,8 +185,6 @@ public class Model extends Observable
 
         reset();
         initialFactor = factor;
-
-        nodeMap = null;
         System.gc();
     }
 
@@ -219,10 +220,10 @@ public class Model extends Observable
      *
      * @param distance The distance to move the map in pixels.
      */
-    public void goUp(int distance)
+    public void goUp(double distance)
     {
         reset = false;
-        moveVertical(distance * factor);
+        moveVertical(distance);
         setChanged();
     }
 
@@ -232,10 +233,10 @@ public class Model extends Observable
      *
      * @param distance The distance to move the map in pixels.
      */
-    public void goLeft(int distance)
+    public void goLeft(double distance)
     {
         reset = false;
-        moveHorizontal(-distance * factor);
+        moveHorizontal(-distance);
         setChanged();
     }
 
@@ -245,10 +246,10 @@ public class Model extends Observable
      *
      * @param distance The distance to move the map in pixels.
      */
-    public void goRight(int distance)
+    public void goRight(double distance)
     {
         reset = false;
-        moveHorizontal(distance * factor);
+        moveHorizontal(distance);
         setChanged();
     }
 
@@ -258,10 +259,10 @@ public class Model extends Observable
      *
      * @param distance The distance to move the map in pixels.
      */
-    public void goDown(int distance)
+    public void goDown(double distance)
     {
         reset = false;
-        moveVertical(-distance * factor);
+        moveVertical(-distance);
         setChanged();
     }
 
@@ -271,11 +272,11 @@ public class Model extends Observable
      * @param x The amount in pixels to move the map in horizontal direction.
      * @param y The amount in pixels to move the map in vertical direction.
      */
-    public void moveMap(int x, int y)
+    public void moveMap(double x, double y)
     {
         reset = false;
-        moveHorizontal(x * factor);
-        moveVertical(-y * factor);
+        moveHorizontal(x);
+        moveVertical(-y);
         setChanged();
     }
 
@@ -332,14 +333,14 @@ public class Model extends Observable
         if (factor > minFactor) {
             reset = false;
             // Map coordinates before zoom
-            Point.Double p = translatePoint(x, y);
+            Point2D p = translatePoint(x, y);
             zoomIn();
             // Map coordinates after zoom
-            Point.Double p1 = translatePoint(x, y);
+            Point2D p1 = translatePoint(x, y);
 
             // Restore the previous map-coordinates to (x, y)
-            moveHorizontal(p.x - p1.x);
-            moveVertical(p.y - p1.y);
+            moveHorizontal(p.getX() - p1.getX());
+            moveVertical(p.getY() - p1.getY());
 
             setChanged();
         }
@@ -360,14 +361,14 @@ public class Model extends Observable
         if (factor < initialFactor) {
             reset = false;
             // Map coordinates before zoom
-            Point.Double p = translatePoint(x, y);
+            Point2D p = translatePoint(x, y);
             zoomOut();
             // Map coordinates after zoom
-            Point.Double p1 = translatePoint(x, y);
+            Point2D p1 = translatePoint(x, y);
 
             // Restore the previous map-coordinates to (x, y)
-            moveHorizontal(p.x - p1.x);
-            moveVertical(p.y - p1.y);
+            moveHorizontal(p.getX() - p1.getX());
+            moveVertical(p.getY() - p1.getY());
 
             setChanged();
         }
@@ -379,19 +380,18 @@ public class Model extends Observable
      * If the rectangle doesn't match the ratio between screen width and height,
      * the right or bottom side will be moved to fit.
      *
-     * @param xLeft Screen coordinate for the left side of the rectangle.
+     * @param xLeft Map coordinate for the left side of the rectangle.
      * @param yTop Screen coordinate for the top side of the rectangle.
      * @param xRight Screen coordinate for the right side of the rectangle.
      * @param yBottom Screen coordinate for the bottom side of the rectangle.
      */
-    public void zoomRect(int xLeft, int yTop, int xRight, int yBottom)
+    public void zoomRect(double xLeft, double yTop, double xRight, double yBottom)
     {
         if (factor > minFactor) {
             reset = false;
-            Point.Double leftTop = translatePoint(xLeft, yTop), rightBottom = translatePoint(xRight, yBottom);
 
-            double x2 = rightBottom.x, x1 = leftTop.x;
-            double y2 = rightBottom.y, y1 = leftTop.y;
+            double x2 = xRight, x1 = xLeft;
+            double y2 = yBottom, y1 = yTop;
 
             if (x1 > x2) {
                 double tmp = x1;
@@ -425,10 +425,9 @@ public class Model extends Observable
      * @param x The on-screen x-coordinate of the mouse.
      * @param y The on-screen y-coordinate of the mouse.
      */
-    public void updateRoadname(int x, int y)
+    public void updateRoadname(double x, double y)
     {
-        Point.Double p = translatePoint(x, y);
-        Edge near = nearest(p, true);
+        Edge near = nearest(new Point2D.Double(x, y), true);
         // If there are no "nearest" edges
         if (near != null) {
             roadname = near.getRoadname();
@@ -555,19 +554,19 @@ public class Model extends Observable
 
     public void setPressed(Point e)
     {
-        pressed = e;
+        pressed = (e != null) ? translatePoint(e.x, e.y) : null;
         setChanged();
     }
 
     public void setDragged(Point e)
     {
-        dragged = e;
+        dragged = (e != null) ? translatePoint(e.x, e.y) : null;
         setChanged();
     }
 
     public void setMoved(Point e)
     {
-        moved = e;
+        moved = (e != null) ? translatePoint(e.x, e.y) : null;
         setChanged();
     }
 
@@ -581,10 +580,9 @@ public class Model extends Observable
         shortestPath = null;
     }
 
-    public void setFromNode(Point e)
+    public void setFromNode(Point2D e)
     {
-        Point.Double p = translatePoint(e.x, e.y);
-        Edge near = nearest(p, false);
+        Edge near = nearest(e, false);
         if (near == null) {
             System.err.println("No point found");
             return;
@@ -592,8 +590,8 @@ public class Model extends Observable
         Node fr = near.from();
         Node to = near.to();
 
-        if (new Point.Double(fr.x(), fr.y()).distance(p)
-                < new Point.Double(to.x(), to.y()).distance(p)) {
+        if (new Point.Double(fr.x(), fr.y()).distance(e)
+                < new Point.Double(to.x(), to.y()).distance(e)) {
             from = fr.id();
         } else {
             from = to.id();
@@ -601,11 +599,10 @@ public class Model extends Observable
     }
 
     @SuppressWarnings("unchecked")
-    public Iterable<Edge> getPathTo(Point e)
+    public Iterable<Edge> getPathTo(Point2D e)
     {
         int to;
-        Point.Double p = translatePoint(e.x, e.y);
-        Edge near = nearest(p, false);
+        Edge near = nearest(e, false);
         if (near == null) {
             return Collections.EMPTY_SET;
         }
@@ -613,30 +610,30 @@ public class Model extends Observable
         Node t = near.to();
         assert f != null;
         assert t != null;
-        if (new Point.Double(f.x(), f.y()).distance(p)
-                < new Point.Double(t.x(), t.y()).distance(p)) {
+        if (new Point.Double(f.x(), f.y()).distance(e)
+                < new Point.Double(t.x(), t.y()).distance(e)) {
             to = f.id();
         } else {
             to = t.id();
         }
-        shortestPath = new DijkstraSP(g, from, to);
+        shortestPath = new DijkstraSP(g, from, to, true, nodeMap);
         if (shortestPath.hasPathTo(to)) {
             return shortestPath.pathTo(to);
         }
         return Collections.EMPTY_SET;
     }
 
-    public Point getDragged()
+    public Point2D getDragged()
     {
         return dragged;
     }
 
-    public Point getPressed()
+    public Point2D getPressed()
     {
         return pressed;
     }
 
-    public Point getMoved()
+    public Point2D getMoved()
     {
         return moved;
     }
@@ -709,7 +706,7 @@ public class Model extends Observable
         }
     }
 
-    private Edge nearest(Point.Double p, boolean factorAware)
+    private Edge nearest(Point2D p, boolean factorAware)
     {
         List<Edge> edges = new LinkedList<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
@@ -717,7 +714,7 @@ public class Model extends Observable
                 continue;
             }
             if ((!factorAware || rt.isEnabled(factor)) && treeMap.get(rt) != null) {
-                Edge e = treeMap.get(rt).getNearest(p.x, p.y);
+                Edge e = treeMap.get(rt).getNearest(p.getX(), p.getY());
                 if (e != null) {
                     edges.add(e);
                 }
@@ -762,11 +759,15 @@ public class Model extends Observable
 
     /**
      * Translates screen-coordinates into map-coordinates.
+     *
+     * @param x
+     * @param y
+     * @return
      */
-    private Point.Double translatePoint(int x, int y)
+    public Point2D translatePoint(int x, int y)
     {
         double xMap = x * factor + leftX;
         double yMap = (height - y) * factor + bottomY;
-        return new Point.Double(xMap, yMap);
+        return new Point2D.Double(xMap, yMap);
     }
 }

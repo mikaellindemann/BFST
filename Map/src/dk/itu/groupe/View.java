@@ -9,14 +9,13 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
-import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.TexturePaint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Observable;
@@ -312,37 +311,45 @@ public class View extends JComponent implements Observer
         @Override
         public void paintComponent(Graphics g)
         {
-            Point pressed = model.getPressed();
-            if (model.getMouseTool() == MouseTool.ZOOM && model.getPressed() != null) {
-                Point dragged = model.getDragged();
-                int x1 = pressed.x;
-                int y1 = pressed.y;
-                int x2 = dragged.x;
-                int y2 = dragged.y;
+            Point2D pressed = model.getPressed();
+            if (model.getMouseTool() == MouseTool.ZOOM && pressed != null) {
+                Graphics2D gB = (Graphics2D) g;
+                gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                gB.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
+                
+                double factor = model.getFactor();
+                Point2D topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
+                gB.scale(1 / factor, -1 / factor);
+                gB.translate(-topLeft.getX(), -bottomRight.getY() - (getHeight() * factor));
+                Point2D dragged = model.getDragged();
+                double x1 = pressed.getX();
+                double y1 = pressed.getY();
+                double x2 = dragged.getX();
+                double y2 = dragged.getY();
 
                 if (x1 > x2) {
-                    int tmp = x2;
+                    double tmp = x2;
                     x2 = x1;
                     x1 = tmp;
                 }
                 if (y1 > y2) {
-                    int tmp = y2;
+                    double tmp = y2;
                     y2 = y1;
                     y1 = tmp;
                 }
-
-                g.drawImage(image, 0, 0, Color.WHITE, null);
-                g.setColor(Color.BLACK);
+                gB.setColor(new Color(0, 0, 0, 150));
 
                 double x = Math.abs(x2 - x1) / (double) getWidth();
                 double y = Math.abs(y2 - y1) / (double) getHeight();
 
                 if (x > y) {
                     int side = (int) ((x2 - x1) / ((double) getWidth() / getHeight()));
-                    g.drawRect(x1, y1, x2 - x1, side);
+                    gB.fillRect((int) x1, (int) y1, (int) (x2 - x1), side);
+                    gB.drawRect((int) x1, (int) y1, (int) (x2 - x1), side);
                 } else {
                     int side = (int) ((y2 - y1) * ((double) getWidth() / getHeight()));
-                    g.drawRect(x1, y1, side, y2 - y1);
+                    gB.fillRect((int) x1, (int) y1, side, (int) (y2 - y1));
+                    gB.drawRect((int) x1, (int) y1, side, (int) (y2 - y1));
                 }
             } else {
                 image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
@@ -354,10 +361,10 @@ public class View extends JComponent implements Observer
                 final double factor = model.getFactor();
                 //gB.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
                 gB.setFont(gB.getFont().deriveFont(AffineTransform.getScaleInstance(factor, -factor)));
-                Point.Double topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
+                Point2D topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
 
                 gB.scale(1 / factor, -1 / factor);
-                gB.translate(-topLeft.x, -bottomRight.y - (getHeight() * factor));
+                gB.translate(-topLeft.getX(), -bottomRight.getY() - (getHeight() * factor));
 
                 for (CommonRoadType rt : CommonRoadType.values()) {
                     if (rt.isEnabled(factor)) {
@@ -417,15 +424,16 @@ public class View extends JComponent implements Observer
                             default:
                                 gB.setColor(Color.MAGENTA);
                         }
-                        for (Object ed : model.getEdges(rt, topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)) {
+                        for (Object ed : model.getEdges(rt, topLeft.getX(), bottomRight.getY(), bottomRight.getX(), topLeft.getY())) {
                             Edge edge = (Edge) ed;
-                            if (edge.getShape().intersects(topLeft.x, bottomRight.y, bottomRight.x - topLeft.x, topLeft.y - bottomRight.y)) {
+                            if (edge.getShape().intersects(topLeft.getX(), bottomRight.getY(), bottomRight.getX() - topLeft.getX(), topLeft.getY() - bottomRight.getY())) {
                                 if (rt == CommonRoadType.PLACES) {
                                     Rectangle2D b = edge.getShape().getBounds2D();
                                     gB.drawString(edge.getRoadname(), (int) b.getCenterX(), (int) b.getCenterY());
                                     continue;
                                 }
                                 if (rt == CommonRoadType.COASTLINE) {
+                                    gB.draw(edge.getShape());
                                     gB.fill(edge.getShape());
                                 } else {
                                     gB.draw(edge.getShape());
@@ -437,18 +445,21 @@ public class View extends JComponent implements Observer
                 if (model.getMouseTool() == MouseTool.PATH && model.pathPointSet()) {
                     Iterable<Edge> edges = model.getPathTo(model.getMoved());
                     if (edges != null) {
-                        gB.setColor(Color.RED);
-                        gB.setStroke(new BasicStroke(6 * (float) model.getFactor()));
+                        gB.setColor(Color.BLUE);
+                        gB.setStroke(new BasicStroke(5 * (float) model.getFactor()));
+                        for (Edge ed : edges) {
+                            gB.draw(ed.getShape());
+                        }
+                        gB.setColor(Color.BLUE.brighter().brighter().brighter().brighter());
+                        gB.setStroke(new BasicStroke(2 * (float) model.getFactor()));
                         for (Edge ed : edges) {
                             gB.draw(ed.getShape());
                         }
                     }
                 }
-
                 Graphics2D g2 = (Graphics2D) g;
-                g2.setPaint(new TexturePaint(image, new Rectangle2D.Double(0, 0, image.getWidth(), image.getHeight())));
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
             }
         }
 

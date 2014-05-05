@@ -12,6 +12,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
+import java.awt.geom.Point2D;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -62,7 +63,8 @@ public class Controller implements
     @Override
     public void mouseMoved(MouseEvent me)
     {
-        model.updateRoadname(me.getX(), me.getY());
+        Point2D p = model.translatePoint(me.getX(), me.getY());
+        model.updateRoadname(p.getX(), p.getY());
         model.notifyObservers("updateRoadname");
     }
 
@@ -100,7 +102,7 @@ public class Controller implements
             model.notifyObservers();
         }
         if (SwingUtilities.isLeftMouseButton(me) && model.getMouseTool() == MouseTool.PATH) {
-            model.setFromNode(me.getPoint());
+            model.setFromNode(model.translatePoint(me.getX(), me.getY()));
         }
     }
 
@@ -108,8 +110,8 @@ public class Controller implements
     public void mouseReleased(MouseEvent me)
     {
         if (SwingUtilities.isLeftMouseButton(me) && model.getMouseTool() == MouseTool.ZOOM) {
-            if (model.getPressed().x != model.getDragged().x && model.getPressed().y != model.getDragged().y) {
-                model.zoomRect(model.getPressed().x, model.getPressed().y, model.getDragged().x, model.getDragged().y);
+            if (model.getPressed().getX() != model.getDragged().getX() && model.getPressed().getY() != model.getDragged().getY()) {
+                model.zoomRect(model.getPressed().getX(), model.getPressed().getY(), model.getDragged().getX(), model.getDragged().getY());
                 model.notifyObservers();
             }
             model.setPressed(null);
@@ -134,7 +136,9 @@ public class Controller implements
         if (SwingUtilities.isLeftMouseButton(me)) {
             if (model.getMouseTool() == MouseTool.MOVE) {
                 if (model.getPressed() != null) {
-                    model.moveMap(model.getDragged().x - me.getX(), model.getDragged().y - me.getY());
+                    Point2D then = model.getDragged();
+                    Point2D now = model.translatePoint(me.getX(), me.getY());
+                    model.moveMap(then.getX() - now.getX(), now.getY() - then.getY());
                 }
             }
             model.setDragged(me.getPoint());
@@ -193,16 +197,16 @@ public class Controller implements
                     model.reset();
                     break;
                 case UP:
-                    model.goUp(30);
+                    model.goUp(30 * model.getFactor());
                     break;
                 case DOWN:
-                    model.goDown(30);
+                    model.goDown(30 * model.getFactor());
                     break;
                 case LEFT:
-                    model.goLeft(30);
+                    model.goLeft(30 * model.getFactor());
                     break;
                 case RIGHT:
-                    model.goRight(30);
+                    model.goRight(30 * model.getFactor());
                     break;
                 case ZOOM_IN:
                     model.zoomIn();

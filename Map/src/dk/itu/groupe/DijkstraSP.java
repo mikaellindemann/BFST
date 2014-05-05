@@ -5,31 +5,9 @@
  */
 package dk.itu.groupe;
 
+import dk.itu.groupe.EdgeWeightedDigraph.WeightedEdge;
 import java.util.Stack;
 
-/**
- * ***********************************************************************
- * Compilation: javac DijkstraSP.java Execution: java DijkstraSP input.txt s
- * Dependencies: EdgeWeightedDigraph.java IndexMinPQ.java Stack.java
- * DirectedEdge.java Data files: http://algs4.cs.princeton.edu/44sp/tinyEWD.txt
- * http://algs4.cs.princeton.edu/44sp/mediumEWD.txt
- * http://algs4.cs.princeton.edu/44sp/largeEWD.txt
- *
- * Dijkstra's algorithm. Computes the shortest path tree. Assumes all weights
- * are nonnegative.
- *
- * % java DijkstraSP tinyEWD.txt 0 0 to 0 (0.00) 0 to 1 (1.05) 0->4 0.38 4->5
- * 0.35 5->1 0.32 0 to 2 (0.26) 0->2 0.26 0 to 3 (0.99) 0->2 0.26 2->7 0.34 7->3
- * 0.39 0 to 4 (0.38) 0->4 0.38 0 to 5 (0.73) 0->4 0.38 4->5 0.35 0 to 6 (1.51)
- * 0->2 0.26 2->7 0.34 7->3 0.39 3->6 0.52 0 to 7 (0.60) 0->2 0.26 2->7 0.34
- *
- * % java DijkstraSP mediumEWD.txt 0 0 to 0 (0.00) 0 to 1 (0.71) 0->44 0.06
- * 44->93 0.07 ... 107->1 0.07 0 to 2 (0.65) 0->44 0.06 44->231 0.10 ... 42->2
- * 0.11 0 to 3 (0.46) 0->97 0.08 97->248 0.09 ... 45->3 0.12 0 to 4 (0.42) 0->44
- * 0.06 44->93 0.07 ... 77->4 0.11 ...
- *
- ************************************************************************
- */
 /**
  * The <tt>DijkstraSP</tt> class represents a data type for solving the
  * single-source shortest paths problem in edge-weighted digraphs where the edge
@@ -52,13 +30,14 @@ public class DijkstraSP
 {
 
     private final double[] distTo;          // distTo[v] = distance  of shortest s->v path
-    private final Edge[] edgeTo;    // edgeTo[v] = last edge on shortest s->v path
+    private final WeightedEdge[] edgeTo;    // edgeTo[v] = last edge on shortest s->v path
     private final IndexMinPQ<Double> pq;    // priority queue of vertices
-    private static double[] x, y;
+    private static Node[] nodeMap;
+    private final boolean driveTime;
 
-    private double h(int s, int t)
+    private double heuristic(int s, int t)
     {
-        return Math.sqrt(Math.pow(x[s] - x[t], 2) + Math.pow(y[s] - y[t], 2));
+        return Math.sqrt(Math.pow(nodeMap[s].x() - nodeMap[t].x(), 2) + Math.pow(nodeMap[s].y() - nodeMap[t].y(), 2));
     }
 
     /**
@@ -67,32 +46,19 @@ public class DijkstraSP
      *
      * @param G the edge-weighted digraph
      * @param s the source vertex
-     * @param t
+     * @param t the destination vertex
+     * @param driveTime
+     * @param nodeMap
      * @throws IllegalArgumentException if an edge weight is negative
      * @throws IllegalArgumentException unless 0 &le; <tt>s</tt> &le; <tt>V</tt>
      * - 1
      */
-    public DijkstraSP(EdgeWeightedDigraph G, int s, int t)
+    public DijkstraSP(EdgeWeightedDigraph G, int s, int t, boolean driveTime, Node[] nodeMap)
     {
-        if (x == null) {
-            x = new double[G.V()];
-            y = new double[G.V()];
-            for (Edge e : G.edges()) {
-                int id = e.from().id();
-                if (x[id] != 0) {
-                    x[id] = e.from().x();
-                    y[id] = e.from().y();
-                }
-                id = e.to().id();
-                if (x[id] != 0) {
-                    x[id] = e.from().x();
-                    y[id] = e.from().y();
-                }
-            }
-        }
-
+        this.driveTime = driveTime;
+        DijkstraSP.nodeMap = nodeMap;
         distTo = new double[G.V()];
-        edgeTo = new Edge[G.V()];
+        edgeTo = new WeightedEdge[G.V()];
         for (int v = 0; v < G.V(); v++) {
             distTo[v] = Double.POSITIVE_INFINITY;
         }
@@ -106,7 +72,7 @@ public class DijkstraSP
             if (v == t) {
                 return;
             }
-            for (Edge e : G.adj(v)) {
+            for (WeightedEdge e : G.adj(v)) {
                 relax(e, t);
             }
         }
@@ -116,16 +82,16 @@ public class DijkstraSP
     }
 
     // relax edge e and update pq if changed
-    private void relax(Edge e, int t)
+    private void relax(WeightedEdge e, int t)
     {
-        int v = e.from().id(), w = e.to().id();
-        if (distTo[w] > distTo[v] + e.getLength()) {
-            distTo[w] = distTo[v] + e.getLength();
+        int v = e.from, w = e.to;
+        if (distTo[w] > distTo[v] + e.getWeight(driveTime)) {
+            distTo[w] = distTo[v] + e.getWeight(driveTime);
             edgeTo[w] = e;
             if (pq.contains(w)) {
-                pq.decreaseKey(w, distTo[w] + h(w, t));
+                pq.decreaseKey(w, distTo[w] + heuristic(w, t));
             } else {
-                pq.insert(w, distTo[w] + h(w, t));
+                pq.insert(w, distTo[w] + heuristic(w, t));
             }
         }
     }
@@ -171,8 +137,8 @@ public class DijkstraSP
             return null;
         }
         Stack<Edge> path = new Stack<>();
-        for (Edge e = edgeTo[v]; e != null; e = edgeTo[e.from().id()]) {
-            path.push(e);
+        for (WeightedEdge e = edgeTo[v]; e != null; e = edgeTo[e.from]) {
+            path.push(e.e);
         }
         return path;
     }
@@ -208,9 +174,9 @@ public class DijkstraSP
 
         // check that all edges e = v->w satisfy distTo[w] <= distTo[v] + e.weight()
         for (int v = 0; v < G.V(); v++) {
-            for (Edge e : G.adj(v)) {
-                int w = e.to().id();
-                if (distTo[v] + e.getLength() < distTo[w]) {
+            for (WeightedEdge e : G.adj(v)) {
+                int w = e.to;
+                if (distTo[v] + e.getWeight(driveTime) < distTo[w]) {
                     System.err.println("edge " + e + " not relaxed");
                     return false;
                 }
@@ -222,12 +188,12 @@ public class DijkstraSP
             if (edgeTo[w] == null) {
                 continue;
             }
-            Edge e = edgeTo[w];
-            int v = e.from().id();
-            if (w != e.to().id()) {
+            WeightedEdge e = edgeTo[w];
+            int v = e.from;
+            if (w != e.to) {
                 return false;
             }
-            if (distTo[v] + e.getLength() != distTo[w]) {
+            if (distTo[v] + e.getWeight(driveTime) != distTo[w]) {
                 System.err.println("edge " + e + " on shortest path not tight");
                 return false;
             }

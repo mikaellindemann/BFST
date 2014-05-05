@@ -20,7 +20,7 @@ public class Edge
     private final float driveTime;
     private final OneWay oneWay;
     private final Shape path;
-    private Node from, to;
+    private Node[] nodes;
     private final float centerX, centerY;
 
     public Edge(Node[] nodes)
@@ -60,8 +60,7 @@ public class Edge
         this.speedLimit = speedLimit;
         this.driveTime = driveTime;
         this.oneWay = oneWay;
-        from = nodes[0];
-        to = nodes[nodes.length - 1];
+        this.nodes = nodes;
         float xMin = nodes[0].x();
         float xMax = nodes[0].x();
         float yMin = nodes[0].y();
@@ -79,7 +78,7 @@ public class Edge
         centerX = (xMin + xMax) / 2;
         centerY = (yMin + yMax) / 2;
     }
-
+    
     public CommonRoadType getType()
     {
         return type;
@@ -95,14 +94,19 @@ public class Edge
         return roadname;
     }
 
+    public float getDriveTime()
+    {
+        return driveTime;
+    }
+
     public Node from()
     {
-        return from;
+        return nodes[0];
     }
 
     public Node to()
     {
-        return to;
+        return nodes[nodes.length - 1];
     }
 
     public float getLength()
@@ -124,5 +128,4 @@ public class Edge
     {
         return centerY;
     }
-
 }

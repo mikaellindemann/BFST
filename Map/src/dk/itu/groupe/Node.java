@@ -10,9 +10,10 @@ import dk.itu.groupe.loading.DataLine;
  */
 public class Node
 {
-    private final int id;
-    private final float x;
-    private final float y;
+
+    private int id;
+    private float x;
+    private float y;
 
     /**
      * Parses node data from line, throws an IOException if something unexpected
@@ -27,17 +28,24 @@ public class Node
         x = dl.getFloat();
         y = dl.getFloat();
     }
-    
+
+    /**
+     * Don't use this. Meant for externalization.
+     */
+    public Node()
+    {
+    }
+
     public int id()
     {
         return id;
     }
-    
+
     public float x()
     {
         return x;
     }
-    
+
     public float y()
     {
         return y;

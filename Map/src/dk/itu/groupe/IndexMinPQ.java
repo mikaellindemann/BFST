@@ -42,6 +42,7 @@ import java.util.NoSuchElementException;
  *
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
+ * @param <Key>
  */
 public class IndexMinPQ<Key extends Comparable<Key>> implements Iterable<Integer> {
     private int NMAX;        // maximum number of elements on PQ
@@ -76,6 +77,7 @@ public class IndexMinPQ<Key extends Comparable<Key>> implements Iterable<Integer
     /**
      * Is i an index on the priority queue?
      * @param i an index
+     * @return 
      * @throws java.lang.IndexOutOfBoundsException unless (0 &le; i < NMAX)
      */
     public boolean contains(int i) {
@@ -96,7 +98,7 @@ public class IndexMinPQ<Key extends Comparable<Key>> implements Iterable<Integer
      * @param i an index
      * @param key the key to associate with index i
      * @throws java.lang.IndexOutOfBoundsException unless 0 &le; i < NMAX
-     * @throws java.util.IllegalArgumentException if there already is an item associated with index i
+     * @throws java.lang.IllegalArgumentException if there already is an item associated with index i
      */
     public void insert(int i, Key key) {
         if (i < 0 || i >= NMAX) throw new IndexOutOfBoundsException();
@@ -277,11 +279,12 @@ public class IndexMinPQ<Key extends Comparable<Key>> implements Iterable<Integer
      * The iterator doesn't implement <tt>remove()</tt> since it's optional.
      * @return an iterator that iterates over the keys in ascending order
      */
+    @Override
     public Iterator<Integer> iterator() { return new HeapIterator(); }
 
     private class HeapIterator implements Iterator<Integer> {
         // create a new pq
-        private IndexMinPQ<Key> copy;
+        private final IndexMinPQ<Key> copy;
 
         // add all elements to copy of heap
         // takes linear time since already in heap order so no keys move
@@ -291,9 +294,12 @@ public class IndexMinPQ<Key extends Comparable<Key>> implements Iterable<Integer
                 copy.insert(pq[i], keys[pq[i]]);
         }
 
+        @Override
         public boolean hasNext()  { return !copy.isEmpty();                     }
+        @Override
         public void remove()      { throw new UnsupportedOperationException();  }
 
+        @Override
         public Integer next() {
             if (!hasNext()) throw new NoSuchElementException();
             return copy.delMin();

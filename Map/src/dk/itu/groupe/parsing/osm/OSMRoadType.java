@@ -84,7 +84,7 @@ public enum OSMRoadType
     /**
      * OSM:. KRAK: Ferry(80).
      */
-    FERRY(14, OSMRoadType.firstFactor, 80, new String[0]);
+    FERRY(14, OSMRoadType.firstFactor, 30, new String[0]);
 
     private final static int firstFactor = Integer.MAX_VALUE, secondFactor = 65, thirdFactor = 10;
     private final int type;

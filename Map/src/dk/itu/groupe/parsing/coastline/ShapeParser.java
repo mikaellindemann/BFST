@@ -1,10 +1,12 @@
 package dk.itu.groupe.parsing.coastline;
 
 import de.jotschi.geoconvert.GeoConvert;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
 import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
 import org.nocrala.tools.gis.data.esri.shapefile.exception.InvalidShapeFileException;
-import org.nocrala.tools.gis.data.esri.shapefile.header.ShapeFileHeader;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.AbstractShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.PointData;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonShape;
@@ -19,7 +21,7 @@ import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonShape;
  */
 public class ShapeParser
 {
-
+    private final DecimalFormat df = new DecimalFormat("#.######", new DecimalFormatSymbols(Locale.ENGLISH));
     private final double xMin, yMin, xMax, yMax;
     private final java.awt.geom.Rectangle2D denmark;
     String fileName;
@@ -69,8 +71,6 @@ public class ShapeParser
         new java.io.File("./res/data/coastline").mkdirs();
         java.io.PrintStream edgeWriter = new java.io.PrintStream("./res/data/coastline/edges.csv");
         java.io.PrintStream nodeWriter = new java.io.PrintStream("./res/data/coastline/nodes.csv");
-        ShapeFileHeader shapeHeader = shapeReader.getHeader();
-        System.out.println("The shape type of this file is " + shapeHeader.getShapeType());
         int nodenumber = 0;
         for (AbstractShape s = shapeReader.next(); s != null; s = shapeReader.next()) {
             switch (s.getShapeType()) {
@@ -95,8 +95,8 @@ public class ShapeParser
                             } else {
                                 edgeWriter.print("," + nodenumber);
                             }
-                            nodeWriter.println(nodenumber++ + "," + String.format(java.util.Locale.ENGLISH, "%.2f,", xy[0])
-                                    + String.format(java.util.Locale.ENGLISH, "%.2f", xy[1]));
+                            nodeWriter.println(nodenumber++ + "," + df.format(xy[0])
+                                    + "," + df.format(xy[1]));
                         }
                         edgeWriter.println();
                     }
