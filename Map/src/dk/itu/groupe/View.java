@@ -9,6 +9,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,9 +27,11 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextField;
 
 /**
@@ -36,8 +39,7 @@ import javax.swing.JTextField;
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)
  */
-public class View extends JComponent implements Observer
-{
+public class View extends JComponent implements Observer {
 
     private final JLabel roadName;
     private final JPanel remotePanel, keyPad, directionPanel, leftPanelOpen;
@@ -51,17 +53,20 @@ public class View extends JComponent implements Observer
     private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut, searchButton;
     private JLabel label_from, label_to;
     private JTextField textField_from, textField_to;
-    private JRadioButton mousePath, mouseMove, mouseZoom;
     private ButtonGroup mouse;
     private static final Font uiFont = new Font("calibri", Font.PLAIN, 15);
+    private JMenuItem startPoint, endPoint, reset;
+    private JRadioButtonMenuItem radioMove, radioZoom;
+    private JPopupMenu menu;
+    private Point e;
 
-    public View(final Model model)
-    {
+    public View(final Model model) {
         this.model = model;
         map = new MapView();
 
         // Creates buttons, labels and their listeners.
         createButtons();
+        createMenu();
         createLabels();
         createTextField();
         roadName = new JLabel(" ");
@@ -80,12 +85,6 @@ public class View extends JComponent implements Observer
         remotePanel.add(flowPanel);
         flowPanel = new JPanel(new FlowLayout());
         flowPanel.add(buttonShowAll);
-        flowPanel.setBackground(BGColor);
-        remotePanel.add(flowPanel);
-        flowPanel = new JPanel(new GridLayout(2, 0));
-        flowPanel.add(mousePath);
-        flowPanel.add(mouseZoom);
-        flowPanel.add(mouseMove);
         flowPanel.setBackground(BGColor);
         remotePanel.add(flowPanel);
         flowPanel = new JPanel(new FlowLayout());
@@ -127,15 +126,71 @@ public class View extends JComponent implements Observer
         add(map, BorderLayout.CENTER);
     }
 
-    private class MyMouseListener implements MouseListener
-    {
+    private void createMenu() {
+        menu = new JPopupMenu();
+        startPoint = new JMenuItem("Set startpoint");
+        startPoint.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                try {
+                    model.setFromNode(model.translatePoint(e.x, e.y));
+                } catch (NoPathFoundException ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                }
+            }
+            
+        });
+        endPoint = new JMenuItem("Set endpoint");
+        endPoint.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                try {
+                    model.setToNode(model.translatePoint(e.x, e.y));
+                    map.repaint();
+                } catch (NoPathFoundException ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                }
+            }
+            
+        });
+
+        radioMove = new JRadioButtonMenuItem("Move");
+        radioMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
+        radioZoom = new JRadioButtonMenuItem("Zoom");
+        radioZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
+        radioMove.setSelected(model.getMouseTool() == MouseTool.MOVE);
+        radioZoom.setSelected(model.getMouseTool() == MouseTool.ZOOM);
+        ButtonGroup group = new ButtonGroup();
+        group.add(radioMove);
+        group.add(radioZoom);
+
+        reset = new JMenuItem("Show Denmark");
+        reset.addActionListener(Action.RESET.getListener(model));
+
+        menu.add(startPoint);
+        menu.add(endPoint);
+        menu.add(reset);
+        menu.addSeparator();
+        menu.add(radioMove);
+        menu.add(radioZoom);
+    }
+
+    
+
+    public void showContextMenu(Point e) {
+        this.e = e;
+        menu.show(map, e.x, e.y);
+    }
+
+    private class MyMouseListener implements MouseListener {
 
         JPanel empty;
         private boolean visible = false;
 
         @Override
-        public void mouseEntered(MouseEvent e)
-        {
+        public void mouseEntered(MouseEvent e) {
             if (!visible) {
                 if (empty == null) {
                     empty = new JPanel();
@@ -155,26 +210,22 @@ public class View extends JComponent implements Observer
         }
 
         @Override
-        public void mouseClicked(MouseEvent e)
-        {
+        public void mouseClicked(MouseEvent e) {
             //Nothing yet
         }
 
         @Override
-        public void mousePressed(MouseEvent e)
-        {
+        public void mousePressed(MouseEvent e) {
             //Nothing yet
         }
 
         @Override
-        public void mouseReleased(MouseEvent e)
-        {
+        public void mouseReleased(MouseEvent e) {
             //Nothing yet
         }
 
         @Override
-        public void mouseExited(MouseEvent e)
-        {
+        public void mouseExited(MouseEvent e) {
             if (visible && !leftPanelOpen.getBounds().contains(e.getPoint())) {
                 JComponent glassPane = ((JComponent) ((JFrame) getTopLevelAncestor()).getGlassPane());
                 glassPane.setVisible(false);
@@ -191,8 +242,7 @@ public class View extends JComponent implements Observer
     /**
      * Creates buttons and assigns functions to buttons and keys.
      */
-    private void createButtons()
-    {
+    private void createButtons() {
         buttonShowAll = new JButton("Show entire map");
         buttonShowAll.setMaximumSize(new Dimension(100, 40));
         buttonShowAll.addActionListener(Action.RESET.getListener(model));
@@ -221,47 +271,11 @@ public class View extends JComponent implements Observer
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
         buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
 
-        mousePath = new JRadioButton("Path");
-        mousePath.setFont(uiFont);
-        mousePath.addActionListener(Action.MOUSE_PATH.getListener(model));
-        if (model.getMouseTool() == MouseTool.PATH) {
-            mousePath.setSelected(true);
-        } else {
-            mousePath.setSelected(false);
-        }
-        mousePath.setBackground(BGColor);
-
-        mouseZoom = new JRadioButton("Zoom");
-        mouseZoom.setFont(uiFont);
-        mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
-        if (model.getMouseTool() == MouseTool.ZOOM) {
-            mouseZoom.setSelected(true);
-        } else {
-            mouseZoom.setSelected(false);
-        }
-        mouseZoom.setBackground(BGColor);
-
-        mouseMove = new JRadioButton("Move");
-        mouseMove.setFont(uiFont);
-        mouseMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
-        if (model.getMouseTool() == MouseTool.MOVE) {
-            mouseMove.setSelected(true);
-        } else {
-            mouseMove.setSelected(false);
-        }
-        mouseMove.setBackground(BGColor);
-        mouse = new ButtonGroup();
-        mouse.add(mousePath);
-        mouse.add(mouseZoom);
-        mouse.add(mouseMove);
-
         searchButton = new JButton("Search");
         searchButton.setMaximumSize(new Dimension(100, 40));
-        searchButton.addActionListener(new ActionListener()
-        {
+        searchButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent arg0)
-            {
+            public void actionPerformed(ActionEvent arg0) {
                 String search_from = textField_from.getText();
                 String search_to = textField_to.getText();
                 System.out.println("search_from = " + search_from);
@@ -270,8 +284,7 @@ public class View extends JComponent implements Observer
         });
     }
 
-    private void createLabels()
-    {
+    private void createLabels() {
         label_from = new JLabel("From:");
         label_from.setFont(uiFont);
         label_from.setForeground(Color.WHITE);
@@ -281,8 +294,7 @@ public class View extends JComponent implements Observer
         label_to.setForeground(Color.WHITE);
     }
 
-    private void createTextField()
-    {
+    private void createTextField() {
         textField_from = new JTextField();
         textField_from.setPreferredSize(new Dimension(180, 20));
 
@@ -290,14 +302,12 @@ public class View extends JComponent implements Observer
         textField_to.setPreferredSize(new Dimension(180, 20));
     }
 
-    public JComponent getMap()
-    {
+    public JComponent getMap() {
         return map;
     }
 
     @Override
-    public void update(Observable o, Object arg)
-    {
+    public void update(Observable o, Object arg) {
         if (arg != null && arg.equals("updateRoadname")) {
             roadName.setText(model.getRoadname());
         } else {
@@ -305,24 +315,21 @@ public class View extends JComponent implements Observer
 
         }
     }
-    
-    public void showErrorMessage(String message)
-    {
+
+    public void showErrorMessage(String message) {
         JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    private class MapView extends JComponent
-    {
+    private class MapView extends JComponent {
 
         @Override
-        public void paintComponent(Graphics g)
-        {
+        public void paintComponent(Graphics g) {
             Point2D pressed = model.getPressed();
             if (model.getMouseTool() == MouseTool.ZOOM && pressed != null) {
                 Graphics2D gB = (Graphics2D) g;
                 gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 gB.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
-                
+
                 double factor = model.getFactor();
                 Point2D topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
                 gB.scale(1 / factor, -1 / factor);
@@ -448,10 +455,10 @@ public class View extends JComponent implements Observer
                         }
                     }
                 }
-                if (model.getMouseTool() == MouseTool.PATH && model.pathPointSet()) {
+                if (model.pathPointSet()) {
                     Iterable<Edge> edges = null;
                     try {
-                        edges = model.getPathTo(model.getMoved());
+                        edges = model.getPath();
                     } catch (NoPathFoundException ex) {
                         showErrorMessage(ex.getMessage());
                     }
@@ -475,8 +482,7 @@ public class View extends JComponent implements Observer
         }
 
         @Override
-        public Dimension getPreferredSize()
-        {
+        public Dimension getPreferredSize() {
             return new Dimension(model.getWidth(), model.getHeight());
         }
     }

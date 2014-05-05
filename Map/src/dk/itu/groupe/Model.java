@@ -46,19 +46,13 @@ public class Model extends Observable
     private final float minFactor = 0.5f;
     private double initialFactor;
 
-    private int from;
-
+    private int from, to;
     private final Map<CommonRoadType, KDTree> treeMap;
-
     private String roadname;
-
     private Point2D pressed, dragged, moved;
     private MouseTool mouseTool;
-
     private int width, height;
-
-    Astar shortestPath;
-
+    private Astar shortestPath;
     private boolean reset;
 
     private final String dir;
@@ -596,30 +590,32 @@ public class Model extends Observable
             from = to.id();
         }
     }
-
-    @SuppressWarnings("unchecked")
-    public Iterable<Edge> getPathTo(Point2D e) throws NoPathFoundException
+    
+    public void setToNode(Point2D e) throws NoPathFoundException
     {
-        int to;
         Edge near = nearest(e, false);
         if (near == null) {
             throw new NoPathFoundException("No nearest point was found");
         }
-        Node f = near.from();
-        Node t = near.to();
-        assert f != null;
-        assert t != null;
-        if (new Point.Double(f.x(), f.y()).distance(e)
-                < new Point.Double(t.x(), t.y()).distance(e)) {
-            to = f.id();
+        Node fr = near.from();
+        Node to = near.to();
+
+        if (new Point.Double(fr.x(), fr.y()).distance(e)
+                < new Point.Double(to.x(), to.y()).distance(e)) {
+            this.to = fr.id();
         } else {
-            to = t.id();
+            this.to = to.id();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public Iterable<Edge> getPath() throws NoPathFoundException
+    {
         shortestPath = new Astar(g, from, to, true, nodeMap);
         if (shortestPath.hasPathTo(to)) {
             return shortestPath.pathTo(to);
         }
-        return Collections.EMPTY_SET;
+        throw new NoPathFoundException("No path was found");
     }
 
     public Point2D getDragged()
