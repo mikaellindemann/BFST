@@ -1,28 +1,10 @@
 package dk.itu.groupe;
 
+import dk.itu.groupe.pathfinding.NoPathFoundException;
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
+import java.awt.event.*;
 import java.awt.geom.Point2D;
-import javax.swing.AbstractAction;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 
 /**
  *
@@ -40,7 +22,7 @@ public class Controller implements
     private final Model model;
     private final View view;
 
-    public Controller(Model model, View view)
+    public Controller(final Model model, final View view)
     {
         this.model = model;
         this.view = view;
@@ -260,7 +242,7 @@ public class Controller implements
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-        
+
         model.load();
         frame.setVisible(false);
         frame.remove(model.getLoadingPanel());

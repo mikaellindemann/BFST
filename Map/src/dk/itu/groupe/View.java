@@ -1,5 +1,8 @@
 package dk.itu.groupe;
 
+import dk.itu.groupe.data.CommonRoadType;
+import dk.itu.groupe.data.Edge;
+import dk.itu.groupe.pathfinding.NoPathFoundException;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -18,18 +21,27 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Set;
+import java.util.Stack;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.event.ListSelectionListener;
 
 /**
  *
@@ -39,17 +51,40 @@ import javax.swing.JTextField;
 public class View extends JComponent implements Observer
 {
 
+    private static final DecimalFormat df = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.ENGLISH));
+
+    class InternalEdge
+    {
+
+        float length;
+        String name;
+        Set<Edge> edges;
+
+        InternalEdge(Set<Edge> edges, String roadname, float length)
+        {
+            this.edges = edges;
+            this.name = roadname;
+            this.length = length;
+        }
+
+        @Override
+        public String toString()
+        {
+            return name + " " + df.format(length / 1000) + " km";
+        }
+    }
+
     private final JLabel roadName;
     private final JPanel remotePanel, keyPad, directionPanel, leftPanelOpen;
     private final JComponent map;
     private final Model model;
-    private final Color BGColor = Color.decode("#457B85");
-    private final Color groundColor = Color.decode("#96FF70");
+    private final Color BGColor = Color.decode("#457B85"), groundColor = Color.decode("#96FF70");
 
+    private JList<InternalEdge> routingList;
     private BufferedImage image;
     private JPanel flowPanel, leftPanel;
     private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut, searchButton;
-    private JLabel label_from, label_to;
+    private JLabel label_from, label_to, label_path;
     private JTextField textField_from, textField_to;
     private JRadioButton mousePath, mouseMove, mouseZoom;
     private ButtonGroup mouse;
@@ -117,6 +152,10 @@ public class View extends JComponent implements Observer
         leftPanelOpen.add(label_to);
         leftPanelOpen.add(textField_to);
         leftPanelOpen.add(searchButton);
+        leftPanelOpen.add(label_path);
+        JScrollPane scrollPane = new JScrollPane(routingList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setPreferredSize(new Dimension(180, 400));
+        leftPanelOpen.add(scrollPane);
         leftPanelOpen.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
         leftPanelOpen.setPreferredSize(new Dimension(200, map.getHeight()));
         leftPanelOpen.setBackground(BGColor);
@@ -125,6 +164,11 @@ public class View extends JComponent implements Observer
         add(flowPanel, BorderLayout.SOUTH);
         add(leftPanel, BorderLayout.WEST);
         add(map, BorderLayout.CENTER);
+    }
+
+    public void addListSelectionListener(ListSelectionListener listener)
+    {
+        routingList.addListSelectionListener(listener);
     }
 
     private class MyMouseListener implements MouseListener
@@ -256,7 +300,7 @@ public class View extends JComponent implements Observer
         mouse.add(mouseMove);
 
         searchButton = new JButton("Search");
-        searchButton.setMaximumSize(new Dimension(100, 40));
+        searchButton.setPreferredSize(new Dimension(180, 20));
         searchButton.addActionListener(new ActionListener()
         {
             @Override
@@ -272,6 +316,7 @@ public class View extends JComponent implements Observer
 
     private void createLabels()
     {
+
         label_from = new JLabel("From:");
         label_from.setFont(uiFont);
         label_from.setForeground(Color.WHITE);
@@ -279,10 +324,17 @@ public class View extends JComponent implements Observer
         label_to = new JLabel("To:");
         label_to.setFont(uiFont);
         label_to.setForeground(Color.WHITE);
+
+        label_path = new JLabel("Path:");
+        label_path.setFont(uiFont);
+        label_path.setForeground(Color.WHITE);
     }
 
     private void createTextField()
     {
+        routingList = new JList<>();
+        routingList.setFixedCellWidth(180);
+
         textField_from = new JTextField();
         textField_from.setPreferredSize(new Dimension(180, 20));
 
@@ -305,7 +357,7 @@ public class View extends JComponent implements Observer
 
         }
     }
-    
+
     public void showErrorMessage(String message)
     {
         JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
@@ -317,12 +369,15 @@ public class View extends JComponent implements Observer
         @Override
         public void paintComponent(Graphics g)
         {
+            if (image == null || image.getWidth() != getWidth() || image.getHeight() != getHeight()) {
+                image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+            }
             Point2D pressed = model.getPressed();
             if (model.getMouseTool() == MouseTool.ZOOM && pressed != null) {
                 Graphics2D gB = (Graphics2D) g;
                 gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 gB.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
-                
+
                 double factor = model.getFactor();
                 Point2D topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
                 gB.scale(1 / factor, -1 / factor);
@@ -358,14 +413,11 @@ public class View extends JComponent implements Observer
                     gB.drawRect((int) x1, (int) y1, side, (int) (y2 - y1));
                 }
             } else {
-                image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-
                 Graphics2D gB = image.createGraphics();
                 gB.setColor(Color.BLUE.darker().darker());
                 gB.fillRect(0, 0, getWidth(), getHeight());
                 gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 final double factor = model.getFactor();
-                //gB.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
                 gB.setFont(gB.getFont().deriveFont(AffineTransform.getScaleInstance(factor, -factor)));
                 Point2D topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
 
@@ -374,21 +426,21 @@ public class View extends JComponent implements Observer
 
                 for (CommonRoadType rt : CommonRoadType.values()) {
                     if (rt.isEnabled(factor)) {
-                        gB.setStroke(new BasicStroke(4));
+                        gB.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                         switch (rt) {
                             case MOTORWAY:
                             case MOTORWAY_LINK:
-                                gB.setStroke(new BasicStroke(15));
+                                gB.setStroke(new BasicStroke(15, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                                 gB.setColor(Color.RED);
                                 break;
                             case TRUNK:
                             case TRUNK_LINK:
-                                gB.setStroke(new BasicStroke(10));
+                                gB.setStroke(new BasicStroke(10, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                                 gB.setColor(Color.ORANGE);
                                 break;
                             case PRIMARY:
                             case PRIMARY_LINK:
-                                gB.setStroke(new BasicStroke(8));
+                                gB.setStroke(new BasicStroke(8, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                                 gB.setColor(Color.YELLOW);
                                 break;
                             case SECONDARY:
@@ -397,17 +449,17 @@ public class View extends JComponent implements Observer
                             case ROAD:
                             case UNCLASSIFIED:
                             case SECONDARY_LINK:
-                                gB.setStroke(new BasicStroke(3));
+                                gB.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                                 gB.setColor(Color.DARK_GRAY);
                                 break;
                             case PATH:
                             case TRACK:
                                 gB.setColor(Color.GRAY);
-                                gB.setStroke(new BasicStroke(1));
+                                gB.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                                 break;
                             case PEDESTRIAN:
                                 gB.setColor(Color.BLUE);
-                                gB.setStroke(new BasicStroke(1));
+                                gB.setStroke(new BasicStroke(1, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                                 break;
                             case TUNNEL:
                                 gB.setColor(Color.GREEN);
@@ -418,11 +470,11 @@ public class View extends JComponent implements Observer
                                 break;
                             case COASTLINE:
                                 gB.setColor(groundColor);
-                                gB.setStroke(new BasicStroke(4));
+                                gB.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                                 break;
                             case RESIDENTIAL:
                                 gB.setColor(Color.DARK_GRAY.darker());
-                                gB.setStroke(new BasicStroke(2));
+                                gB.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                                 break;
                             case PLACES:
                                 gB.setColor(Color.BLACK);
@@ -448,21 +500,41 @@ public class View extends JComponent implements Observer
                         }
                     }
                 }
-                if (model.getMouseTool() == MouseTool.PATH && model.pathPointSet()) {
-                    Iterable<Edge> edges = null;
+                if (model.pathPointSet()) {
+                    Stack<Edge> edges = null;
                     try {
                         edges = model.getPathTo(model.getMoved());
                     } catch (NoPathFoundException ex) {
                         showErrorMessage(ex.getMessage());
                     }
                     if (edges != null) {
-                        gB.setColor(Color.BLUE);
-                        gB.setStroke(new BasicStroke(5 * (float) model.getFactor()));
-                        for (Edge ed : edges) {
-                            gB.draw(ed.getShape());
+                        Stack<InternalEdge> routeStack = new Stack<>();
+                        Set<Edge> edgeSet = new HashSet<>();
+                        String name = null;
+                        float length = 0;
+                        for (Edge e : edges) {
+                            if (name == null) {
+                                name = e.getRoadname();
+                                length += e.getLength();
+                                edgeSet.add(e);
+                            } else if (name.equals(e.getRoadname())) {
+                                length += e.getLength();
+                                edgeSet.add(e);
+                            } else {
+                                routeStack.add(new InternalEdge(edgeSet, name, length));
+                                edgeSet = new HashSet<>();
+                                name = e.getRoadname();
+                                length = e.getLength();
+                                edgeSet.add(e);
+                            }
                         }
-                        gB.setColor(Color.BLUE.brighter().brighter().brighter().brighter());
-                        gB.setStroke(new BasicStroke(2 * (float) model.getFactor()));
+                        InternalEdge[] list = new InternalEdge[routeStack.size()];
+                        for (int i = 0; !routeStack.empty(); i++) {
+                            list[i] = routeStack.pop();
+                        }
+                        routingList.setListData(list);
+                        gB.setColor(Color.BLUE);
+                        gB.setStroke(new BasicStroke(5 * (float) model.getFactor(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                         for (Edge ed : edges) {
                             gB.draw(ed.getShape());
                         }
@@ -470,6 +542,7 @@ public class View extends JComponent implements Observer
                 }
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                image.flush();
                 g2.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
             }
         }

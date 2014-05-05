@@ -1,4 +1,4 @@
-package dk.itu.groupe;
+package dk.itu.groupe.data;
 
 import dk.itu.groupe.loading.DataLine;
 

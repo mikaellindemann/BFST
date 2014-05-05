@@ -3,9 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package dk.itu.groupe;
+package dk.itu.groupe.pathfinding;
 
-import dk.itu.groupe.EdgeWeightedDigraph.WeightedEdge;
+import dk.itu.groupe.data.Edge;
+import dk.itu.groupe.pathfinding.EdgeWeightedDigraph.WeightedEdge;
+import dk.itu.groupe.data.Node;
 import java.util.Stack;
 
 /**
@@ -135,7 +137,7 @@ public class Astar
      * <tt>v</tt>
      * as an iterable of edges, and <tt>null</tt> if no such path
      */
-    public Iterable<Edge> pathTo(int v)
+    public Stack<Edge> pathTo(int v)
     {
         if (!hasPathTo(v)) {
             return null;

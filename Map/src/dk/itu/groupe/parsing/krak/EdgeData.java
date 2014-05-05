@@ -1,6 +1,6 @@
 package dk.itu.groupe.parsing.krak;
 
-import dk.itu.groupe.OneWay;
+import dk.itu.groupe.data.OneWay;
 import java.awt.geom.Line2D;
 import java.util.HashMap;
 import java.util.Map;

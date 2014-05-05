@@ -1,4 +1,4 @@
-package dk.itu.groupe;
+package dk.itu.groupe.data;
 
 import java.awt.Shape;
 import java.awt.geom.Path2D;

@@ -1,22 +1,12 @@
 package dk.itu.groupe;
 
-import dk.itu.groupe.loading.LoadingPanel;
-import dk.itu.groupe.loading.Loader;
-import dk.itu.groupe.loading.DataLine;
+import dk.itu.groupe.data.*;
+import dk.itu.groupe.pathfinding.*;
+import dk.itu.groupe.loading.*;
 import java.awt.Point;
-import java.awt.geom.Line2D;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Observable;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.awt.geom.*;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * The model contains all the information about the map.
@@ -598,7 +588,7 @@ public class Model extends Observable
     }
 
     @SuppressWarnings("unchecked")
-    public Iterable<Edge> getPathTo(Point2D e) throws NoPathFoundException
+    public Stack<Edge> getPathTo(Point2D e) throws NoPathFoundException
     {
         int to;
         Edge near = nearest(e, false);
@@ -619,7 +609,7 @@ public class Model extends Observable
         if (shortestPath.hasPathTo(to)) {
             return shortestPath.pathTo(to);
         }
-        return Collections.EMPTY_SET;
+        return new Stack<>();
     }
 
     public Point2D getDragged()

@@ -1,7 +1,7 @@
 package dk.itu.groupe.parsing.osm;
 
 import de.jotschi.geoconvert.GeoConvert;
-import dk.itu.groupe.OneWay;
+import dk.itu.groupe.data.OneWay;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;

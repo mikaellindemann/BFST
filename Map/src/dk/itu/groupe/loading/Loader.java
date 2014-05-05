@@ -1,9 +1,9 @@
 package dk.itu.groupe.loading;
 
-import dk.itu.groupe.CommonRoadType;
-import dk.itu.groupe.Edge;
-import dk.itu.groupe.Node;
-import dk.itu.groupe.OneWay;
+import dk.itu.groupe.data.CommonRoadType;
+import dk.itu.groupe.data.Edge;
+import dk.itu.groupe.data.Node;
+import dk.itu.groupe.data.OneWay;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;

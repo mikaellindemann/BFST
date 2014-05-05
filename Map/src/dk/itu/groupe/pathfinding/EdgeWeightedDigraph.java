@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package dk.itu.groupe;
+package dk.itu.groupe.pathfinding;
 
+import dk.itu.groupe.data.Edge;
 import java.util.HashSet;
 import java.util.Set;
 

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package dk.itu.groupe;
+package dk.itu.groupe.pathfinding;
 
 /*************************************************************************
  *  Compilation:  javac IndexMinPQ.java

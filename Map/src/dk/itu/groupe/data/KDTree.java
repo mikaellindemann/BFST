@@ -1,4 +1,4 @@
-package dk.itu.groupe;
+package dk.itu.groupe.data;
 
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;

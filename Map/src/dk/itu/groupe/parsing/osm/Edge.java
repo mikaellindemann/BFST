@@ -1,6 +1,6 @@
 package dk.itu.groupe.parsing.osm;
 
-import dk.itu.groupe.OneWay;
+import dk.itu.groupe.data.OneWay;
 
 /**
  * Represents the raw data from a line in edges.csv.
