@@ -118,7 +118,7 @@ public class ShapeParser
     {
         try {
             javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
-            new ShapeParser(null, 0.527, 53.068, 18.853, 59.858);
+            new ShapeParser(null, 4.043, 54.699, 17.314, 57.868);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException | java.io.IOException | InvalidShapeFileException ex) {
             ex.printStackTrace(System.err);
         }

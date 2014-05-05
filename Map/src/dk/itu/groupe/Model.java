@@ -57,7 +57,7 @@ public class Model extends Observable
 
     private int width, height;
 
-    DijkstraSP shortestPath;
+    Astar shortestPath;
 
     private boolean reset;
 
@@ -580,12 +580,11 @@ public class Model extends Observable
         shortestPath = null;
     }
 
-    public void setFromNode(Point2D e)
+    public void setFromNode(Point2D e) throws NoPathFoundException
     {
         Edge near = nearest(e, false);
         if (near == null) {
-            System.err.println("No point found");
-            return;
+            throw new NoPathFoundException("No nearest point was found");
         }
         Node fr = near.from();
         Node to = near.to();
@@ -599,12 +598,12 @@ public class Model extends Observable
     }
 
     @SuppressWarnings("unchecked")
-    public Iterable<Edge> getPathTo(Point2D e)
+    public Iterable<Edge> getPathTo(Point2D e) throws NoPathFoundException
     {
         int to;
         Edge near = nearest(e, false);
         if (near == null) {
-            return Collections.EMPTY_SET;
+            throw new NoPathFoundException("No nearest point was found");
         }
         Node f = near.from();
         Node t = near.to();
@@ -616,7 +615,7 @@ public class Model extends Observable
         } else {
             to = t.id();
         }
-        shortestPath = new DijkstraSP(g, from, to, true, nodeMap);
+        shortestPath = new Astar(g, from, to, true, nodeMap);
         if (shortestPath.hasPathTo(to)) {
             return shortestPath.pathTo(to);
         }

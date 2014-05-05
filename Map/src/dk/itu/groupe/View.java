@@ -26,6 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
@@ -304,6 +305,11 @@ public class View extends JComponent implements Observer
 
         }
     }
+    
+    public void showErrorMessage(String message)
+    {
+        JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
 
     private class MapView extends JComponent
     {
@@ -443,7 +449,12 @@ public class View extends JComponent implements Observer
                     }
                 }
                 if (model.getMouseTool() == MouseTool.PATH && model.pathPointSet()) {
-                    Iterable<Edge> edges = model.getPathTo(model.getMoved());
+                    Iterable<Edge> edges = null;
+                    try {
+                        edges = model.getPathTo(model.getMoved());
+                    } catch (NoPathFoundException ex) {
+                        showErrorMessage(ex.getMessage());
+                    }
                     if (edges != null) {
                         gB.setColor(Color.BLUE);
                         gB.setStroke(new BasicStroke(5 * (float) model.getFactor()));

@@ -102,7 +102,11 @@ public class Controller implements
             model.notifyObservers();
         }
         if (SwingUtilities.isLeftMouseButton(me) && model.getMouseTool() == MouseTool.PATH) {
-            model.setFromNode(model.translatePoint(me.getX(), me.getY()));
+            try {
+                model.setFromNode(model.translatePoint(me.getX(), me.getY()));
+            } catch (NoPathFoundException ex) {
+                view.showErrorMessage(ex.getMessage());
+            }
         }
     }
 

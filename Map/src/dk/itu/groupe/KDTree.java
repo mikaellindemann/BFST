@@ -105,7 +105,6 @@ public class KDTree
         if (!high.isEmpty()) {
             HIGH = new KDTree(high, highBounds[0], highBounds[1], highBounds[2], highBounds[3]);
         }
-
     }
 
     /**
@@ -117,8 +116,9 @@ public class KDTree
      */
     public Edge getNearest(double x, double y)
     {
+        int lookupRadius = 500;
         Point2D p = new Point2D.Double(x, y);
-        Set<Edge> ns = getEdges(x- 100, y - 100, x + 100, y + 100);
+        Set<Edge> ns = getEdges(x - lookupRadius, y - lookupRadius, x + lookupRadius, y + lookupRadius);
         double dist = Double.MAX_VALUE;
         Edge nearest = null;
         for (Edge edge : ns) {

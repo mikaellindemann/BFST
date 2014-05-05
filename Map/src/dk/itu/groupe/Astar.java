@@ -26,7 +26,7 @@ import java.util.Stack;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-public class DijkstraSP
+public class Astar
 {
 
     private final double[] distTo;          // distTo[v] = distance  of shortest s->v path
@@ -37,7 +37,11 @@ public class DijkstraSP
 
     private double heuristic(int s, int t)
     {
-        return Math.sqrt(Math.pow(nodeMap[s].x() - nodeMap[t].x(), 2) + Math.pow(nodeMap[s].y() - nodeMap[t].y(), 2));
+        if (driveTime) {
+            return 0;
+        } else {
+            return Math.sqrt(Math.pow(nodeMap[s].x() - nodeMap[t].x(), 2) + Math.pow(nodeMap[s].y() - nodeMap[t].y(), 2));
+        }
     }
 
     /**
@@ -53,10 +57,10 @@ public class DijkstraSP
      * @throws IllegalArgumentException unless 0 &le; <tt>s</tt> &le; <tt>V</tt>
      * - 1
      */
-    public DijkstraSP(EdgeWeightedDigraph G, int s, int t, boolean driveTime, Node[] nodeMap)
+    public Astar(EdgeWeightedDigraph G, int s, int t, boolean driveTime, Node[] nodeMap)
     {
         this.driveTime = driveTime;
-        DijkstraSP.nodeMap = nodeMap;
+        Astar.nodeMap = nodeMap;
         distTo = new double[G.V()];
         edgeTo = new WeightedEdge[G.V()];
         for (int v = 0; v < G.V(); v++) {
