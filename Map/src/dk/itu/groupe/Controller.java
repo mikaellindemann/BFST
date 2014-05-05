@@ -79,17 +79,6 @@ public class Controller implements
             model.setPressed(me.getPoint());
             model.setDragged(me.getPoint());
         }
-        if (SwingUtilities.isRightMouseButton(me) && model.getMouseTool() == MouseTool.PATH && model.pathPointSet()) {
-            model.setMoved(me.getPoint());
-            model.notifyObservers();
-        }
-        if (SwingUtilities.isLeftMouseButton(me) && model.getMouseTool() == MouseTool.PATH) {
-            try {
-                model.setFromNode(model.translatePoint(me.getX(), me.getY()));
-            } catch (NoPathFoundException ex) {
-                view.showErrorMessage(ex.getMessage());
-            }
-        }
     }
 
     @Override
@@ -103,10 +92,8 @@ public class Controller implements
             model.setPressed(null);
             model.setDragged(null);
         }
-        //Right click to reset.
-        if (model.getMouseTool() != MouseTool.PATH && SwingUtilities.isRightMouseButton(me)) {
-            model.reset();
-            model.notifyObservers();
+        if (me.isPopupTrigger()) {
+            view.showContextMenu(me.getPoint());
         }
     }
 

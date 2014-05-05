@@ -12,6 +12,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,10 +37,12 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionListener;
 
@@ -52,27 +55,7 @@ public class View extends JComponent implements Observer
 {
 
     private static final DecimalFormat df = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.ENGLISH));
-
-    class InternalEdge
-    {
-
-        float length;
-        String name;
-        Set<Edge> edges;
-
-        InternalEdge(Set<Edge> edges, String roadname, float length)
-        {
-            this.edges = edges;
-            this.name = roadname;
-            this.length = length;
-        }
-
-        @Override
-        public String toString()
-        {
-            return name + " " + df.format(length / 1000) + " km";
-        }
-    }
+    private static final Font uiFont = new Font("calibri", Font.PLAIN, 15);
 
     private final JLabel roadName;
     private final JPanel remotePanel, keyPad, directionPanel, leftPanelOpen;
@@ -86,9 +69,10 @@ public class View extends JComponent implements Observer
     private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut, searchButton;
     private JLabel label_from, label_to, label_path;
     private JTextField textField_from, textField_to;
-    private JRadioButton mousePath, mouseMove, mouseZoom;
-    private ButtonGroup mouse;
-    private static final Font uiFont = new Font("calibri", Font.PLAIN, 15);
+    private JMenuItem startPoint, endPoint, reset;
+    private JRadioButtonMenuItem radioMove, radioZoom;
+    private JPopupMenu menu;
+    private Point e;
 
     public View(final Model model)
     {
@@ -97,6 +81,7 @@ public class View extends JComponent implements Observer
 
         // Creates buttons, labels and their listeners.
         createButtons();
+        createMenu();
         createLabels();
         createTextField();
         roadName = new JLabel(" ");
@@ -115,12 +100,6 @@ public class View extends JComponent implements Observer
         remotePanel.add(flowPanel);
         flowPanel = new JPanel(new FlowLayout());
         flowPanel.add(buttonShowAll);
-        flowPanel.setBackground(BGColor);
-        remotePanel.add(flowPanel);
-        flowPanel = new JPanel(new GridLayout(2, 0));
-        flowPanel.add(mousePath);
-        flowPanel.add(mouseZoom);
-        flowPanel.add(mouseMove);
         flowPanel.setBackground(BGColor);
         remotePanel.add(flowPanel);
         flowPanel = new JPanel(new FlowLayout());
@@ -169,6 +148,69 @@ public class View extends JComponent implements Observer
     public void addListSelectionListener(ListSelectionListener listener)
     {
         routingList.addListSelectionListener(listener);
+    }
+
+    private void createMenu()
+    {
+        menu = new JPopupMenu();
+        startPoint = new JMenuItem("Set startpoint");
+        startPoint.addActionListener(new ActionListener()
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent ae)
+            {
+                try {
+                    model.setFromNode(model.translatePoint(e.x, e.y));
+                    map.repaint();
+                } catch (NoPathFoundException ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                }
+            }
+
+        });
+        endPoint = new JMenuItem("Set endpoint");
+        endPoint.addActionListener(new ActionListener()
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent ae)
+            {
+                try {
+                    model.setToNode(model.translatePoint(e.x, e.y));
+                    map.repaint();
+                } catch (NoPathFoundException ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                }
+            }
+
+        });
+
+        radioMove = new JRadioButtonMenuItem("Move");
+        radioMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
+        radioZoom = new JRadioButtonMenuItem("Zoom");
+        radioZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
+        radioMove.setSelected(model.getMouseTool() == MouseTool.MOVE);
+        radioZoom.setSelected(model.getMouseTool() == MouseTool.ZOOM);
+        ButtonGroup group = new ButtonGroup();
+        group.add(radioMove);
+        group.add(radioZoom);
+
+        reset = new JMenuItem("Show Denmark");
+        reset.addActionListener(Action.RESET.getListener(model));
+
+        menu.add(startPoint);
+        menu.add(endPoint);
+        menu.add(reset);
+        menu.addSeparator();
+        menu.add(radioMove);
+        menu.add(radioZoom);
+    }
+
+    public void showContextMenu(Point e)
+    {
+        this.e = e;
+        menu.show(map, e.x, e.y);
     }
 
     private class MyMouseListener implements MouseListener
@@ -265,42 +307,10 @@ public class View extends JComponent implements Observer
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
         buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
 
-        mousePath = new JRadioButton("Path");
-        mousePath.setFont(uiFont);
-        mousePath.addActionListener(Action.MOUSE_PATH.getListener(model));
-        if (model.getMouseTool() == MouseTool.PATH) {
-            mousePath.setSelected(true);
-        } else {
-            mousePath.setSelected(false);
-        }
-        mousePath.setBackground(BGColor);
-
-        mouseZoom = new JRadioButton("Zoom");
-        mouseZoom.setFont(uiFont);
-        mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
-        if (model.getMouseTool() == MouseTool.ZOOM) {
-            mouseZoom.setSelected(true);
-        } else {
-            mouseZoom.setSelected(false);
-        }
-        mouseZoom.setBackground(BGColor);
-
-        mouseMove = new JRadioButton("Move");
-        mouseMove.setFont(uiFont);
-        mouseMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
-        if (model.getMouseTool() == MouseTool.MOVE) {
-            mouseMove.setSelected(true);
-        } else {
-            mouseMove.setSelected(false);
-        }
-        mouseMove.setBackground(BGColor);
-        mouse = new ButtonGroup();
-        mouse.add(mousePath);
-        mouse.add(mouseZoom);
-        mouse.add(mouseMove);
-
         searchButton = new JButton("Search");
+
         searchButton.setPreferredSize(new Dimension(180, 20));
+
         searchButton.addActionListener(new ActionListener()
         {
             @Override
@@ -334,7 +344,6 @@ public class View extends JComponent implements Observer
     {
         routingList = new JList<>();
         routingList.setFixedCellWidth(180);
-
         textField_from = new JTextField();
         textField_from.setPreferredSize(new Dimension(180, 20));
 
@@ -503,7 +512,7 @@ public class View extends JComponent implements Observer
                 if (model.pathPointSet()) {
                     Stack<Edge> edges = null;
                     try {
-                        edges = model.getPathTo(model.getMoved());
+                        edges = model.getPath();
                     } catch (NoPathFoundException ex) {
                         showErrorMessage(ex.getMessage());
                     }
@@ -551,6 +560,27 @@ public class View extends JComponent implements Observer
         public Dimension getPreferredSize()
         {
             return new Dimension(model.getWidth(), model.getHeight());
+        }
+    }
+
+    class InternalEdge
+    {
+
+        float length;
+        String name;
+        Set<Edge> edges;
+
+        InternalEdge(Set<Edge> edges, String roadname, float length)
+        {
+            this.edges = edges;
+            this.name = roadname;
+            this.length = length;
+        }
+
+        @Override
+        public String toString()
+        {
+            return name + " " + df.format(length / 1000) + " km";
         }
     }
 }
