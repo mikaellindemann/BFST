@@ -369,7 +369,7 @@ public class Model extends Observable
         Edge near = nearest(new Point2D.Double(x, y), true);
         // If there are no "nearest" edges
         if (near != null) {
-            roadname = near.getRoadname();
+            roadname = near.getRoadname() + " ";
         } else {
             roadname = " ";
         }
