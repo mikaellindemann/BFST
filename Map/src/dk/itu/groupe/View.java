@@ -12,7 +12,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
@@ -33,7 +32,6 @@ import java.util.Observer;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -59,7 +57,7 @@ public class View extends JComponent implements Observer
 
     private final Color BGColor = Color.decode("#457B85"), groundColor = Color.decode("#96FF70");
     private final JLabel roadName;
-    private final JPanel remotePanel, keyPad, directionPanel, leftPanelOpen;
+    private final JPanel /*remotePanel, keyPad,*/ leftPanelOpen;
     private final JComponent map;
     private final Model model;
     private final ImageIcon fromFlag = new ImageIcon("./res/flag_point_1.png"), toFlag = new ImageIcon("./res/flag_point_2.png");
@@ -67,7 +65,7 @@ public class View extends JComponent implements Observer
     private JList<InternalEdge> routingList;
     private BufferedImage image;
     private JPanel flowPanel, leftPanel;
-    private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
+    //private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
     private JLabel label_path;
     private JPopupMenu menu;
     private Point e;
@@ -81,47 +79,21 @@ public class View extends JComponent implements Observer
         createButtons();
         createMenu();
         createLabels();
-        createTextField();
         roadName = new JLabel(" ");
-        keyPad = new JPanel(new GridLayout(0, 3));
-        keyPad.add(buttonZoomIn);
-        keyPad.add(buttonUp);
-        keyPad.add(buttonZoomOut);
-        keyPad.add(buttonLeft);
-        keyPad.add(buttonDown);
-        keyPad.add(buttonRight);
-
-        remotePanel = new JPanel(new FlowLayout());
-        flowPanel = new JPanel(new FlowLayout());
-        flowPanel.add(keyPad);
-        flowPanel.setBackground(BGColor);
-        remotePanel.add(flowPanel);
-        flowPanel = new JPanel(new FlowLayout());
-        flowPanel.add(buttonShowAll);
-        flowPanel.setBackground(BGColor);
-        remotePanel.add(flowPanel);
-        flowPanel = new JPanel(new FlowLayout());
-        flowPanel.add(roadName);
-        flowPanel.setBackground(BGColor);
-        remotePanel.add(flowPanel);
 
         flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 
-        directionPanel = new JPanel(new FlowLayout());
         leftPanel = new JPanel(new FlowLayout());
         leftPanel.setPreferredSize(new Dimension(20, map.getHeight()));
-        directionPanel.add(leftPanel);
 
         leftPanel = new JPanel();
         leftPanel.addMouseListener(new MyMouseListener());
 
         flowPanel.setBackground(BGColor);
-        remotePanel.setBackground(BGColor);
         leftPanel.setBackground(BGColor);
-        directionPanel.setBackground(BGColor);
         flowPanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
+        flowPanel.add(roadName);
         leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
-        flowPanel.add(remotePanel);
 
         leftPanelOpen = new JPanel(new FlowLayout(FlowLayout.LEADING));
         leftPanelOpen.add(label_path);
@@ -307,7 +279,7 @@ public class View extends JComponent implements Observer
      */
     private void createButtons()
     {
-        buttonShowAll = new JButton("Show entire map");
+    /*    buttonShowAll = new JButton("Show entire map");
         buttonShowAll.setMaximumSize(new Dimension(100, 40));
         buttonShowAll.addActionListener(Action.RESET.getListener(model));
 
@@ -333,7 +305,7 @@ public class View extends JComponent implements Observer
 
         buttonZoomOut = new JButton("-");
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
-        buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
+        buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model)); */
     }
 
     private void createLabels()
