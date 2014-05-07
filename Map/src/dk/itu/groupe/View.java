@@ -57,14 +57,13 @@ public class View extends JComponent implements Observer
 
     private final Color BGColor = Color.decode("#457B85"), groundColor = Color.decode("#96FF70");
     private final JLabel roadName;
-    private final JPanel leftPanelOpen, flowPanel;
+    private final JPanel leftPanelOpen, flowPanel, leftPanel;
     private final JComponent map;
     private final Model model;
     private final ImageIcon fromFlag = new ImageIcon("./res/flag_point_1.png"), toFlag = new ImageIcon("./res/flag_point_2.png");
 
     private JList<InternalEdge> routingList;
     private BufferedImage image;
-    private JPanel leftPanel;
     private JLabel label_path, label_distance, label_time;
     private JPopupMenu menu;
     private Point e;
