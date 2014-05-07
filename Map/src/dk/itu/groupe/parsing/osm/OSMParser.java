@@ -2,17 +2,17 @@ package dk.itu.groupe.parsing.osm;
 
 import de.jotschi.geoconvert.GeoConvert;
 import dk.itu.groupe.data.OneWay;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import javax.swing.JFileChooser;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -29,8 +29,6 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class OSMParser extends DefaultHandler
 {
-
-    private static final String separator = ",";
     //Used for fast lookup from an OSM-roadtype-tag to the OSMRoadType-enum.
     private static Map<String, OSMRoadType> rtMap;
     // Used to limit the amount of RAM that is to be consumed by roadnames.
@@ -65,10 +63,6 @@ public class OSMParser extends DefaultHandler
     double xMin, xMax, yMin, yMax;
 
     private long nodeIdNew;
-
-    // OutputStreams.
-    private PrintWriter edgeStream;
-    private PrintWriter nodeStream;
 
     private static File f;
 
@@ -118,8 +112,8 @@ public class OSMParser extends DefaultHandler
         xMax = yMax = Double.MIN_VALUE;
         // Initializes all the lists and maps that are used to parse the OSM-file.
         // It also writes the first lines containing information about fields.
-        ferryRef = new TreeSet<>();
-        nodeRef = new TreeSet<>();
+        ferryRef = new HashSet<>();
+        nodeRef = new HashSet<>();
         edgeSet = new HashSet<>();
         rtMap = new HashMap<>();
         for (OSMRoadType rt : OSMRoadType.values()) {
@@ -134,62 +128,66 @@ public class OSMParser extends DefaultHandler
     @Override
     public void endDocument()
     {
+        new File("./res/data/osm").mkdirs();
+
+        //Clear memory (shouldn't be necessary but looks good)
+        resetInterner();
+
+        try (DataOutputStream nodeStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("./res/data/osm/nodes.bin")))) {
+            // For each of the used nodeIDs:
+            for (Node n : nodeRef) {
+                if (!n.isMarked()) {
+                    System.err.println(n);
+                    assert (n.isMarked());
+                }
+                double x = n.getPoint().x;
+                double y = n.getPoint().y;
+                xMin = Math.min(x, xMin);
+                xMax = Math.max(x, xMax);
+                yMin = Math.min(y, yMin);
+                yMax = Math.max(y, yMax);
+                ferryRef.remove(n);
+                nodeStream.writeInt((int) n.getId());
+                nodeStream.writeFloat((float)x);
+                nodeStream.writeFloat((float)y);
+            }
+            for (Node n : ferryRef) {
+                assert n.isMarked();
+                nodeStream.writeInt((int) n.getId());
+                nodeStream.writeFloat((float)n.getPoint().x);
+                nodeStream.writeFloat((float)n.getPoint().y);
+            }
+            nodeStream.close();
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
+        }
+
         try {
-            new File("./res/data/osm").mkdirs();
-            edgeStream = new PrintWriter("./res/data/osm/edges.csv");
-            edgeStream.println("TYPE,VEJNAVN,LÆNGDE,FRAKOERSEL,SPEED,DRIVETIME,ONEWAY,NODES...");
-        } catch (FileNotFoundException ex) {
+            Map<OSMRoadType, DataOutputStream> edgeStreams = new HashMap<>();
+            for (OSMRoadType rt : OSMRoadType.values()) {
+                edgeStreams.put(rt, new DataOutputStream(new BufferedOutputStream(new FileOutputStream("./res/data/osm/edges" + rt.getTypeNo() + ".bin"))));
+            }
+            for (Edge e : edgeSet) {
+                writeEdge(e, edgeStreams.get(e.getType()));
+            }
+            for (DataOutputStream edgeStream : edgeStreams.values()) {
+                edgeStream.close();
+            }
+        } catch (IOException ex) {
             // This happens if the printwriters are about to write a file to a nonexisting folder.
             // Which shouldn't happen because the folders are created on document-start.
             ex.printStackTrace(System.err);
         }
-        try {
-            nodeStream = new PrintWriter("./res/data/osm/nodes.csv");
-            nodeStream.println("id,x,y");
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace(System.err);
-        }
 
-        //Clear memory (shouldn't be necessary but looks good)
-        resetInterner();
-        // For each of the used nodeIDs:
-        for (Node n : nodeRef) {
-            if (!n.isMarked()) {
-                System.err.println(n);
-                assert (n.isMarked());
-            }
-            double x = n.getPoint().x;
-            double y = n.getPoint().y;
-            xMin = Math.min(x, xMin);
-            xMax = Math.max(x, xMax);
-            yMin = Math.min(y, yMin);
-            yMax = Math.max(y, yMax);
-            ferryRef.remove(n);
-            nodeStream.println(n.toString());
-        }
-        for (Node n : ferryRef) {
-            assert n.isMarked();
-            nodeStream.println(n.toString());
-        }
-
-        for (Edge e : edgeSet) {
-            writeEdge(e);
-        }
-
-        // Close the streams to make sure all data has been flushed to the files.
-        nodeStream.close();
-
-        edgeStream.close();
-
-        try (PrintWriter info = new PrintWriter("./res/data/osm/info.csv")) {
-            info.println(xMin);
-            info.println(yMin);
-            info.println(xMax);
-            info.println(yMax);
-            info.println(nodeRef.size() + ferryRef.size());
-            info.println(numberOfEdges);
+        try (DataOutputStream info = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("./res/data/osm/info.bin")))) {
+            info.writeDouble(xMin);
+            info.writeDouble(yMin);
+            info.writeDouble(xMax);
+            info.writeDouble(yMax);
+            info.writeInt(nodeRef.size() + ferryRef.size());
+            info.writeInt(numberOfEdges);
             info.close();
-        } catch (FileNotFoundException ex) {
+        } catch (IOException ex) {
             ex.printStackTrace(System.err);
         }
     }
@@ -358,7 +356,7 @@ public class OSMParser extends DefaultHandler
         edgeSet.add(new Edge(roadType, name, exitNumber, speedLimit, oneWay, nodeIds));
     }
 
-    public void writeEdge(Edge edge)
+    public void writeEdge(Edge edge, DataOutputStream edgeStream) throws IOException
     {
         long[] nodeIds = edge.getNodeIds();
         Node[] nodes = new Node[nodeIds.length];
@@ -377,27 +375,19 @@ public class OSMParser extends DefaultHandler
                 length += nodes[i - 1].getPoint().distance(nodes[i].getPoint());
             }
             //edgeStream.println("TYPE,VEJNAVN,LÆNGDE,FRAKOERSEL,SPEED,DRIVETIME,ONEWAY,NODES...");
-            StringBuilder sb = new StringBuilder("");
-            sb.append(edge.getType().getTypeNo());
-            sb.append(separator);
-            sb.append('`');
-            sb.append(edge.getRoadname());
-            sb.append('`');
-            sb.append(separator);
-            sb.append(String.format(Locale.ENGLISH, "%.2f", length));
-            sb.append(separator);
-            sb.append(edge.getExitNumber());
-            sb.append(separator);
-            sb.append(edge.getSpeedLimit());
-            sb.append(separator);
-            sb.append(String.format(Locale.ENGLISH, "%.2f", ((length / (edge.getSpeedLimit() * 1000 / 60)) * 1.15)));
-            sb.append(separator);
-            sb.append(edge.getOneWay().getNumber());
-            for (int i = lastSplitIndex; i <= index; i++) {
-                sb.append(separator);
-                sb.append(nodes[i].getId());
+            edgeStream.writeInt(edge.getType().getTypeNo());
+            if (edge.getRoadname() == null) {
+                edgeStream.writeUTF("");
+            } else {
+                edgeStream.writeUTF(edge.getRoadname());
             }
-            edgeStream.println(sb.toString());
+            edgeStream.writeFloat((float)length);
+            edgeStream.writeFloat((float)((length / (edge.getSpeedLimit() * 1000 / 60)) * 1.15));
+            edgeStream.writeInt(edge.getOneWay().getNumber());
+            edgeStream.writeInt(index + 1 - lastSplitIndex);
+            for (int i = lastSplitIndex; i <= index; i++) {
+                edgeStream.writeInt((int) nodes[i].getId());
+            }
             numberOfEdges++;
             lastSplitIndex = index;
             index++;

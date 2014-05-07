@@ -13,7 +13,7 @@ public class Edge
 
     private final OSMRoadType type;
     private final String roadname;
-    private final int exitNumber;
+   // private final int exitNumber;
     private final int speedLimit;
     private final OneWay oneWay;
     private final long[] nodeIds;
@@ -27,7 +27,7 @@ public class Edge
         } else {
             s.append(",");
         }
-        s.append(exitNumber).append(",").append(speedLimit).append(",").append(oneWay.getNumber());
+        /*s.append(exitNumber).append(",")*/s.append(speedLimit).append(",").append(oneWay.getNumber());
         for (long l : nodeIds) {
             s.append(",").append(l);
         }
@@ -47,7 +47,7 @@ public class Edge
         } else {
             this.roadname = "";
         }
-        this.exitNumber = exitNumber;
+        //this.exitNumber = exitNumber;
         if (speedLimit == 0) {
             this.speedLimit = type.getSpeed();
         } else {
@@ -72,10 +72,10 @@ public class Edge
         return nodeIds;
     }
 
-    public int getExitNumber()
+    /*public int getExitNumber()
     {
         return exitNumber;
-    }
+    }*/
 
     public int getSpeedLimit()
     {

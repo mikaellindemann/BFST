@@ -16,22 +16,24 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
-import java.util.Stack;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -43,7 +45,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JTextField;
 import javax.swing.event.ListSelectionListener;
 
 /**
@@ -66,11 +67,8 @@ public class View extends JComponent implements Observer
     private JList<InternalEdge> routingList;
     private BufferedImage image;
     private JPanel flowPanel, leftPanel;
-    private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut, searchButton;
-    private JLabel label_from, label_to, label_path;
-    private JTextField textField_from, textField_to;
-    private JMenuItem startPoint, endPoint, reset;
-    private JRadioButtonMenuItem radioMove, radioZoom;
+    private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
+    private JLabel label_path;
     private JPopupMenu menu;
     private Point e;
 
@@ -126,11 +124,6 @@ public class View extends JComponent implements Observer
         flowPanel.add(remotePanel);
 
         leftPanelOpen = new JPanel(new FlowLayout(FlowLayout.LEADING));
-        leftPanelOpen.add(label_from);
-        leftPanelOpen.add(textField_from);
-        leftPanelOpen.add(label_to);
-        leftPanelOpen.add(textField_to);
-        leftPanelOpen.add(searchButton);
         leftPanelOpen.add(label_path);
         JScrollPane scrollPane = new JScrollPane(routingList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setPreferredSize(new Dimension(180, 400));
@@ -153,7 +146,9 @@ public class View extends JComponent implements Observer
     private void createMenu()
     {
         menu = new JPopupMenu();
-        startPoint = new JMenuItem("Set startpoint");
+        menu.setLightWeightPopupEnabled(true);
+        menu.updateUI();
+        JMenuItem startPoint = new JMenuItem("Set startpoint", new ImageIcon("./res/flag_point_1.png"));
         startPoint.addActionListener(new ActionListener()
         {
 
@@ -162,14 +157,17 @@ public class View extends JComponent implements Observer
             {
                 try {
                     model.setFromNode(model.translatePoint(e.x, e.y));
-                    map.repaint();
+                    if (model.pathPointsSet()) {
+                        map.repaint();
+                    }
                 } catch (NoPathFoundException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
+                    model.resetPointSet();
                 }
             }
 
         });
-        endPoint = new JMenuItem("Set endpoint");
+        JMenuItem endPoint = new JMenuItem("Set endpoint", new ImageIcon("./res/flag_point_2.png"));
         endPoint.addActionListener(new ActionListener()
         {
 
@@ -178,33 +176,84 @@ public class View extends JComponent implements Observer
             {
                 try {
                     model.setToNode(model.translatePoint(e.x, e.y));
-                    map.repaint();
+                    if (model.pathPointsSet()) {
+                        map.repaint();
+                    }
                 } catch (NoPathFoundException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
             }
 
         });
+        JMenuItem resetDirections = new JMenuItem("Reset directions");
+        resetDirections.addActionListener(new ActionListener() {
 
-        radioMove = new JRadioButtonMenuItem("Move");
-        radioMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
-        radioZoom = new JRadioButtonMenuItem("Zoom");
-        radioZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
-        radioMove.setSelected(model.getMouseTool() == MouseTool.MOVE);
-        radioZoom.setSelected(model.getMouseTool() == MouseTool.ZOOM);
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                model.resetPointSet();
+                map.repaint();
+            }
+            
+        });
+        JMenuItem pathDist = new JRadioButtonMenuItem("Shortest path");
+        pathDist.setSelected(!model.getPathByDriveTime());
+        pathDist.addActionListener(new ActionListener()
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                model.setPathByDriveTime(false);
+                if (model.pathPointsSet()) {
+                    map.repaint();
+                }
+            }
+
+        });
+        JMenuItem pathTime = new JRadioButtonMenuItem("Fastest path");
+        pathTime.setSelected(model.getPathByDriveTime());
+        pathTime.addActionListener(new ActionListener()
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                model.setPathByDriveTime(true);
+                if (model.pathPointsSet()) {
+                    map.repaint();
+                }
+            }
+        });
+        ButtonGroup paths = new ButtonGroup();
+        paths.add(pathDist);
+        paths.add(pathTime);
+
+        JMenuItem mouseMove = new JRadioButtonMenuItem("Move");
+        mouseMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
+        JMenuItem mouseZoom = new JRadioButtonMenuItem("Zoom");
+        mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
+        mouseMove.setSelected(model.getMouseTool() == MouseTool.MOVE);
+        mouseZoom.setSelected(model.getMouseTool() == MouseTool.ZOOM);
         ButtonGroup group = new ButtonGroup();
-        group.add(radioMove);
-        group.add(radioZoom);
+        group.add(mouseMove);
+        group.add(mouseZoom);
 
-        reset = new JMenuItem("Show Denmark");
+        JMenuItem reset = new JMenuItem("Show Denmark");
         reset.addActionListener(Action.RESET.getListener(model));
 
+        menu.add(pathDist);
+        menu.add(pathTime);
+        menu.addSeparator();
         menu.add(startPoint);
         menu.add(endPoint);
-        menu.add(reset);
         menu.addSeparator();
-        menu.add(radioMove);
-        menu.add(radioZoom);
+        menu.add(resetDirections);
+        menu.addSeparator();
+        menu.add(mouseMove);
+        menu.add(mouseZoom);
+        menu.addSeparator();
+        menu.add(reset);
     }
 
     public void showContextMenu(Point e)
@@ -213,7 +262,7 @@ public class View extends JComponent implements Observer
         menu.show(map, e.x, e.y);
     }
 
-    private class MyMouseListener implements MouseListener
+    private class MyMouseListener extends MouseAdapter
     {
 
         JPanel empty;
@@ -238,24 +287,6 @@ public class View extends JComponent implements Observer
                 revalidate();
                 visible = true;
             }
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e)
-        {
-            //Nothing yet
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e)
-        {
-            //Nothing yet
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e)
-        {
-            //Nothing yet
         }
 
         @Override
@@ -306,35 +337,10 @@ public class View extends JComponent implements Observer
         buttonZoomOut = new JButton("-");
         buttonZoomOut.setMaximumSize(new Dimension(100, 40));
         buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
-
-        searchButton = new JButton("Search");
-
-        searchButton.setPreferredSize(new Dimension(180, 20));
-
-        searchButton.addActionListener(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent arg0)
-            {
-                String search_from = textField_from.getText();
-                String search_to = textField_to.getText();
-                System.out.println("search_from = " + search_from);
-                System.out.println("search_to = " + search_to);
-            }
-        });
     }
 
     private void createLabels()
     {
-
-        label_from = new JLabel("From:");
-        label_from.setFont(uiFont);
-        label_from.setForeground(Color.WHITE);
-
-        label_to = new JLabel("To:");
-        label_to.setFont(uiFont);
-        label_to.setForeground(Color.WHITE);
-
         label_path = new JLabel("Path:");
         label_path.setFont(uiFont);
         label_path.setForeground(Color.WHITE);
@@ -344,11 +350,6 @@ public class View extends JComponent implements Observer
     {
         routingList = new JList<>();
         routingList.setFixedCellWidth(180);
-        textField_from = new JTextField();
-        textField_from.setPreferredSize(new Dimension(180, 20));
-
-        textField_to = new JTextField();
-        textField_to.setPreferredSize(new Dimension(180, 20));
     }
 
     public JComponent getMap()
@@ -384,7 +385,7 @@ public class View extends JComponent implements Observer
             Point2D pressed = model.getPressed();
             if (model.getMouseTool() == MouseTool.ZOOM && pressed != null) {
                 Graphics2D gB = (Graphics2D) g;
-                gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                //gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 gB.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
 
                 double factor = model.getFactor();
@@ -425,7 +426,6 @@ public class View extends JComponent implements Observer
                 Graphics2D gB = image.createGraphics();
                 gB.setColor(Color.BLUE.darker().darker());
                 gB.fillRect(0, 0, getWidth(), getHeight());
-                gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 final double factor = model.getFactor();
                 gB.setFont(gB.getFont().deriveFont(AffineTransform.getScaleInstance(factor, -factor)));
                 Point2D topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
@@ -435,6 +435,7 @@ public class View extends JComponent implements Observer
 
                 for (CommonRoadType rt : CommonRoadType.values()) {
                     if (rt.isEnabled(factor)) {
+                        gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                         gB.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                         switch (rt) {
                             case MOTORWAY:
@@ -478,6 +479,7 @@ public class View extends JComponent implements Observer
                                 gB.setColor(Color.BLUE.darker());
                                 break;
                             case COASTLINE:
+                                gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
                                 gB.setColor(groundColor);
                                 gB.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                                 break;
@@ -509,15 +511,15 @@ public class View extends JComponent implements Observer
                         }
                     }
                 }
-                if (model.pathPointSet()) {
-                    Stack<Edge> edges = null;
+                if (model.pathPointsSet()) {
+                    Deque<Edge> edges = null;
                     try {
                         edges = model.getPath();
                     } catch (NoPathFoundException ex) {
                         showErrorMessage(ex.getMessage());
                     }
                     if (edges != null) {
-                        Stack<InternalEdge> routeStack = new Stack<>();
+                        Deque<InternalEdge> routeStack = new ArrayDeque<>();
                         Set<Edge> edgeSet = new HashSet<>();
                         String name = null;
                         float length = 0;
@@ -538,7 +540,7 @@ public class View extends JComponent implements Observer
                             }
                         }
                         InternalEdge[] list = new InternalEdge[routeStack.size()];
-                        for (int i = 0; !routeStack.empty(); i++) {
+                        for (int i = 0; !routeStack.isEmpty(); i++) {
                             list[i] = routeStack.pop();
                         }
                         routingList.setListData(list);

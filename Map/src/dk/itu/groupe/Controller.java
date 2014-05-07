@@ -1,9 +1,11 @@
 package dk.itu.groupe;
 
-import dk.itu.groupe.pathfinding.NoPathFoundException;
+import dk.itu.groupe.data.CommonRoadType;
 import java.awt.BorderLayout;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.swing.*;
 
 /**
@@ -11,11 +13,10 @@ import javax.swing.*;
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)
  */
-public class Controller implements
+public class Controller extends ComponentAdapter implements
         MouseListener,
         MouseMotionListener,
         MouseWheelListener,
-        ComponentListener,
         WindowStateListener
 {
 
@@ -92,7 +93,7 @@ public class Controller implements
             model.setPressed(null);
             model.setDragged(null);
         }
-        if (me.isPopupTrigger()) {
+        if (SwingUtilities.isRightMouseButton(me)) {
             view.showContextMenu(me.getPoint());
         }
     }
@@ -124,23 +125,6 @@ public class Controller implements
     {
         model.setSize(view.getMap().getSize().width, view.getMap().getSize().height);
         model.notifyObservers();
-    }
-
-    @Override
-    public void componentMoved(ComponentEvent e)
-    {
-    }
-
-    @Override
-    public void componentShown(ComponentEvent e)
-    {
-        componentMoved(e);
-    }
-
-    @Override
-    public void componentHidden(ComponentEvent e)
-    {
-
     }
 
     @Override
@@ -221,20 +205,14 @@ public class Controller implements
             System.exit(0);
         }
         long time = System.currentTimeMillis();
-        JFrame frame = new JFrame("GroupE-map Loading");
+        JFrame frame = new JFrame("GroupE-map");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setIconImage(new ImageIcon("res/Icon.png").getImage());
-        Model model = new Model(dataset);
-        frame.add(model.getLoadingPanel());
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-
-        model.load();
-        frame.setVisible(false);
-        frame.remove(model.getLoadingPanel());
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        View view = new View(model);
+        final Model model = new Model(dataset);
+        model.loadCoastline();
+        System.out.println("Loaded coastline in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
+        time = System.currentTimeMillis();
+        final View view = new View(model);
         model.addObserver(view);
         Controller controller = new Controller(model, view);
         view.getMap().addComponentListener(controller);
@@ -246,10 +224,45 @@ public class Controller implements
         glassPane.setOpaque(false);
         frame.setGlassPane(glassPane);
         frame.add(view);
-        frame.setTitle("GroupE-map");
         frame.pack();
         frame.setVisible(true);
-        System.out.println((System.currentTimeMillis() - time) / 1000.0);
-        System.gc();
+        model.loadNodes(); 
+        System.out.println("Loaded nodes in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
+        ExecutorService es = Executors.newFixedThreadPool(2);
+        CommonRoadType[] roadtypePriority = new CommonRoadType[]{
+            CommonRoadType.MOTORWAY,
+            CommonRoadType.MOTORWAY_LINK,
+            CommonRoadType.TRUNK,
+            CommonRoadType.TRUNK_LINK,
+            CommonRoadType.TUNNEL,
+            CommonRoadType.FERRY,
+            CommonRoadType.PRIMARY,
+            CommonRoadType.PRIMARY_LINK,
+            CommonRoadType.SECONDARY,
+            CommonRoadType.SECONDARY_LINK,
+            CommonRoadType.TERTIARY,
+            CommonRoadType.TERTIARY_LINK,
+            CommonRoadType.ROAD,
+            CommonRoadType.UNCLASSIFIED,
+            CommonRoadType.RESIDENTIAL,
+            CommonRoadType.PEDESTRIAN,
+            CommonRoadType.TRACK,
+            CommonRoadType.PATH,
+            CommonRoadType.PLACES
+        };
+        for (final CommonRoadType rt : roadtypePriority) {
+            es.execute(new Runnable()
+            {
+
+                @Override
+                public void run()
+                {
+                    model.loadRoadType(rt);
+                    if (rt.isEnabled(model.getFactor())) {
+                        view.getMap().repaint();
+                    }
+                }
+            });
+        }
     }
 }

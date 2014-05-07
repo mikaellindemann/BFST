@@ -1,9 +1,9 @@
 package dk.itu.groupe.parsing.coastline;
 
 import de.jotschi.geoconvert.GeoConvert;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
 import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
 import org.nocrala.tools.gis.data.esri.shapefile.exception.InvalidShapeFileException;
@@ -21,7 +21,6 @@ import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonShape;
  */
 public class ShapeParser
 {
-    private final DecimalFormat df = new DecimalFormat("#.######", new DecimalFormatSymbols(Locale.ENGLISH));
     private final double xMin, yMin, xMax, yMax;
     private final java.awt.geom.Rectangle2D denmark;
     String fileName;
@@ -69,8 +68,8 @@ public class ShapeParser
         prefs.setAllowUnlimitedNumberOfPointsPerShape(true);
         ShapeFileReader shapeReader = new ShapeFileReader(new java.io.FileInputStream(file), prefs);
         new java.io.File("./res/data/coastline").mkdirs();
-        java.io.PrintStream edgeWriter = new java.io.PrintStream("./res/data/coastline/edges.csv");
-        java.io.PrintStream nodeWriter = new java.io.PrintStream("./res/data/coastline/nodes.csv");
+        DataOutputStream edgeWriter = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("./res/data/coastline/edges.bin")));
+        DataOutputStream nodeWriter = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("./res/data/coastline/nodes.bin")));
         int nodenumber = 0;
         for (AbstractShape s = shapeReader.next(); s != null; s = shapeReader.next()) {
             switch (s.getShapeType()) {
@@ -86,19 +85,16 @@ public class ShapeParser
                     }
                     for (int j = 0; j < polygon.getNumberOfParts(); j++) {
                         PointData[] pds = polygon.getPointsOfPart(j);
+                        edgeWriter.writeInt(pds.length - 1);
                         for (int i = 0; i < pds.length - 1; i++) {
                             PointData pd = pds[i];
                             double[] xy = new double[2];
                             assert 32 == GeoConvert.LatLonToUTMXY(GeoConvert.DegToRad(pd.getY()), GeoConvert.DegToRad(pd.getX()), 32, xy);
-                            if (i == 0) {
-                                edgeWriter.print(nodenumber);
-                            } else {
-                                edgeWriter.print("," + nodenumber);
-                            }
-                            nodeWriter.println(nodenumber++ + "," + df.format(xy[0])
-                                    + "," + df.format(xy[1]));
+                            edgeWriter.writeInt(nodenumber);
+                            nodeWriter.writeInt(nodenumber++);
+                            nodeWriter.writeFloat((float)xy[0]);
+                            nodeWriter.writeFloat((float)xy[1]);
                         }
-                        edgeWriter.println();
                     }
                     break;
             }

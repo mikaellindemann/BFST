@@ -15,8 +15,6 @@ public class Edge
     private final CommonRoadType type;
     private final String roadname;
     private final float length;
-    private final int exitNumber;
-    private final int speedLimit;
     private final float driveTime;
     private final OneWay oneWay;
     private final Shape path;
@@ -28,8 +26,6 @@ public class Edge
         type = null;
         roadname = null;
         length = 0;
-        exitNumber = 0;
-        speedLimit = 0;
         driveTime = 0;
         oneWay = null;
         float xMin = nodes[0].x();
@@ -51,13 +47,11 @@ public class Edge
         centerY = (yMin + yMax) / 2;
     }
 
-    public Edge(CommonRoadType type, String roadname, float length, int exitNumber, int speedLimit, float driveTime, OneWay oneWay, Node[] nodes)
+    public Edge(CommonRoadType type, String roadname, float length, float driveTime, OneWay oneWay, Node[] nodes)
     {
         this.type = type;
         this.roadname = roadname;
         this.length = length;
-        this.exitNumber = exitNumber;
-        this.speedLimit = speedLimit;
         this.driveTime = driveTime;
         this.oneWay = oneWay;
         this.nodes = nodes;

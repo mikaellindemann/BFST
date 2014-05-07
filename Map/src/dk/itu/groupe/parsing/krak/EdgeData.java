@@ -33,7 +33,7 @@ public class EdgeData
      public final String TORIGHT_BOGSTAV;
      public final int V_POSTNR;
      public final int H_POSTNR;*/
-    public final int FRAKOERSEL;
+    //public final int FRAKOERSEL;
     public final int SPEED;
     public final double DRIVETIME;
     public final OneWay ONE_WAY;
@@ -51,7 +51,7 @@ public class EdgeData
                  + */ TYPE.getNewTypeNumber() + ","
                 + "`" + VEJNAVN + "`,"
                 + LENGTH + ","
-                + FRAKOERSEL + ","
+                //+ FRAKOERSEL + ","
                 + SPEED + ","
                 + DRIVETIME + ","
                 + ONE_WAY.getNumber() + ","
@@ -109,7 +109,7 @@ public class EdgeData
         dl.getInt();
         dl.getInt();
         dl.getString();
-        FRAKOERSEL = dl.getInt();
+        /*FRAKOERSEL = */dl.getInt();
         dl.getInt();
         SPEED = dl.getInt();
         DRIVETIME = dl.getDouble();

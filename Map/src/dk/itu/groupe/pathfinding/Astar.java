@@ -8,7 +8,8 @@ package dk.itu.groupe.pathfinding;
 import dk.itu.groupe.data.Edge;
 import dk.itu.groupe.pathfinding.EdgeWeightedDigraph.WeightedEdge;
 import dk.itu.groupe.data.Node;
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * The <tt>DijkstraSP</tt> class represents a data type for solving the
@@ -82,9 +83,6 @@ public class Astar
                 relax(e, t);
             }
         }
-
-        // check optimality conditions
-        assert check(G, s);
     }
 
     // relax edge e and update pq if changed
@@ -137,73 +135,15 @@ public class Astar
      * <tt>v</tt>
      * as an iterable of edges, and <tt>null</tt> if no such path
      */
-    public Stack<Edge> pathTo(int v)
+    public Deque<Edge> pathTo(int v)
     {
         if (!hasPathTo(v)) {
             return null;
         }
-        Stack<Edge> path = new Stack<>();
+        Deque<Edge> path = new ArrayDeque<>();
         for (WeightedEdge e = edgeTo[v]; e != null; e = edgeTo[e.from]) {
             path.push(e.e);
         }
         return path;
-    }
-
-    // check optimality conditions:
-    // (i) for all edges e:            distTo[e.to()] <= distTo[e.from()] + e.weight()
-    // (ii) for all edge e on the SPT: distTo[e.to()] == distTo[e.from()] + e.weight()
-    private boolean check(EdgeWeightedDigraph G, int s)
-    {
-
-        // check that edge weights are nonnegative
-        for (Edge e : G.edges()) {
-            if (e.getLength() < 0) {
-                System.err.println("negative edge weight detected");
-                return false;
-            }
-        }
-
-        // check that distTo[v] and edgeTo[v] are consistent
-        if (distTo[s] != 0.0 || edgeTo[s] != null) {
-            System.err.println("distTo[s] and edgeTo[s] inconsistent");
-            return false;
-        }
-        for (int v = 0; v < G.V(); v++) {
-            if (v == s) {
-                continue;
-            }
-            if (edgeTo[v] == null && distTo[v] != Double.POSITIVE_INFINITY) {
-                System.err.println("distTo[] and edgeTo[] inconsistent");
-                return false;
-            }
-        }
-
-        // check that all edges e = v->w satisfy distTo[w] <= distTo[v] + e.weight()
-        for (int v = 0; v < G.V(); v++) {
-            for (WeightedEdge e : G.adj(v)) {
-                int w = e.to;
-                if (distTo[v] + e.getWeight(driveTime) < distTo[w]) {
-                    System.err.println("edge " + e + " not relaxed");
-                    return false;
-                }
-            }
-        }
-
-        // check that all edges e = v->w on SPT satisfy distTo[w] == distTo[v] + e.weight()
-        for (int w = 0; w < G.V(); w++) {
-            if (edgeTo[w] == null) {
-                continue;
-            }
-            WeightedEdge e = edgeTo[w];
-            int v = e.from;
-            if (w != e.to) {
-                return false;
-            }
-            if (distTo[v] + e.getWeight(driveTime) != distTo[w]) {
-                System.err.println("edge " + e + " on shortest path not tight");
-                return false;
-            }
-        }
-        return true;
     }
 }

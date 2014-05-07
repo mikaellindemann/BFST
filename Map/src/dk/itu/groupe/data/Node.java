@@ -28,6 +28,13 @@ public class Node
         x = dl.getFloat();
         y = dl.getFloat();
     }
+    
+    public Node(int id, float x, float y)
+    {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+    }
 
     /**
      * Don't use this. Meant for externalization.
