@@ -59,7 +59,7 @@ public abstract class Loader
      */
     public void loadNodes(String nodeFile)
     {
-        try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(nodeFile)))) {
+        try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(nodeFile), 8192000))) {
             while (dis.available() > 0) {
                 Node n = new Node(dis.readInt(), dis.readFloat(), dis.readFloat());
                 processNode(n);
@@ -74,7 +74,7 @@ public abstract class Loader
         File f = new File(edgeDir + "edges" + rt.getTypeNo() + ".bin");
         if (f.exists()) {
 
-            try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(f)))) {
+            try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(f), 8192000))) {
                 while (dis.available() > 0) {
                     CommonRoadType type = rtMap.get(dis.readInt());
                     assert rt == type;
@@ -113,7 +113,7 @@ public abstract class Loader
     {
         
         Node[] coastlinemap = null;
-        try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(dir + "nodes.bin")))) {
+        try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(dir + "nodes.bin"), 8192000))) {
             DataInputStream dinfo = new DataInputStream(new BufferedInputStream(new FileInputStream(dir + "info.bin")));
             coastlinemap = new Node[dinfo.readInt()];
             dinfo.close();

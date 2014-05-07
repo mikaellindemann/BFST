@@ -68,7 +68,7 @@ public class View extends JComponent implements Observer
     private BufferedImage image;
     private JPanel flowPanel, leftPanel;
     private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
-    private JLabel label_path;
+    private JLabel label_path, label_distance, label_time;
     private JPopupMenu menu;
     private Point e;
 
@@ -128,6 +128,8 @@ public class View extends JComponent implements Observer
         JScrollPane scrollPane = new JScrollPane(routingList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setPreferredSize(new Dimension(180, 400));
         leftPanelOpen.add(scrollPane);
+        leftPanelOpen.add(label_distance);
+        leftPanelOpen.add(label_time);
         leftPanelOpen.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
         leftPanelOpen.setPreferredSize(new Dimension(200, map.getHeight()));
         leftPanelOpen.setBackground(BGColor);
@@ -157,6 +159,7 @@ public class View extends JComponent implements Observer
             {
                 try {
                     model.setFromNode(model.translatePoint(e.x, e.y));
+                    updatePathList();
                     map.repaint();
                 } catch (NoPathFoundException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
@@ -174,6 +177,7 @@ public class View extends JComponent implements Observer
             {
                 try {
                     model.setToNode(model.translatePoint(e.x, e.y));
+                    updatePathList();
                     map.repaint();
                 } catch (NoPathFoundException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
@@ -189,6 +193,7 @@ public class View extends JComponent implements Observer
             public void actionPerformed(ActionEvent e)
             {
                 model.resetPointSet();
+                updatePathList();
                 map.repaint();
             }
 
@@ -203,6 +208,7 @@ public class View extends JComponent implements Observer
             {
                 model.setPathByDriveTime(false);
                 if (model.pathPointsSet()) {
+                    updatePathList();
                     map.repaint();
                 }
             }
@@ -218,6 +224,7 @@ public class View extends JComponent implements Observer
             {
                 model.setPathByDriveTime(true);
                 if (model.pathPointsSet()) {
+                    updatePathList();
                     map.repaint();
                 }
             }
@@ -341,6 +348,16 @@ public class View extends JComponent implements Observer
         label_path = new JLabel("Path:");
         label_path.setFont(uiFont);
         label_path.setForeground(Color.WHITE);
+
+        label_distance = new JLabel("Distance:");
+        label_distance.setFont(uiFont);
+        label_distance.setForeground(Color.WHITE);
+        label_distance.setPreferredSize(new Dimension(180, 20));
+
+        label_time = new JLabel("Time:");
+        label_time.setFont(uiFont);
+        label_time.setForeground(Color.WHITE);
+        label_time.setPreferredSize(new Dimension(180, 20));
     }
 
     private void createTextField()
@@ -352,6 +369,76 @@ public class View extends JComponent implements Observer
     public JComponent getMap()
     {
         return map;
+    }
+
+    public void updatePathList()
+    {
+        Deque<Edge> edges = null;
+        try {
+            if (model.pathPointsSet()) {
+                edges = model.getPath();
+            }
+        } catch (NoPathFoundException ex) {
+            showErrorMessage(ex.getMessage());
+        }
+        if (edges != null) {
+            float totalLength = 0;
+            float totalTime = 0;
+            Deque<InternalEdge> routeStack = new ArrayDeque<>();
+            String name = null;
+            float length = 0;
+            for (Edge edge : edges) {
+                if (name == null) {
+                    name = edge.getRoadname();
+                    length += edge.getLength();
+                    totalLength += edge.getLength();
+                    totalTime += edge.getDriveTime();
+                } else if (name.equals(edge.getRoadname())) {
+                    length += edge.getLength();
+                    totalLength += edge.getLength();
+                    totalTime += edge.getDriveTime();
+                } else {
+                    routeStack.add(new InternalEdge(name, length));
+                    name = edge.getRoadname();
+                    length = edge.getLength();
+                    totalLength += edge.getLength();
+                    totalTime += edge.getDriveTime();
+                }
+            }
+            InternalEdge[] list = new InternalEdge[routeStack.size()];
+            for (int i = 0; !routeStack.isEmpty(); i++) {
+                list[i] = routeStack.pop();
+            }
+            routingList.setListData(list);
+            label_distance.setText("Distance: " + df.format(totalLength / 1000) + " km");
+            int hours = (int) totalTime / 60;
+            totalTime -= hours * 60;
+            int minutes = (int) totalTime;
+            StringBuilder s = new StringBuilder("Time: ");
+            switch (hours) {
+                case 0:
+                    break;
+                case 1:
+                    s.append("1 hour ");
+                    break;
+                default:
+                    s.append(hours).append(" hours ");
+            }
+            switch (minutes) {
+                case 0:
+                    break;
+                case 1:
+                    s.append("1 minute");
+                    break;
+                default:
+                    s.append(minutes).append(" minutes");
+            }
+            label_time.setText(s.toString());
+        } else {
+            routingList.setListData(new InternalEdge[0]);
+            label_distance.setText("Distance: ");
+            label_time.setText("Time: ");
+        }
     }
 
     @Override
@@ -516,30 +603,12 @@ public class View extends JComponent implements Observer
                         showErrorMessage(ex.getMessage());
                     }
                     if (edges != null) {
-                        Deque<InternalEdge> routeStack = new ArrayDeque<>();
-                        String name = null;
-                        float length = 0;
-                        for (Edge e : edges) {
-                            if (name == null) {
-                                name = e.getRoadname();
-                                length += e.getLength();
-                            } else if (name.equals(e.getRoadname())) {
-                                length += e.getLength();
-                            } else {
-                                routeStack.add(new InternalEdge(name, length));
-                                name = e.getRoadname();
-                                length = e.getLength();
-                            }
-                        }
-                        InternalEdge[] list = new InternalEdge[routeStack.size()];
-                        for (int i = 0; !routeStack.isEmpty(); i++) {
-                            list[i] = routeStack.pop();
-                        }
-                        routingList.setListData(list);
                         gB.setColor(Color.BLUE);
                         gB.setStroke(new BasicStroke(5 * (float) model.getFactor(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                         for (Edge ed : edges) {
-                            gB.draw(ed.getShape());
+                            if (ed.getShape().intersects(topLeft.getX(), bottomRight.getY(), bottomRight.getX() - topLeft.getX(), topLeft.getY() - bottomRight.getY())) {
+                                gB.draw(ed.getShape());
+                            }
                         }
                     }
                 }
@@ -574,6 +643,7 @@ public class View extends JComponent implements Observer
 
         float length;
         String name;
+
         InternalEdge(String roadname, float length)
         {
             this.name = roadname;

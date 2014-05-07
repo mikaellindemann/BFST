@@ -81,6 +81,8 @@
     	</copy>
     	<copy todir="${dist.dir}/res">
     		<file file="res/Icon.png" />
+    		<file file="res/flag_point_1.png" />
+    		<file file="res/flag_point_2.png" />
     	</copy>
 	</target>
 </project>
