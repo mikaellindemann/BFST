@@ -207,7 +207,7 @@ public class Controller extends ComponentAdapter implements
         }
         long time = System.currentTimeMillis();
         JFrame frame = new JFrame("GroupE-map");
-        frame.setIconImage(new ImageIcon("Icon.png").getImage());
+        frame.setIconImage(new ImageIcon("./res/Icon.png").getImage());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(new LoadingPanel());
         frame.pack();
