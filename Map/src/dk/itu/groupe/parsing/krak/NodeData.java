@@ -1,7 +1,5 @@
 package dk.itu.groupe.parsing.krak;
 
-import dk.itu.groupe.loading.DataLine;
-
 /**
  * An object storing the raw node data from the krak data file.
  *
@@ -31,17 +29,5 @@ public class NodeData
         dl.getInt();
         X_COORD = dl.getDouble();
         Y_COORD = dl.getDouble();
-    }
-
-    /**
-     * Returns a string representing the node data in the same format as used in
-     * the kdv_node_unload.txt file.
-     *
-     * @return
-     */
-    @Override
-    public String toString()
-    {
-        return (ID - 1) + "," + X_COORD + "," + Y_COORD;
     }
 }

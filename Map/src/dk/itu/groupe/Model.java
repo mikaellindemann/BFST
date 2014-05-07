@@ -38,7 +38,7 @@ public class Model extends Observable
     private int width, height;
     private Astar shortestPath;
     private EdgeWeightedDigraph g;
-    private Loader loader;
+    private final Loader loader;
     private Map<CommonRoadType, List<Edge>> edgeMap;
     private MouseTool mouseTool;
     private Node[] nodeMap;
@@ -522,6 +522,16 @@ public class Model extends Observable
     public boolean pathPointsSet()
     {
         return from >= 0 && to >= 0;
+    }
+    
+    public Node fromPoint()
+    {
+        return from >= 0 ? nodeMap[from] : null;
+    }
+    
+    public Node toPoint()
+    {
+        return to >= 0 ? nodeMap[to] : null;
     }
 
     public void resetPointSet()

@@ -2,6 +2,7 @@ package dk.itu.groupe;
 
 import dk.itu.groupe.data.CommonRoadType;
 import dk.itu.groupe.data.Edge;
+import dk.itu.groupe.data.Node;
 import dk.itu.groupe.pathfinding.NoPathFoundException;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -26,11 +27,9 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
@@ -58,11 +57,12 @@ public class View extends JComponent implements Observer
     private static final DecimalFormat df = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.ENGLISH));
     private static final Font uiFont = new Font("calibri", Font.PLAIN, 15);
 
+    private final Color BGColor = Color.decode("#457B85"), groundColor = Color.decode("#96FF70");
     private final JLabel roadName;
     private final JPanel remotePanel, keyPad, directionPanel, leftPanelOpen;
     private final JComponent map;
     private final Model model;
-    private final Color BGColor = Color.decode("#457B85"), groundColor = Color.decode("#96FF70");
+    private final ImageIcon fromFlag = new ImageIcon("./res/flag_point_1.png"), toFlag = new ImageIcon("./res/flag_point_2.png");
 
     private JList<InternalEdge> routingList;
     private BufferedImage image;
@@ -148,7 +148,7 @@ public class View extends JComponent implements Observer
         menu = new JPopupMenu();
         menu.setLightWeightPopupEnabled(true);
         menu.updateUI();
-        JMenuItem startPoint = new JMenuItem("Set startpoint", new ImageIcon("./res/flag_point_1.png"));
+        JMenuItem startPoint = new JMenuItem("Set startpoint", fromFlag);
         startPoint.addActionListener(new ActionListener()
         {
 
@@ -157,9 +157,7 @@ public class View extends JComponent implements Observer
             {
                 try {
                     model.setFromNode(model.translatePoint(e.x, e.y));
-                    if (model.pathPointsSet()) {
-                        map.repaint();
-                    }
+                    map.repaint();
                 } catch (NoPathFoundException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                     model.resetPointSet();
@@ -167,7 +165,7 @@ public class View extends JComponent implements Observer
             }
 
         });
-        JMenuItem endPoint = new JMenuItem("Set endpoint", new ImageIcon("./res/flag_point_2.png"));
+        JMenuItem endPoint = new JMenuItem("Set endpoint", toFlag);
         endPoint.addActionListener(new ActionListener()
         {
 
@@ -176,9 +174,7 @@ public class View extends JComponent implements Observer
             {
                 try {
                     model.setToNode(model.translatePoint(e.x, e.y));
-                    if (model.pathPointsSet()) {
-                        map.repaint();
-                    }
+                    map.repaint();
                 } catch (NoPathFoundException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage());
                 }
@@ -186,7 +182,8 @@ public class View extends JComponent implements Observer
 
         });
         JMenuItem resetDirections = new JMenuItem("Reset directions");
-        resetDirections.addActionListener(new ActionListener() {
+        resetDirections.addActionListener(new ActionListener()
+        {
 
             @Override
             public void actionPerformed(ActionEvent e)
@@ -194,7 +191,7 @@ public class View extends JComponent implements Observer
                 model.resetPointSet();
                 map.repaint();
             }
-            
+
         });
         JMenuItem pathDist = new JRadioButtonMenuItem("Shortest path");
         pathDist.setSelected(!model.getPathByDriveTime());
@@ -520,23 +517,18 @@ public class View extends JComponent implements Observer
                     }
                     if (edges != null) {
                         Deque<InternalEdge> routeStack = new ArrayDeque<>();
-                        Set<Edge> edgeSet = new HashSet<>();
                         String name = null;
                         float length = 0;
                         for (Edge e : edges) {
                             if (name == null) {
                                 name = e.getRoadname();
                                 length += e.getLength();
-                                edgeSet.add(e);
                             } else if (name.equals(e.getRoadname())) {
                                 length += e.getLength();
-                                edgeSet.add(e);
                             } else {
-                                routeStack.add(new InternalEdge(edgeSet, name, length));
-                                edgeSet = new HashSet<>();
+                                routeStack.add(new InternalEdge(name, length));
                                 name = e.getRoadname();
                                 length = e.getLength();
-                                edgeSet.add(e);
                             }
                         }
                         InternalEdge[] list = new InternalEdge[routeStack.size()];
@@ -555,6 +547,18 @@ public class View extends JComponent implements Observer
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 image.flush();
                 g2.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
+                if (model.fromPoint() != null) {
+                    Node fromPoint = model.fromPoint();
+                    int x = (int) ((fromPoint.x() - model.getLeftTop().x) / model.getFactor()) - toFlag.getIconWidth();
+                    int y = getHeight() - (int) ((fromPoint.y() - model.getRightBottom().y) / model.getFactor()) - toFlag.getIconHeight();
+                    g2.drawImage(fromFlag.getImage(), x, y, null);
+                }
+                if (model.toPoint() != null) {
+                    Node toPoint = model.toPoint();
+                    int x = (int) ((toPoint.x() - model.getLeftTop().x) / model.getFactor()) - toFlag.getIconWidth();
+                    int y = getHeight() - (int) ((toPoint.y() - model.getRightBottom().y) / model.getFactor()) - toFlag.getIconHeight();
+                    g2.drawImage(toFlag.getImage(), x, y, null);
+                }
             }
         }
 
@@ -570,11 +574,8 @@ public class View extends JComponent implements Observer
 
         float length;
         String name;
-        Set<Edge> edges;
-
-        InternalEdge(Set<Edge> edges, String roadname, float length)
+        InternalEdge(String roadname, float length)
         {
-            this.edges = edges;
             this.name = roadname;
             this.length = length;
         }

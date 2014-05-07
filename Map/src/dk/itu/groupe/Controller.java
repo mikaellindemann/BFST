@@ -1,6 +1,7 @@
 package dk.itu.groupe;
 
 import dk.itu.groupe.data.CommonRoadType;
+import dk.itu.groupe.loading.LoadingPanel;
 import java.awt.BorderLayout;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
@@ -206,8 +207,12 @@ public class Controller extends ComponentAdapter implements
         }
         long time = System.currentTimeMillis();
         JFrame frame = new JFrame("GroupE-map");
+        frame.setIconImage(new ImageIcon("Icon.png").getImage());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.getContentPane().add(new LoadingPanel());
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
         final Model model = new Model(dataset);
         model.loadCoastline();
         System.out.println("Loaded coastline in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
@@ -223,8 +228,11 @@ public class Controller extends ComponentAdapter implements
         JPanel glassPane = new JPanel(new BorderLayout());
         glassPane.setOpaque(false);
         frame.setGlassPane(glassPane);
+        frame.setVisible(false);
+        frame.getContentPane().removeAll();
         frame.add(view);
         frame.pack();
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setVisible(true);
         model.loadNodes(); 
         System.out.println("Loaded nodes in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
