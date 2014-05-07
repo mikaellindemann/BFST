@@ -207,6 +207,9 @@ public class Controller extends ComponentAdapter implements
         }
         long time = System.currentTimeMillis();
         JFrame frame = new JFrame("GroupE-map");
+        JPanel glassPane = new JPanel(new BorderLayout());
+        glassPane.setOpaque(false);
+        frame.setGlassPane(glassPane);
         frame.setIconImage(new ImageIcon("./res/Icon.png").getImage());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().add(new LoadingPanel());
@@ -225,9 +228,6 @@ public class Controller extends ComponentAdapter implements
         view.getMap().addMouseMotionListener(controller);
         view.getMap().addMouseWheelListener(controller);
         frame.addWindowStateListener(controller);
-        JPanel glassPane = new JPanel(new BorderLayout());
-        glassPane.setOpaque(false);
-        frame.setGlassPane(glassPane);
         frame.setVisible(false);
         frame.getContentPane().removeAll();
         frame.add(view);

@@ -12,7 +12,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
@@ -33,7 +32,6 @@ import java.util.Observer;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -59,15 +57,14 @@ public class View extends JComponent implements Observer
 
     private final Color BGColor = Color.decode("#457B85"), groundColor = Color.decode("#96FF70");
     private final JLabel roadName;
-    private final JPanel remotePanel, keyPad, directionPanel, leftPanelOpen;
+    private final JPanel leftPanelOpen, flowPanel;
     private final JComponent map;
     private final Model model;
     private final ImageIcon fromFlag = new ImageIcon("./res/flag_point_1.png"), toFlag = new ImageIcon("./res/flag_point_2.png");
 
     private JList<InternalEdge> routingList;
     private BufferedImage image;
-    private JPanel flowPanel, leftPanel;
-    private JButton buttonShowAll, buttonUp, buttonDown, buttonLeft, buttonRight, buttonZoomIn, buttonZoomOut;
+    private JPanel leftPanel;
     private JLabel label_path, label_distance, label_time;
     private JPopupMenu menu;
     private Point e;
@@ -78,50 +75,16 @@ public class View extends JComponent implements Observer
         map = new MapView();
 
         // Creates buttons, labels and their listeners.
-        createButtons();
         createMenu();
-        createLabels();
         createTextField();
+        createLabels();
         roadName = new JLabel(" ");
-        keyPad = new JPanel(new GridLayout(0, 3));
-        keyPad.add(buttonZoomIn);
-        keyPad.add(buttonUp);
-        keyPad.add(buttonZoomOut);
-        keyPad.add(buttonLeft);
-        keyPad.add(buttonDown);
-        keyPad.add(buttonRight);
-
-        remotePanel = new JPanel(new FlowLayout());
-        flowPanel = new JPanel(new FlowLayout());
-        flowPanel.add(keyPad);
-        flowPanel.setBackground(BGColor);
-        remotePanel.add(flowPanel);
-        flowPanel = new JPanel(new FlowLayout());
-        flowPanel.add(buttonShowAll);
-        flowPanel.setBackground(BGColor);
-        remotePanel.add(flowPanel);
-        flowPanel = new JPanel(new FlowLayout());
-        flowPanel.add(roadName);
-        flowPanel.setBackground(BGColor);
-        remotePanel.add(flowPanel);
 
         flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-
-        directionPanel = new JPanel(new FlowLayout());
-        leftPanel = new JPanel(new FlowLayout());
-        leftPanel.setPreferredSize(new Dimension(20, map.getHeight()));
-        directionPanel.add(leftPanel);
-
-        leftPanel = new JPanel();
-        leftPanel.addMouseListener(new MyMouseListener());
-
         flowPanel.setBackground(BGColor);
-        remotePanel.setBackground(BGColor);
-        leftPanel.setBackground(BGColor);
-        directionPanel.setBackground(BGColor);
         flowPanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
-        leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
-        flowPanel.add(remotePanel);
+        flowPanel.add(roadName);
+        
 
         leftPanelOpen = new JPanel(new FlowLayout(FlowLayout.LEADING));
         leftPanelOpen.add(label_path);
@@ -134,6 +97,12 @@ public class View extends JComponent implements Observer
         leftPanelOpen.setPreferredSize(new Dimension(200, map.getHeight()));
         leftPanelOpen.setBackground(BGColor);
 
+        leftPanel = new JPanel(new FlowLayout());
+        leftPanel.setBackground(BGColor);
+        leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
+        leftPanel.setPreferredSize(new Dimension(20, map.getHeight()));
+        leftPanel.addMouseListener(new MyMouseListener());
+        
         setLayout(new BorderLayout());
         add(flowPanel, BorderLayout.SOUTH);
         add(leftPanel, BorderLayout.WEST);
@@ -268,79 +237,30 @@ public class View extends JComponent implements Observer
 
     private class MyMouseListener extends MouseAdapter
     {
-
-        JPanel empty;
-        private boolean visible = false;
+        JPanel glassPane;
+        
+        public MyMouseListener()
+        {
+            leftPanelOpen.addMouseListener(this);
+        }
 
         @Override
         public void mouseEntered(MouseEvent e)
         {
-            if (!visible) {
-                if (empty == null) {
-                    empty = new JPanel();
-                    empty.setPreferredSize(flowPanel.getSize());
-                }
-                leftPanelOpen.addMouseListener(this);
-                JPanel glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());
+            if (glassPane == null) {
+                glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());
                 glassPane.add(leftPanelOpen, BorderLayout.WEST);
-                add(empty, BorderLayout.SOUTH);
-                glassPane.add(flowPanel, BorderLayout.SOUTH);
-                glassPane.repaint();
-                glassPane.setVisible(true);
-                leftPanelOpen.repaint();
-                revalidate();
-                visible = true;
             }
+            glassPane.setVisible(true);
         }
 
         @Override
         public void mouseExited(MouseEvent e)
         {
-            if (visible && !leftPanelOpen.getBounds().contains(e.getPoint())) {
-                JComponent glassPane = ((JComponent) ((JFrame) getTopLevelAncestor()).getGlassPane());
+            if (!leftPanelOpen.getBounds().contains(e.getPoint())) {
                 glassPane.setVisible(false);
-                add(leftPanel, BorderLayout.WEST);
-                remove(empty);
-                add(flowPanel, BorderLayout.SOUTH);
-                leftPanel.repaint();
-                revalidate();
-                visible = false;
             }
         }
-    }
-
-    /**
-     * Creates buttons and assigns functions to buttons and keys.
-     */
-    private void createButtons()
-    {
-        buttonShowAll = new JButton("Show entire map");
-        buttonShowAll.setMaximumSize(new Dimension(100, 40));
-        buttonShowAll.addActionListener(Action.RESET.getListener(model));
-
-        buttonUp = new JButton("↑");
-        buttonUp.setMaximumSize(new Dimension(100, 40));
-        buttonUp.addActionListener(Action.UP.getListener(model));
-
-        buttonRight = new JButton("→");
-        buttonRight.setMaximumSize(new Dimension(100, 40));
-        buttonRight.addActionListener(Action.RIGHT.getListener(model));
-
-        buttonLeft = new JButton("←");
-        buttonLeft.setMaximumSize(new Dimension(100, 40));
-        buttonLeft.addActionListener(Action.LEFT.getListener(model));
-
-        buttonDown = new JButton("↓");
-        buttonDown.setMaximumSize(new Dimension(100, 40));
-        buttonDown.addActionListener(Action.DOWN.getListener(model));
-
-        buttonZoomIn = new JButton("+");
-        buttonZoomIn.setMaximumSize(new Dimension(100, 40));
-        buttonZoomIn.addActionListener(Action.ZOOM_IN.getListener(model));
-
-        buttonZoomOut = new JButton("-");
-        buttonZoomOut.setMaximumSize(new Dimension(100, 40));
-        buttonZoomOut.addActionListener(Action.ZOOM_OUT.getListener(model));
     }
 
     private void createLabels()
@@ -387,7 +307,8 @@ public class View extends JComponent implements Observer
             Deque<InternalEdge> routeStack = new ArrayDeque<>();
             String name = null;
             float length = 0;
-            for (Edge edge : edges) {
+            while (!edges.isEmpty()) {
+                Edge edge = edges.pollFirst();
                 if (name == null) {
                     name = edge.getRoadname();
                     length += edge.getLength();
@@ -404,7 +325,13 @@ public class View extends JComponent implements Observer
                     totalLength += edge.getLength();
                     totalTime += edge.getDriveTime();
                 }
+                if (edges.isEmpty()) {
+                    if (!routeStack.peekLast().name.equals(edge.getRoadname())) {
+                        routeStack.add(new InternalEdge(name, length));
+                    }
+                }
             }
+
             InternalEdge[] list = new InternalEdge[routeStack.size()];
             for (int i = 0; !routeStack.isEmpty(); i++) {
                 list[i] = routeStack.pop();
@@ -469,7 +396,6 @@ public class View extends JComponent implements Observer
             Point2D pressed = model.getPressed();
             if (model.getMouseTool() == MouseTool.ZOOM && pressed != null) {
                 Graphics2D gB = (Graphics2D) g;
-                //gB.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 gB.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
 
                 double factor = model.getFactor();
