@@ -99,8 +99,11 @@ public class ShapeParser
                     break;
             }
         }
+        DataOutputStream infoWriter = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("./res/data/coastline/info.bin")));
+        infoWriter.writeInt(nodenumber);
         nodeWriter.close();
         edgeWriter.close();
+        infoWriter.close();
     }
 
     /**

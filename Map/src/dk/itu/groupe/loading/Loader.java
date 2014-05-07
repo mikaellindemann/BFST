@@ -171,8 +171,12 @@ public abstract class Loader
      }*/
     public void loadCoastline(String dir)
     {
-        Node[] coastlinemap = new Node[604417];
+        
+        Node[] coastlinemap = null;
         try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(dir + "nodes.bin")))) {
+            DataInputStream dinfo = new DataInputStream(new BufferedInputStream(new FileInputStream(dir + "info.bin")));
+            coastlinemap = new Node[dinfo.readInt()];
+            dinfo.close();
             while (dis.available() > 0) {
                 Node n = new Node(dis.readInt(), dis.readFloat(), dis.readFloat());
                 coastlinemap[n.id()] = n;
