@@ -19,9 +19,9 @@ import java.util.Arrays;
 public class ShortestPath
 {
 
-    private final double[] distTo;          // distTo[v] = distance  of shortest s->v path
-    private final WeightedEdge[] edgeTo;    // edgeTo[v] = last edge on shortest s->v path
-    private final IndexMinimumPriorityQueue<Double> priorityQueue;    // priority queue of vertices
+    private final double[] distTo;
+    private final WeightedEdge[] edgeTo;
+    private final IndexMinimumPriorityQueue<Double> priorityQueue;
     private static Node[] nodeMap;
     private final boolean driveTime;
 
@@ -31,6 +31,9 @@ public class ShortestPath
      *
      * It makes all the calculations on creation, so don't create instances of
      * this class unless you really need it.
+     *
+     * It uses A*-algorithm for shortest path search, and Dijkstra, that stops
+     * when the destination has been found, for fastest path-search.
      *
      * @param g The Graph that contains the Nodes and Edges used to calculate
      * the shortest/fastest path.

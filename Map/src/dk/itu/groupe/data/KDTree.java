@@ -23,10 +23,10 @@ public class KDTree
     };
     @SuppressWarnings("unchecked")
     private final Set<Edge> empty = (Set<Edge>) Collections.EMPTY_SET;
-    private KDTree HIGH, LOW;
+    KDTree HIGH, LOW;
     private final Edge centerEdge;
-    private final double xmin, ymin, xmax, ymax;
-    private final Dimension dim;
+    final double xmin, ymin, xmax, ymax;
+    final Dimension dim;
 
     /**
      * Creates the KDTree-structure until there are no more elements.
@@ -48,15 +48,15 @@ public class KDTree
 
         LinkedList<Edge> low = new LinkedList<>(), high = new LinkedList<>();
         centerEdge = edges.get(size / 2);
-        if (ymax - ymin < xmax - xmin) {
+        if (ymax - ymin < xmax - xmin) {                                        // Label 1
             // Delta x is gratest.
             dim = Dimension.X;
             // Put the right elements where it belongs.
-            for (Edge edge : edges) {
-                if (edge == centerEdge) continue;
-                if (edge.getCenterX() < centerEdge.getCenterX()) {
+            for (Edge edge : edges) {                                           // Label 2
+                if (edge == centerEdge) continue;                               // Label 3
+                if (edge.getCenterX() < centerEdge.getCenterX()) {              // Label 4
                     low.add(edge);
-                } else {
+                } else {                    
                     high.add(edge);
                 }
             }
@@ -64,9 +64,9 @@ public class KDTree
             // Delta y is the same size or greater.
             dim = Dimension.Y;
             // Put the right elements where it belongs.
-            for (Edge edge : edges) {
-                if (edge == centerEdge) continue;
-                if (edge.getCenterY() < centerEdge.getCenterY()) {
+            for (Edge edge : edges) {                                           // Label 5
+                if (edge == centerEdge) continue;                               // Label 6
+                if (edge.getCenterY() < centerEdge.getCenterY()) {              // Label 7
                     low.add(edge);
                 } else {
                     high.add(edge);
@@ -75,7 +75,7 @@ public class KDTree
         }
         assert (size == high.size() + 1 + low.size());
         double[] lowBounds = new double[4], highBounds = new double[4];
-        if (dim == Dimension.X) {
+        if (dim == Dimension.X) {                                               // Label 8
             lowBounds[0] = xmin;
             lowBounds[1] = ymin;
             lowBounds[2] = centerEdge.getCenterX();
@@ -97,10 +97,10 @@ public class KDTree
             highBounds[3] = ymax;
         }
 
-        if (!low.isEmpty()) {
+        if (!low.isEmpty()) {                                                   // Label 9
             LOW = new KDTree(low, lowBounds[0], lowBounds[1], lowBounds[2], lowBounds[3]);
         }
-        if (!high.isEmpty()) {
+        if (!high.isEmpty()) {                                                  // Label 10
             HIGH = new KDTree(high, highBounds[0], highBounds[1], highBounds[2], highBounds[3]);
         }
     }
@@ -119,13 +119,13 @@ public class KDTree
         Set<Edge> ns = getEdges(x - lookupRadius, y - lookupRadius, x + lookupRadius, y + lookupRadius);
         double dist = Double.MAX_VALUE;
         Edge nearest = null;
-        for (Edge edge : ns) {
+        for (Edge edge : ns) {                                                  // Label 11
             Point2D start = null;
             Point2D last = null;
-            for (PathIterator pi = edge.getShape().getPathIterator(null); !pi.isDone(); pi.next()) {
+            for (PathIterator pi = edge.getShape().getPathIterator(null); !pi.isDone(); pi.next()) {    // Label 12
                 double[] coords = new double[6];
                 int type = pi.currentSegment(coords);
-                switch (type) {
+                switch (type) {                                                 // Label 13
                     case PathIterator.SEG_MOVETO:
                         start = last = new Point2D.Double(coords[0], coords[1]);
                         break;
@@ -168,34 +168,34 @@ public class KDTree
     public Set<Edge> getEdges(double leftX, double bottomY, double rightX, double topY)
     {
         int offset = 5000;
-        if (dim == Dimension.X) {
-            if (rightX + offset < xmin || leftX - offset > xmax) {
+        if (dim == Dimension.X) {                                               // Label 14
+            if (rightX + offset < xmin || leftX - offset > xmax) {              // Label 15
                 return empty;
             }
         } else {
-            if (topY + offset < ymin || bottomY - offset > ymax) {
+            if (topY + offset < ymin || bottomY - offset > ymax) {              // Label 16
                 return empty;
             }
         }
 
         Set<Edge> edgeList;
-        if (LOW != null) {
+        if (LOW != null) {                                                      // Label 17
             edgeList = LOW.getEdges(leftX, bottomY, rightX, topY);
-            if (edgeList.isEmpty()) {
+            if (edgeList.isEmpty()) {                                           // Label 18
                 edgeList = new HashSet<>();
             }
-            if (HIGH != null) {
+            if (HIGH != null) {                                                 // Label 19
                 edgeList.addAll(HIGH.getEdges(leftX, bottomY, rightX, topY));
             }
-        } else if (HIGH != null) {
+        } else if (HIGH != null) {                                              // Label 20
             edgeList = HIGH.getEdges(leftX, bottomY, rightX, topY);
-            if (edgeList.isEmpty()) {
+            if (edgeList.isEmpty()) {                                           // Label 21
                 edgeList = new HashSet<>();
             }
         } else {
             edgeList = new HashSet<>();
         }
-        if (centerEdge.getShape().intersects(leftX, bottomY, rightX - leftX, topY - bottomY)) {
+        if (centerEdge.getShape().intersects(leftX, bottomY, rightX - leftX, topY - bottomY)) { // Label 22
             edgeList.add(centerEdge);
         }
         return edgeList;

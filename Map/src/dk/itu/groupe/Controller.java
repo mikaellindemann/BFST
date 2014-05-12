@@ -2,6 +2,7 @@ package dk.itu.groupe;
 
 import dk.itu.groupe.data.CommonRoadType;
 import dk.itu.groupe.loading.LoadingPanel;
+import dk.itu.groupe.pathfinding.NoPathFoundException;
 import java.awt.BorderLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -42,7 +43,7 @@ public class Controller extends ComponentAdapter implements
     private final Model model;
     private final View view;
 
-    private Point lastRightClick;
+    private static Point lastRightClick;
 
     public Controller(final Model model, final View view)
     {
@@ -67,6 +68,13 @@ public class Controller extends ComponentAdapter implements
     @Override
     public void mouseMoved(MouseEvent me)
     {
+        // The two if statements decides whether the left panel is shown or not.
+        if (me.getX() < 15) {
+            view.openLeftPanel();
+        }
+        if (me.getX() > 250) {
+            view.closeLeftPanel();
+        }
         Point2D p = model.translatePoint(me.getX(), me.getY());
         model.updateRoadname(p.getX(), p.getY());
         model.notifyObservers("updateRoadname");
@@ -190,6 +198,35 @@ public class Controller extends ComponentAdapter implements
                 case ZOOM_IN:
                     model.zoomIn();
                     break;
+                case FASTEST:
+                    model.setPathByDriveTime(true);
+                    model.notifyObservers("updateRoadList");
+                    break;
+                case SHORTEST:
+                    model.setPathByDriveTime(false);
+                    model.notifyObservers("updateRoadList");
+                    break;
+                case RESET_DIRECTIONS:
+                    model.resetPointSet();
+                    model.notifyObservers("updateRoadList");
+                    break;
+                case SET_FROM:
+                    try {
+                        assert lastRightClick != null;
+                        model.setFromNode(model.translatePoint(lastRightClick.x, lastRightClick.y));
+                    } catch (NoPathFoundException ex) {
+                        JOptionPane.showMessageDialog(null, ex);
+                    }
+                    model.notifyObservers("updateRoadList");
+                    break;
+                case SET_TO:
+                    try {
+                        model.setToNode(model.translatePoint(lastRightClick.x, lastRightClick.y));
+                    } catch (NoPathFoundException ex) {
+                        JOptionPane.showMessageDialog(null, ex);
+                    }
+                    model.notifyObservers("updateRoadList");
+                    break;
                 case ZOOM_OUT:
                     model.zoomOut();
                     break;
@@ -211,13 +248,14 @@ public class Controller extends ComponentAdapter implements
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
             ex.printStackTrace(System.err);
         }
+        ImageIcon icon = new ImageIcon("./res/Icon.png");
         String dataset = (String) JOptionPane.showInputDialog(null,
                 "Do you want to use Krak data or OpenStreetMap-data?\n"
                 + "Krak is a smaller and older dataset, but loads faster\n"
                 + "OpenStreetMap is newer and contains more data.",
                 "Choose data",
                 JOptionPane.QUESTION_MESSAGE,
-                null,
+                icon,
                 new String[]{"Krak", "OpenStreetMap"},
                 "OpenStreetMap");
         if (dataset == null) {
@@ -228,27 +266,31 @@ public class Controller extends ComponentAdapter implements
         JPanel glassPane = new JPanel(new BorderLayout());
         glassPane.setOpaque(false);
         frame.setGlassPane(glassPane);
-        frame.setIconImage(new ImageIcon("./res/Icon.png").getImage());
+        frame.setIconImage(icon.getImage());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().add(new LoadingPanel());
+        LoadingPanel lp = new LoadingPanel();
+        frame.getContentPane().add(lp);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         final Model model = new Model(dataset);
-        
+
         //Loading the actual map.
         model.loadCoastline();
+        lp.elementLoaded();
         System.out.println("Loaded coastline in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
         time = System.currentTimeMillis();
         model.loadNodes();
+        lp.elementLoaded();
         System.out.println("Loaded nodes in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
         time = System.currentTimeMillis();
         for (final CommonRoadType rt : CommonRoadType.values()) {
             model.loadRoadType(rt);
+            lp.elementLoaded();
         }
         System.out.println("Loaded edges in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
         // Finished loading.
-        
+
         final View view = new View(model);
         model.addObserver(view);
         Controller controller = new Controller(model, view);

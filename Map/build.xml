@@ -71,18 +71,8 @@
 
     -->
     <target name="-post-jar">
-    	<jar destfile="dist/Map.jar" update="true">
-        	<fileset dir="${basedir}">
-            	<include name="res/loading.png"/>
-        	</fileset>
-    	</jar>
-    	<copy todir="${dist.dir}/res/data">
-    		<fileset dir="res/data"/>
-    	</copy>
     	<copy todir="${dist.dir}/res">
-    		<file file="res/Icon.png" />
-    		<file file="res/flag_point_1.png" />
-    		<file file="res/flag_point_2.png" />
+    		<fileset dir="res"/>
     	</copy>
 	</target>
 </project>

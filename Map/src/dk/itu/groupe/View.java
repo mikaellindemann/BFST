@@ -16,10 +16,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -57,7 +53,7 @@ public class View extends JComponent implements Observer
 
     private final Color BGColor = Color.decode("#457B85"), groundColor = Color.decode("#96FF70");
     private final JLabel roadName;
-    private final JPanel leftPanelOpen, flowPanel, leftPanel;
+    private final JPanel leftPanelOpen, roadnamePanel;
     private final JComponent map;
     private final Model model;
     private final ImageIcon fromFlag = new ImageIcon("./res/flag_point_1.png"), toFlag = new ImageIcon("./res/flag_point_2.png");
@@ -66,7 +62,6 @@ public class View extends JComponent implements Observer
     private BufferedImage image;
     private JLabel label_path, label_distance, label_time;
     private JPopupMenu menu;
-    private Point e;
 
     public View(final Model model)
     {
@@ -79,35 +74,24 @@ public class View extends JComponent implements Observer
         createLabels();
         roadName = new JLabel(" ");
 
-        flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-        flowPanel.setBackground(BGColor);
-        flowPanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
-        flowPanel.add(roadName);
-        
+        roadnamePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        roadnamePanel.setBackground(BGColor);
+        roadnamePanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
+        roadnamePanel.add(roadName);
 
         leftPanelOpen = new JPanel(new FlowLayout(FlowLayout.LEADING));
         leftPanelOpen.add(label_path);
         JScrollPane scrollPane = new JScrollPane(routingList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setPreferredSize(new Dimension(180, 400));
+        scrollPane.setPreferredSize(new Dimension(230, 400));
         leftPanelOpen.add(scrollPane);
         leftPanelOpen.add(label_distance);
         leftPanelOpen.add(label_time);
         leftPanelOpen.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
-        leftPanelOpen.setPreferredSize(new Dimension(200, map.getHeight()));
+        leftPanelOpen.setPreferredSize(new Dimension(250, map.getHeight()));
         leftPanelOpen.setBackground(BGColor);
 
-        leftPanel = new JPanel(new FlowLayout());
-        leftPanel.setBackground(BGColor);
-        leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
-        leftPanel.setPreferredSize(new Dimension(20, map.getHeight()));
-        
-        MouseAdapter routingFrameListener = new MyMouseListener();
-        leftPanel.addMouseListener(routingFrameListener);
-        leftPanelOpen.addMouseListener(routingFrameListener);
-        
         setLayout(new BorderLayout());
-        add(flowPanel, BorderLayout.SOUTH);
-        add(leftPanel, BorderLayout.WEST);
+        add(roadnamePanel, BorderLayout.SOUTH);
         add(map, BorderLayout.CENTER);
     }
 
@@ -122,82 +106,17 @@ public class View extends JComponent implements Observer
         menu.setLightWeightPopupEnabled(false);
         menu.updateUI();
         JMenuItem startPoint = new JMenuItem("Set startpoint", fromFlag);
-        startPoint.addActionListener(new ActionListener()
-        {
-
-            @Override
-            public void actionPerformed(ActionEvent ae)
-            {
-                try {
-                    model.setFromNode(model.translatePoint(e.x, e.y));
-                    updatePathList();
-                    map.repaint();
-                } catch (NoPathFoundException ex) {
-                    JOptionPane.showMessageDialog(null, ex.getMessage());
-                    model.resetPointSet();
-                }
-            }
-
-        });
+        startPoint.addActionListener(Action.SET_FROM.getListener(model));
         JMenuItem endPoint = new JMenuItem("Set endpoint", toFlag);
-        endPoint.addActionListener(new ActionListener()
-        {
-
-            @Override
-            public void actionPerformed(ActionEvent ae)
-            {
-                try {
-                    model.setToNode(model.translatePoint(e.x, e.y));
-                    updatePathList();
-                    map.repaint();
-                } catch (NoPathFoundException ex) {
-                    JOptionPane.showMessageDialog(null, ex.getMessage());
-                }
-            }
-
-        });
+        endPoint.addActionListener(Action.SET_TO.getListener(model));
         JMenuItem resetDirections = new JMenuItem("Reset directions");
-        resetDirections.addActionListener(new ActionListener()
-        {
-
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                model.resetPointSet();
-                updatePathList();
-                map.repaint();
-            }
-
-        });
+        resetDirections.addActionListener(Action.RESET_DIRECTIONS.getListener(model));
         JMenuItem pathDist = new JRadioButtonMenuItem("Shortest path");
         pathDist.setSelected(!model.getPathByDriveTime());
-        pathDist.addActionListener(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                model.setPathByDriveTime(false);
-                if (model.pathPointsSet()) {
-                    updatePathList();
-                    map.repaint();
-                }
-            }
-        });
+        pathDist.addActionListener(Action.SHORTEST.getListener(model));
         JMenuItem pathTime = new JRadioButtonMenuItem("Fastest path");
         pathTime.setSelected(model.getPathByDriveTime());
-        pathTime.addActionListener(new ActionListener()
-        {
-
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                model.setPathByDriveTime(true);
-                if (model.pathPointsSet()) {
-                    updatePathList();
-                    map.repaint();
-                }
-            }
-        });
+        pathTime.addActionListener(Action.FASTEST.getListener(model));
         ButtonGroup paths = new ButtonGroup();
         paths.add(pathDist);
         paths.add(pathTime);
@@ -231,31 +150,21 @@ public class View extends JComponent implements Observer
 
     public void showContextMenu(Point e)
     {
-        this.e = e;
         menu.show(map, e.x, e.y);
     }
 
-    private class MyMouseListener extends MouseAdapter
+    public void openLeftPanel()
     {
-        private JPanel glassPane;
+        JPanel glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());
+        glassPane.add(leftPanelOpen, BorderLayout.WEST);
 
-        @Override
-        public void mouseEntered(MouseEvent e)
-        {
-            if (glassPane == null) {
-                glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());
-                glassPane.add(leftPanelOpen, BorderLayout.WEST);
-            }
-            glassPane.setVisible(true);
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e)
-        {
-            if (!leftPanelOpen.getBounds().contains(e.getPoint())) {
-                glassPane.setVisible(false);
-            }
-        }
+        glassPane.setVisible(true);
+    }
+    
+    public void closeLeftPanel()
+    {
+        JPanel glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());
+        glassPane.setVisible(false);
     }
 
     private void createLabels()
@@ -278,7 +187,7 @@ public class View extends JComponent implements Observer
     private void createTextField()
     {
         routingList = new JList<>();
-        routingList.setFixedCellWidth(180);
+        routingList.setFixedCellWidth(230);
     }
 
     public JComponent getMap()
@@ -361,11 +270,15 @@ public class View extends JComponent implements Observer
     @Override
     public void update(Observable o, Object arg)
     {
-        if (arg != null && arg.equals("updateRoadname")) {
-            roadName.setText(model.getRoadname());
+        if (arg != null) {
+            if (arg.equals("updateRoadname")) {
+                roadName.setText(model.getRoadname());
+            } else if (arg.equals("updateRoadList")) {
+                updatePathList();
+                map.repaint();
+            }
         } else {
             map.repaint();
-
         }
     }
 
@@ -529,19 +442,24 @@ public class View extends JComponent implements Observer
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.drawImage(image, 0, 0, null);
-                if (model.fromPoint() != null) {
-                    Node fromPoint = model.fromPoint();
-                    int x = (int) ((fromPoint.x() - model.getLeftTop().x) / model.getFactor()) - toFlag.getIconWidth();
-                    int y = getHeight() - (int) ((fromPoint.y() - model.getRightBottom().y) / model.getFactor()) - toFlag.getIconHeight();
-                    g2.drawImage(fromFlag.getImage(), x, y, null);
-                }
-                if (model.toPoint() != null) {
-                    Node toPoint = model.toPoint();
-                    int x = (int) ((toPoint.x() - model.getLeftTop().x) / model.getFactor()) - toFlag.getIconWidth();
-                    int y = getHeight() - (int) ((toPoint.y() - model.getRightBottom().y) / model.getFactor()) - toFlag.getIconHeight();
-                    g2.drawImage(toFlag.getImage(), x, y, null);
-                }
             }
+            if (model.fromPoint() != null) {
+                Node fromPoint = model.fromPoint();
+                int x = (int) ((fromPoint.x() - model.getLeftTop().x) / model.getFactor()) - toFlag.getIconWidth();
+                int y = getHeight() - (int) ((fromPoint.y() - model.getRightBottom().y) / model.getFactor()) - toFlag.getIconHeight();
+                g.drawImage(fromFlag.getImage(), x, y, null);
+            }
+            if (model.toPoint() != null) {
+                Node toPoint = model.toPoint();
+                int x = (int) ((toPoint.x() - model.getLeftTop().x) / model.getFactor()) - toFlag.getIconWidth();
+                int y = getHeight() - (int) ((toPoint.y() - model.getRightBottom().y) / model.getFactor()) - toFlag.getIconHeight();
+                g.drawImage(toFlag.getImage(), x, y, null);
+            }
+            g.setColor(BGColor);
+            g.fillRect(0, 0, 15, getHeight());
+            g.setColor(Color.BLACK);
+            g.drawLine(14, 0, 14, getHeight());
+            g.drawLine(15, 0, 15, getHeight());
         }
 
         @Override

@@ -1,30 +1,38 @@
 package dk.itu.groupe.loading;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import javax.imageio.ImageIO;
+import java.awt.Image;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 
 /**
- *
+ * The LoadingPanel is a visual representation of the loading process.
+ * 
+ * It shows a predefined picture, with a progress-bar on top.
+ * 
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)
  */
 public class LoadingPanel extends JComponent
 {
 
-    private BufferedImage image;
-
+    private final Image image;
+    private final double maximumNumberOfLoadedElements = 22.0;
+    private int numberOfLoadedElements;
+    private final Color color = Color.decode("#5B9EAA");
+    
     public LoadingPanel()
     {
-        try {
-            image = ImageIO.read(new File("res/Loading.png"));
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-        }
+        numberOfLoadedElements = 0;
+        image = new ImageIcon("./res/Loading.png").getImage();
+    }
+    
+    public void elementLoaded()
+    {
+        numberOfLoadedElements++;
+        repaint();
     }
     
     @Override
@@ -37,5 +45,8 @@ public class LoadingPanel extends JComponent
     public void paintComponent(Graphics g)
     {
         g.drawImage(image, 0, 0, null);
+        g.setColor(color);
+        g.drawRect(10, getHeight() - 20, getWidth() - 20, 10);
+        g.fillRect(10, getHeight() - 20, (int)((getWidth() - 40) * (numberOfLoadedElements / maximumNumberOfLoadedElements)), 10);
     }
 }

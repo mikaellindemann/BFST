@@ -493,6 +493,7 @@ public class Model extends Observable
     public void setPathByDriveTime(boolean b)
     {
         pathByDriveTime = b;
+        setChanged();
     }
 
     public boolean getPathByDriveTime()
@@ -520,6 +521,7 @@ public class Model extends Observable
         shortestPath = null;
         from = -1;
         to = -1;
+        setChanged();
     }
 
     public void setFromNode(Point2D e) throws NoPathFoundException
@@ -537,6 +539,7 @@ public class Model extends Observable
         } else {
             from = nodeTo.id();
         }
+        setChanged();
     }
 
     public void setToNode(Point2D e) throws NoPathFoundException
@@ -553,6 +556,7 @@ public class Model extends Observable
         } else {
             this.to = nodeTo.id();
         }
+        setChanged();
     }
 
     @SuppressWarnings("unchecked")
@@ -560,8 +564,10 @@ public class Model extends Observable
     {
         shortestPath = new ShortestPath(g, from, to, pathByDriveTime, nodeMap);
         if (shortestPath.hasPathTo(to)) {
+            setChanged();
             return shortestPath.pathTo(to);
         }
+        setChanged();
         throw new NoPathFoundException("No path was found");
     }
 

@@ -7,6 +7,9 @@ import java.util.Set;
 /**
  * This class represents an EdgeWeighted Digraph.
  *
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk) with great inspiration from Algorithms 4th Edition,
+ * Wayne & Sedgewick.
  */
 public class Graph
 {

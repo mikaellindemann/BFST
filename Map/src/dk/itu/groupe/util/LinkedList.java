@@ -14,14 +14,6 @@ public class LinkedList<T> implements Iterable<T>
     {
         size = 0;
     }
-    
-    public T removeFirst()
-    {
-        T value = first.value;
-        first = first.next;
-        size--;
-        return value;
-    }
 
     public void add(T value)
     {
@@ -56,24 +48,6 @@ public class LinkedList<T> implements Iterable<T>
         return array;
     }
     
-    public T remove(int index) {
-        if (index >= size || index < 0) {
-            throw new IndexOutOfBoundsException();
-        }
-        LinkedNode element = first;
-        LinkedNode elementBefore = null;
-        for (int i = 0; i < index; i++) {
-            elementBefore = element;
-            element = element.next;
-        }
-        if (elementBefore != null) {
-            elementBefore.next = element.next;
-        }
-        T value = element.value;
-        size--;
-        return value;
-    }
-
     public T get(int index)
     {
         if (index >= size || index < 0) {
@@ -84,21 +58,6 @@ public class LinkedList<T> implements Iterable<T>
             element = element.next;
         }
         return element.value;
-    }
-
-    public T getFirst()
-    {
-        if (size == 0) {
-            throw new IndexOutOfBoundsException();
-        }
-        return first.value;
-    }
-    
-    public void clear()
-    {
-        size = 0;
-        first = null;
-        last = null;
     }
 
     public T getLast()
@@ -119,7 +78,6 @@ public class LinkedList<T> implements Iterable<T>
     {
 
         private LinkedNode element;
-        private LinkedNode elementBefore;
 
         private LinkedListIterator()
         {
@@ -139,19 +97,8 @@ public class LinkedList<T> implements Iterable<T>
             if (value == null) {
                 throw new NoSuchElementException();
             }
-            elementBefore = element;
             element = element.next;
             return value;
-        }
-        
-        @Override
-        public void remove()
-        {
-            if (elementBefore == null) {
-                first = element.next;
-            } else {
-                elementBefore.next = element.next;
-            }
         }
     }
 
