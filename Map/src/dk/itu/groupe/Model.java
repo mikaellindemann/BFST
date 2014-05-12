@@ -3,9 +3,15 @@ package dk.itu.groupe;
 import dk.itu.groupe.data.*;
 import dk.itu.groupe.pathfinding.*;
 import dk.itu.groupe.loading.*;
+import dk.itu.groupe.util.LinkedList;
+import dk.itu.groupe.util.Stack;
 import java.awt.Point;
 import java.awt.geom.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Set;
 
 /**
  * The model contains all the information about the map.
@@ -36,10 +42,9 @@ public class Model extends Observable
     private double initialFactor;
     private int from, to;
     private int width, height;
-    private Astar shortestPath;
-    private EdgeWeightedDigraph g;
+    private ShortestPath shortestPath;
+    private Graph g;
     private final Loader loader;
-    private Map<CommonRoadType, List<Edge>> edgeMap;
     private MouseTool mouseTool;
     private Node[] nodeMap;
     private Point2D pressed, dragged, moved;
@@ -71,36 +76,13 @@ public class Model extends Observable
         maxNodes = info.maxNodes;
         mouseTool = MouseTool.MOVE;
         treeMap = new HashMap<>();
-        loader = new Loader()
-        {
-            @Override
-            public void processNode(Node nd)
-            {
-                nodeMap[nd.id()] = nd;
-            }
-
-            @Override
-            public void processEdge(Edge ed)
-            {
-                edgeMap.get(ed.getType()).add(ed);
-                g.addEdge(ed);
-            }
-
-            @Override
-            public void processLand(Edge cl)
-            {
-                edgeMap.get(CommonRoadType.COASTLINE).add(cl);
-            }
-        };
-        edgeMap = new HashMap<>();
+        loader = new Loader();
     }
 
     public void loadCoastline()
     {
-
-        edgeMap.put(CommonRoadType.COASTLINE, new LinkedList<Edge>());
-        loader.loadCoastline("./res/data/coastline/");
-        treeMap.put(CommonRoadType.COASTLINE, new KDTree(edgeMap.get(CommonRoadType.COASTLINE), lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
+        LinkedList<Edge> edges = loader.loadCoastline("./res/data/coastline/");
+        treeMap.put(CommonRoadType.COASTLINE, new KDTree(edges, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
 
         height = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 110;
         width = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
@@ -111,20 +93,19 @@ public class Model extends Observable
 
     public void loadNodes()
     {
-        g = new EdgeWeightedDigraph(maxNodes);
-        nodeMap = new Node[maxNodes];
-        loader.loadNodes(dir + "nodes.bin");
+        g = new Graph(maxNodes);
+        nodeMap = loader.loadNodes(dir + "nodes.bin", maxNodes);
     }
 
     public void loadRoadType(CommonRoadType rt)
     {
-        List<Edge> edgeList = new LinkedList<>();
-        edgeMap.put(rt, edgeList);
-        loader.loadEdges(rt, dir, nodeMap);
+        LinkedList<Edge> edgeList = loader.loadEdges(rt, dir, nodeMap);
         if (!edgeList.isEmpty()) {
             treeMap.put(rt, new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
         }
-        edgeMap.remove(rt);
+        for (Edge edge : edgeList) {
+            g.addEdge(edge);
+        }
     }
 
     /**
@@ -523,12 +504,12 @@ public class Model extends Observable
     {
         return from >= 0 && to >= 0;
     }
-    
+
     public Node fromPoint()
     {
         return from >= 0 ? nodeMap[from] : null;
     }
-    
+
     public Node toPoint()
     {
         return to >= 0 ? nodeMap[to] : null;
@@ -575,9 +556,9 @@ public class Model extends Observable
     }
 
     @SuppressWarnings("unchecked")
-    public Deque<Edge> getPath() throws NoPathFoundException
+    public Stack<Edge> getPath() throws NoPathFoundException
     {
-        shortestPath = new Astar(g, from, to, pathByDriveTime, nodeMap);
+        shortestPath = new ShortestPath(g, from, to, pathByDriveTime, nodeMap);
         if (shortestPath.hasPathTo(to)) {
             return shortestPath.pathTo(to);
         }
@@ -669,7 +650,7 @@ public class Model extends Observable
 
     private Edge nearest(Point2D p, boolean factorAware)
     {
-        List<Edge> edges = new LinkedList<>();
+        LinkedList<Edge> edges = new LinkedList<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
             if (rt == CommonRoadType.PLACES || rt == CommonRoadType.COASTLINE) {
                 continue;

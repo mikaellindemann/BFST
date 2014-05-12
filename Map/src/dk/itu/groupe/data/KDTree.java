@@ -1,12 +1,11 @@
 package dk.itu.groupe.data;
 
+import dk.itu.groupe.util.LinkedList;
 import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -38,7 +37,7 @@ public class KDTree
      * @param xRight The right x-coordinate.
      * @param yTop The top y-coordinate.
      */
-    public KDTree(List<Edge> edges, double xLeft, double yBottom, double xRight, double yTop)
+    public KDTree(LinkedList<Edge> edges, double xLeft, double yBottom, double xRight, double yTop)
     {
         xmin = xLeft;
         ymin = yBottom;
@@ -47,15 +46,15 @@ public class KDTree
 
         int size = edges.size();
 
-        List<Edge> low = new LinkedList<>(), high = new LinkedList<>();
-        centerEdge = edges.remove(edges.size() / 2);
+        LinkedList<Edge> low = new LinkedList<>(), high = new LinkedList<>();
+        centerEdge = edges.get(size / 2);
         if (ymax - ymin < xmax - xmin) {
             // Delta x is gratest.
             dim = Dimension.X;
             // Put the right elements where it belongs.
-            while (!edges.isEmpty()) {
-                Edge edge = edges.remove(0);
-                if (edge.getShape().getBounds2D().getCenterX() < centerEdge.getShape().getBounds2D().getCenterX()) {
+            for (Edge edge : edges) {
+                if (edge == centerEdge) continue;
+                if (edge.getCenterX() < centerEdge.getCenterX()) {
                     low.add(edge);
                 } else {
                     high.add(edge);
@@ -65,8 +64,8 @@ public class KDTree
             // Delta y is the same size or greater.
             dim = Dimension.Y;
             // Put the right elements where it belongs.
-            while (!edges.isEmpty()) {
-                Edge edge = edges.remove(0);
+            for (Edge edge : edges) {
+                if (edge == centerEdge) continue;
                 if (edge.getCenterY() < centerEdge.getCenterY()) {
                     low.add(edge);
                 } else {
@@ -74,7 +73,6 @@ public class KDTree
                 }
             }
         }
-        assert (edges.isEmpty());
         assert (size == high.size() + 1 + low.size());
         double[] lowBounds = new double[4], highBounds = new double[4];
         if (dim == Dimension.X) {
@@ -169,7 +167,7 @@ public class KDTree
      */
     public Set<Edge> getEdges(double leftX, double bottomY, double rightX, double topY)
     {
-        int offset = 20000;
+        int offset = 5000;
         if (dim == Dimension.X) {
             if (rightX + offset < xmin || leftX - offset > xmax) {
                 return empty;

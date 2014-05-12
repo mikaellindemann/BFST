@@ -23,7 +23,7 @@ public class Edge
 
     public Edge(Node[] nodes)
     {
-        type = null;
+        type = CommonRoadType.COASTLINE;
         roadname = null;
         length = 0;
         driveTime = 0;

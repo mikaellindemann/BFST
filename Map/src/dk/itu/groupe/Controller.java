@@ -3,11 +3,29 @@ package dk.itu.groupe;
 import dk.itu.groupe.data.CommonRoadType;
 import dk.itu.groupe.loading.LoadingPanel;
 import java.awt.BorderLayout;
-import java.awt.event.*;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
 import java.awt.geom.Point2D;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  *
@@ -23,6 +41,8 @@ public class Controller extends ComponentAdapter implements
 
     private final Model model;
     private final View view;
+
+    private Point lastRightClick;
 
     public Controller(final Model model, final View view)
     {
@@ -95,6 +115,7 @@ public class Controller extends ComponentAdapter implements
             model.setDragged(null);
         }
         if (SwingUtilities.isRightMouseButton(me)) {
+            lastRightClick = me.getPoint();
             view.showContextMenu(me.getPoint());
         }
     }
@@ -172,9 +193,6 @@ public class Controller extends ComponentAdapter implements
                 case ZOOM_OUT:
                     model.zoomOut();
                     break;
-                case MOUSE_PATH:
-                    model.setMouseTool(MouseTool.PATH);
-                    return;
                 case MOUSE_MOVE:
                     model.setMouseTool(MouseTool.MOVE);
                     return;
@@ -217,9 +235,20 @@ public class Controller extends ComponentAdapter implements
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         final Model model = new Model(dataset);
+        
+        //Loading the actual map.
         model.loadCoastline();
         System.out.println("Loaded coastline in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
         time = System.currentTimeMillis();
+        model.loadNodes();
+        System.out.println("Loaded nodes in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
+        time = System.currentTimeMillis();
+        for (final CommonRoadType rt : CommonRoadType.values()) {
+            model.loadRoadType(rt);
+        }
+        System.out.println("Loaded edges in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
+        // Finished loading.
+        
         final View view = new View(model);
         model.addObserver(view);
         Controller controller = new Controller(model, view);
@@ -234,43 +263,5 @@ public class Controller extends ComponentAdapter implements
         frame.pack();
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setVisible(true);
-        model.loadNodes(); 
-        System.out.println("Loaded nodes in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
-        ExecutorService es = Executors.newFixedThreadPool(2);
-        CommonRoadType[] roadtypePriority = new CommonRoadType[]{
-            CommonRoadType.MOTORWAY,
-            CommonRoadType.MOTORWAY_LINK,
-            CommonRoadType.TRUNK,
-            CommonRoadType.TRUNK_LINK,
-            CommonRoadType.TUNNEL,
-            CommonRoadType.FERRY,
-            CommonRoadType.PRIMARY,
-            CommonRoadType.PRIMARY_LINK,
-            CommonRoadType.SECONDARY,
-            CommonRoadType.SECONDARY_LINK,
-            CommonRoadType.TERTIARY,
-            CommonRoadType.TERTIARY_LINK,
-            CommonRoadType.ROAD,
-            CommonRoadType.UNCLASSIFIED,
-            CommonRoadType.RESIDENTIAL,
-            CommonRoadType.PEDESTRIAN,
-            CommonRoadType.TRACK,
-            CommonRoadType.PATH,
-            CommonRoadType.PLACES
-        };
-        for (final CommonRoadType rt : roadtypePriority) {
-            es.execute(new Runnable()
-            {
-
-                @Override
-                public void run()
-                {
-                    model.loadRoadType(rt);
-                    if (rt.isEnabled(model.getFactor())) {
-                        view.getMap().repaint();
-                    }
-                }
-            });
-        }
     }
 }

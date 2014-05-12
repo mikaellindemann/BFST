@@ -4,6 +4,8 @@ import dk.itu.groupe.data.CommonRoadType;
 import dk.itu.groupe.data.Edge;
 import dk.itu.groupe.data.Node;
 import dk.itu.groupe.pathfinding.NoPathFoundException;
+import dk.itu.groupe.util.LinkedList;
+import dk.itu.groupe.util.Stack;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -24,8 +26,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
@@ -100,7 +100,10 @@ public class View extends JComponent implements Observer
         leftPanel.setBackground(BGColor);
         leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
         leftPanel.setPreferredSize(new Dimension(20, map.getHeight()));
-        leftPanel.addMouseListener(new MyMouseListener());
+        
+        MouseAdapter routingFrameListener = new MyMouseListener();
+        leftPanel.addMouseListener(routingFrameListener);
+        leftPanelOpen.addMouseListener(routingFrameListener);
         
         setLayout(new BorderLayout());
         add(flowPanel, BorderLayout.SOUTH);
@@ -116,7 +119,7 @@ public class View extends JComponent implements Observer
     private void createMenu()
     {
         menu = new JPopupMenu();
-        menu.setLightWeightPopupEnabled(true);
+        menu.setLightWeightPopupEnabled(false);
         menu.updateUI();
         JMenuItem startPoint = new JMenuItem("Set startpoint", fromFlag);
         startPoint.addActionListener(new ActionListener()
@@ -170,7 +173,6 @@ public class View extends JComponent implements Observer
         pathDist.setSelected(!model.getPathByDriveTime());
         pathDist.addActionListener(new ActionListener()
         {
-
             @Override
             public void actionPerformed(ActionEvent e)
             {
@@ -180,7 +182,6 @@ public class View extends JComponent implements Observer
                     map.repaint();
                 }
             }
-
         });
         JMenuItem pathTime = new JRadioButtonMenuItem("Fastest path");
         pathTime.setSelected(model.getPathByDriveTime());
@@ -236,12 +237,7 @@ public class View extends JComponent implements Observer
 
     private class MyMouseListener extends MouseAdapter
     {
-        JPanel glassPane;
-        
-        public MyMouseListener()
-        {
-            leftPanelOpen.addMouseListener(this);
-        }
+        private JPanel glassPane;
 
         @Override
         public void mouseEntered(MouseEvent e)
@@ -292,7 +288,7 @@ public class View extends JComponent implements Observer
 
     public void updatePathList()
     {
-        Deque<Edge> edges = null;
+        Stack<Edge> edges = null;
         try {
             if (model.pathPointsSet()) {
                 edges = model.getPath();
@@ -303,11 +299,11 @@ public class View extends JComponent implements Observer
         if (edges != null) {
             float totalLength = 0;
             float totalTime = 0;
-            Deque<InternalEdge> routeStack = new ArrayDeque<>();
+            LinkedList<InternalEdge> routeStack = new LinkedList<>();
             String name = null;
             float length = 0;
             while (!edges.isEmpty()) {
-                Edge edge = edges.pollFirst();
+                Edge edge = edges.pop();
                 if (name == null) {
                     name = edge.getRoadname();
                     length += edge.getLength();
@@ -325,17 +321,12 @@ public class View extends JComponent implements Observer
                     totalTime += edge.getDriveTime();
                 }
                 if (edges.isEmpty()) {
-                    if (!routeStack.peekLast().name.equals(edge.getRoadname())) {
+                    if (routeStack.isEmpty() || !routeStack.getLast().name.equals(edge.getRoadname())) {
                         routeStack.add(new InternalEdge(name, length));
                     }
                 }
             }
-
-            InternalEdge[] list = new InternalEdge[routeStack.size()];
-            for (int i = 0; !routeStack.isEmpty(); i++) {
-                list[i] = routeStack.pop();
-            }
-            routingList.setListData(list);
+            routingList.setListData(routeStack.toArray());
             label_distance.setText("Distance: " + df.format(totalLength / 1000) + " km");
             int hours = (int) totalTime / 60;
             totalTime -= hours * 60;
@@ -521,26 +512,23 @@ public class View extends JComponent implements Observer
                     }
                 }
                 if (model.pathPointsSet()) {
-                    Deque<Edge> edges = null;
                     try {
-                        edges = model.getPath();
-                    } catch (NoPathFoundException ex) {
-                        showErrorMessage(ex.getMessage());
-                    }
-                    if (edges != null) {
+                        Stack<Edge> edges = model.getPath();
                         gB.setColor(Color.BLUE);
                         gB.setStroke(new BasicStroke(5 * (float) model.getFactor(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                        for (Edge ed : edges) {
+                        while (!edges.isEmpty()) {
+                            Edge ed = edges.pop();
                             if (ed.getShape().intersects(topLeft.getX(), bottomRight.getY(), bottomRight.getX() - topLeft.getX(), topLeft.getY() - bottomRight.getY())) {
                                 gB.draw(ed.getShape());
                             }
                         }
+                    } catch (NoPathFoundException ex) {
+                        showErrorMessage(ex.getMessage());
                     }
                 }
                 Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                image.flush();
-                g2.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
+                g2.drawImage(image, 0, 0, null);
                 if (model.fromPoint() != null) {
                     Node fromPoint = model.fromPoint();
                     int x = (int) ((fromPoint.x() - model.getLeftTop().x) / model.getFactor()) - toFlag.getIconWidth();
