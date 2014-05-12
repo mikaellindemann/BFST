@@ -9,7 +9,9 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
 /**
- *
+ * This class objective is to display a loading screen for the 
+ * user to see when the program is starting.
+ * 
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)
  */
@@ -17,7 +19,8 @@ public class LoadingPanel extends JComponent
 {
 
     private BufferedImage image;
-
+    
+    // Loads the image for the panel.
     public LoadingPanel()
     {
         try {

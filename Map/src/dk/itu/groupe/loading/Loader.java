@@ -19,8 +19,9 @@ import java.util.Map;
  * Customize to your needs by overriding processNode and processEdge. See
  * example in main.
  *
- * Original author Peter Tiedemann petert@itu.dk; updates (2014) by Søren
- * Debois, debois@itu.dk; changes (2014) by Peter, Rune and Mikael
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * Jepsen (mlin@itu.dk).
+ * 
  */
 public class Loader
 {
@@ -62,7 +63,14 @@ public class Loader
         }
         return nodes;
     }
-
+    /**
+     * 
+     * 
+     * @param rt The roadtypes chosen to be shown.
+     * @param edgeDir The directory for edges, differs from OSM to Krak. 
+     * @param nodeMap An array of type Node containing nodes.
+     */
+    
     public LinkedList<Edge> loadEdges(CommonRoadType rt, String edgeDir, final Node[] nodeMap)
     {
         LinkedList<Edge> edges = new LinkedList<>();
@@ -108,7 +116,14 @@ public class Loader
         }
         return edges;
     }
-
+    
+    /**
+    * Loads coastline data from given files: 
+    * info.bin, nodes.bin, edges.bin
+    * 
+    * @param dir The directory for coastline data.
+    */
+    
     public LinkedList<Edge> loadCoastline(String dir)
     {
         LinkedList<Edge> edges = new LinkedList<>();
@@ -145,7 +160,7 @@ public class Loader
         }
         return edges;
     }
-
+    
     public static Info loadInfo(String dir)
     {
         try (DataInputStream dis = new DataInputStream(new FileInputStream(dir + "info.bin"))) {
@@ -153,9 +168,14 @@ public class Loader
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
         }
-        throw new RuntimeException("Bad shit happens!");
+        throw new RuntimeException("Something went terribly wrong!");
     }
 
+    /**
+     * The Info class contains information about the nodes and edges
+     * which we need in order to draw the map.
+     * 
+     */
     public static class Info
     {
 
