@@ -4,7 +4,7 @@ import java.awt.Shape;
 import java.awt.geom.Path2D;
 
 /**
- * Represents the raw data from a line in edges.csv.
+ * Represents an edge (Which is the same as a road in this program).
  *
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)

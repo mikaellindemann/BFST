@@ -215,7 +215,7 @@ public class Controller extends ComponentAdapter implements
                         assert lastRightClick != null;
                         model.setFromNode(model.translatePoint(lastRightClick.x, lastRightClick.y));
                     } catch (NoPathFoundException ex) {
-                        JOptionPane.showMessageDialog(null, ex);
+                        JOptionPane.showMessageDialog(null, ex.getMessage());
                     }
                     model.notifyObservers("updateRoadList");
                     break;
@@ -223,7 +223,7 @@ public class Controller extends ComponentAdapter implements
                     try {
                         model.setToNode(model.translatePoint(lastRightClick.x, lastRightClick.y));
                     } catch (NoPathFoundException ex) {
-                        JOptionPane.showMessageDialog(null, ex);
+                        JOptionPane.showMessageDialog(null, ex.getMessage());
                     }
                     model.notifyObservers("updateRoadList");
                     break;
