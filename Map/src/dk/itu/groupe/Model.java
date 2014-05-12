@@ -62,6 +62,7 @@ public class Model extends Observable
     {
         from = -1;
         to = -1;
+        // Sets the directory depending on the user selection (OSM vs Krak).
         if (data.equals("OpenStreetMap")) {
             dir = "./res/data/osm/";
         } else {
@@ -69,6 +70,7 @@ public class Model extends Observable
         }
         Loader.Info info = Loader.loadInfo(dir);
 
+        // Defines the edges of the dataset
         lowestX_COORD = info.xLow;
         lowestY_COORD = info.yLow;
         highestX_COORD = info.xHigh;
@@ -79,6 +81,8 @@ public class Model extends Observable
         loader = new Loader();
     }
 
+    // Puts the coastline data in a linkedlist and assigns it as the value to 
+    // the coastline enum in our hashset treeMap so that it can be accessed later
     public void loadCoastline()
     {
         LinkedList<Edge> edges = loader.loadCoastline("./res/data/coastline/");
@@ -138,7 +142,7 @@ public class Model extends Observable
      * Moves the map <code>distance</code> pixel towards the bottom, to get the
      * feeling that we look at a higher point on the map.
      *
-     * @param distance The distance to move the map in pixels.
+     * @param distance The distance to move the map in meters.
      */
     public void goUp(double distance)
     {
@@ -149,9 +153,9 @@ public class Model extends Observable
 
     /**
      * Moves the map <code>distance</code> pixel towards the right side, to get
-     * the feeling that we look at a point longer to the left on the map.
+     * the feeling that we look at a point further to the left on the map.
      *
-     * @param distance The distance to move the map in pixels.
+     * @param distance The distance to move the map in meters.
      */
     public void goLeft(double distance)
     {
@@ -162,9 +166,9 @@ public class Model extends Observable
 
     /**
      * Moves the map <code>distance</code> pixel towards the left side, to get
-     * the feeling that we look at a point longer to the right on the map.
+     * the feeling that we look at a point further to the right on the map.
      *
-     * @param distance The distance to move the map in pixels.
+     * @param distance The distance to move the map in meters.
      */
     public void goRight(double distance)
     {
@@ -177,7 +181,7 @@ public class Model extends Observable
      * Moves the map <code>distance</code> pixel towards the top, to get the
      * feeling that we look at a lower point on the map.
      *
-     * @param distance The distance to move the map in pixels.
+     * @param distance The distance to move the map in meters.
      */
     public void goDown(double distance)
     {
@@ -187,10 +191,10 @@ public class Model extends Observable
     }
 
     /**
-     * Moves the map x pixels horizontally and y pixels vertically.
+     * Moves the map x pixels horizontally and y meters vertically.
      *
-     * @param x The amount in pixels to move the map in horizontal direction.
-     * @param y The amount in pixels to move the map in vertical direction.
+     * @param x The amount in meters to move the map in horizontal direction.
+     * @param y The amount in meters to move the map in vertical direction.
      */
     public void moveMap(double x, double y)
     {
@@ -205,6 +209,8 @@ public class Model extends Observable
      */
     public void zoomIn()
     {
+        // Checks that the calculated factor is not smaller than the minimum factor
+        // to prevent zooming further in than a certain zoom level
         if (factor > minFactor) {
             reset = false;
             double x = (rightX + leftX) / 2;
@@ -224,6 +230,8 @@ public class Model extends Observable
      */
     public void zoomOut()
     {
+        // Checks that the calculated factor is not greater than the initial factor
+        // to prevent zooming further out than the original zoom level
         if (factor < initialFactor) {
             reset = false;
             double x = (rightX + leftX) / 2;
@@ -250,6 +258,8 @@ public class Model extends Observable
      */
     public void zoomInScroll(int x, int y)
     {
+        // Checks that the calculated factor is not smaller than the minimum factor
+        // to prevent zooming further in than a certain zoom level
         if (factor > minFactor) {
             reset = false;
             // Map coordinates before zoom
@@ -278,6 +288,8 @@ public class Model extends Observable
      */
     public void zoomOutScroll(int x, int y)
     {
+        // Checks that the calculated factor is not larger than the initial factor
+        // to prevent zooming further out than the original zoom level    
         if (factor < initialFactor) {
             reset = false;
             // Map coordinates before zoom
@@ -307,6 +319,8 @@ public class Model extends Observable
      */
     public void zoomRect(double xLeft, double yTop, double xRight, double yBottom)
     {
+        // Checks that the calculated factor is not smaller than the minimum factor
+        // to prevent zooming further in than a certain zoom level
         if (factor > minFactor) {
             reset = false;
 
@@ -607,6 +621,8 @@ public class Model extends Observable
             factor = (topY - bottomY) / height;
         }
         assert (factor != 0);
+        
+        // Ensures that zoom retains the correct ratio between width and height.
         ratioX = (rightX - leftX) / width;
         ratioY = (topY - bottomY) / height;
     }
@@ -654,6 +670,13 @@ public class Model extends Observable
         }
     }
 
+    /** 
+     * Finds the nearest edge given a point.
+     * 
+     * @param p the point to get nearest edge from
+     * @param factorAware 
+     * @return 
+     */
     private Edge nearest(Point2D p, boolean factorAware)
     {
         LinkedList<Edge> edges = new LinkedList<>();

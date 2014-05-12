@@ -8,9 +8,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 
 /**
- * The LoadingPanel is a visual representation of the loading process.
- * 
- * It shows a predefined picture, with a progress-bar on top.
+ * This class objective is to display a loading screen for the 
+ * user to see when the program is starting.
  * 
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
  * Jepsen (mlin@itu.dk)
