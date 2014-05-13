@@ -3,6 +3,9 @@ package dk.itu.groupe.util;
 /**
  * The Stack is a Last-In-First-Out data structure.
  *
+ * This Stack-implementation only features the simplest operations, and only
+ * those that are used in Group E's Map-project.
+ *
  * @param <T> The type of elements this Stack should contain.
  */
 public class Stack<T>
@@ -12,7 +15,7 @@ public class Stack<T>
     private int size;
 
     /**
-     * Constructor of stack. Sets the size to 0 and returns.
+     * Creates a new empty stack.
      */
     public Stack()
     {
