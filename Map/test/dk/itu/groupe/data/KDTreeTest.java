@@ -3,8 +3,10 @@ package dk.itu.groupe.data;
 import dk.itu.groupe.util.LinkedList;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,20 +41,22 @@ public class KDTreeTest
     public void tearDown()
     {
     }
-
+    
+    /*
+     * These three tests covers every branch of the constructor of KDTrees.
+     */
     @Test
     public void testNoEdge()
     {
         LinkedList<Edge> edges = new LinkedList<>();
-        boolean exception = false;
+        Throwable caught = null;
         try {
             KDTree instance = new KDTree(edges, 0, 0, 0, 0);
         } catch (Exception ex) {
-            if (ex.getClass() == IndexOutOfBoundsException.class) {
-                exception = true;
-            }
+            caught = ex;
         }
-        Assert.assertEquals(true, exception);
+        assertNotNull(caught);
+        assertSame(IndexOutOfBoundsException.class, caught.getClass());
     }
 
     @Test
@@ -71,22 +75,30 @@ public class KDTreeTest
         KDTree instance = new KDTree(edges, 0, 0, 4, 5);
         // If X is set, it means that the if statement at Label 1 returned true.
         // If Y is set, it means that the if statement at Label 1 returned false.
-        assertEquals(KDTree.Dimension.Y, instance.dim);
+        assertSame(KDTree.Dimension.Y, instance.dim);
+        assertSame(edges.get(2), instance.splitEdge);
         // If LOW is set inside a "Label 1 = false"-run means that there were at
         // least 1 edge, that had a Y-coordinate that was less than the
         // split-elements Y-coordinate.
-        assertEquals(KDTree.Dimension.X, instance.LOW.dim);
+        assertSame(KDTree.Dimension.X, instance.LOW.dim);
+        assertSame(edges.get(1), instance.LOW.splitEdge);
         // As the next one returns null, it means that there were no edges with
         // an X-coordinate less than the split-elements.
-        assertEquals(null, instance.LOW.LOW);
-        assertEquals(KDTree.Dimension.X, instance.LOW.HIGH.dim);
-        assertEquals(null, instance.LOW.HIGH.LOW);
-        assertEquals(null, instance.LOW.HIGH.HIGH);
-        assertEquals(KDTree.Dimension.X, instance.HIGH.dim);
-        assertEquals(KDTree.Dimension.Y, instance.HIGH.LOW.dim);
-        assertEquals(null, instance.HIGH.LOW.LOW);
-        assertEquals(null, instance.HIGH.LOW.HIGH);
-        assertEquals(null, instance.HIGH.HIGH);
+        assertNull(instance.LOW.LOW);
+        // If our KDTree followed the convention of the dimensions based on the
+        // depth of the tree, the next assertion would be false. But our tree
+        // uses the actual space it covers to find which dimension to split on.
+        assertSame(KDTree.Dimension.X, instance.LOW.HIGH.dim);
+        assertSame(edges.get(0), instance.LOW.HIGH.splitEdge);
+        assertNull(instance.LOW.HIGH.LOW);
+        assertNull(instance.LOW.HIGH.HIGH);
+        assertSame(KDTree.Dimension.X, instance.HIGH.dim);
+        assertSame(edges.get(4), instance.HIGH.splitEdge);
+        assertSame(KDTree.Dimension.Y, instance.HIGH.LOW.dim);
+        assertSame(edges.get(3), instance.HIGH.LOW.splitEdge);
+        assertNull(instance.HIGH.LOW.LOW);
+        assertNull(instance.HIGH.LOW.HIGH);
+        assertNull(instance.HIGH.HIGH);
     }
     
     @Test
