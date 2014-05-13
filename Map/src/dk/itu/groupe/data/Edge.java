@@ -6,7 +6,7 @@ import java.awt.geom.Path2D;
 /**
  * Represents an edge (Which is the same as a road in this program).
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp; Mikael
  * Jepsen (mlin@itu.dk)
  */
 public class Edge

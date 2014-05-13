@@ -6,8 +6,8 @@ package dk.itu.groupe.data;
  * Nodes are used as points for edges, and to lookup distance in the shortest
  * path algorithm.
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public class Node
 {

@@ -4,8 +4,8 @@ package dk.itu.groupe;
  * The Action enum is a way to have actions happen without writing listener-code
  * in the View-class.
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public enum Action
 {

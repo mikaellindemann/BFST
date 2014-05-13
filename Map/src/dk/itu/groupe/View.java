@@ -42,8 +42,8 @@ import javax.swing.event.ListSelectionListener;
 
 /**
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public class View extends JComponent implements Observer
 {
@@ -160,7 +160,7 @@ public class View extends JComponent implements Observer
 
         glassPane.setVisible(true);
     }
-    
+
     public void closeLeftPanel()
     {
         JPanel glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());

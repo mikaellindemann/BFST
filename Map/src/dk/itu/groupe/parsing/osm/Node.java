@@ -1,13 +1,12 @@
 package dk.itu.groupe.parsing.osm;
 
 import java.awt.geom.Point2D;
-import java.util.Locale;
 
 /**
  * An object storing the raw node data from the parsed krak data file.
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public class Node implements Comparable<Node>
 {
@@ -48,29 +47,15 @@ public class Node implements Comparable<Node>
             marked = true;
         }
     }
-    
+
     public void addEdge()
     {
         edgeCount++;
     }
-    
+
     public boolean split()
     {
         return edgeCount > 2;
-    }
-
-    /**
-     * Returns a string representing the node data in the same format as used in
-     * the nodes.csv file.
-     *
-     * @return
-     */
-    @Override
-    public String toString()
-    {
-        return id + ","
-                + String.format(Locale.ENGLISH, "%.2f,", x)
-                + String.format(Locale.ENGLISH, "%.2f", y);
     }
 
     @Override

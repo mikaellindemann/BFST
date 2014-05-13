@@ -7,9 +7,9 @@ import java.util.Set;
 /**
  * This class represents an EdgeWeighted Digraph.
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk) with great inspiration from Algorithms 4th Edition,
- * Wayne & Sedgewick.
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk) with great inspiration from Algorithms 4th
+ * Edition, Wayne &amp; Sedgewick.
  */
 public class Graph
 {
@@ -20,7 +20,7 @@ public class Graph
 
     /**
      * Creates a new Graph with
-     * <pre>nodes</pre> Nodes.
+     * <code>nodes</code> Nodes.
      *
      * @param numberOfNodes The number of nodes in the Graph.
      */
@@ -89,10 +89,10 @@ public class Graph
 
     /**
      * Returns a view of all Edges that goes from
-     * <pre>node</pre>
+     * <code>node</code>
      *
      * @param node The id of the Node.
-     * @return A view of all Edges that goes from <pre>node</pre>.
+     * @return A view of all Edges that goes from <code>node</code>.
      */
     Iterable<WeightedEdge> adjacent(int node)
     {

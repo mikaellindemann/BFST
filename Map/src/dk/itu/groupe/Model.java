@@ -19,8 +19,8 @@ import java.util.Set;
  * It includes methods to change what part of the map to look at, and
  * zoom-algorithms as well.
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public class Model extends Observable
 {
@@ -621,7 +621,7 @@ public class Model extends Observable
             factor = (topY - bottomY) / height;
         }
         assert (factor != 0);
-        
+
         // Ensures that zoom retains the correct ratio between width and height.
         ratioX = (rightX - leftX) / width;
         ratioY = (topY - bottomY) / height;
@@ -670,12 +670,12 @@ public class Model extends Observable
         }
     }
 
-    /** 
+    /**
      * Finds the nearest edge given a point.
-     * 
+     *
      * @param p the point to get nearest edge from
-     * @param factorAware 
-     * @return 
+     * @param factorAware
+     * @return
      */
     private Edge nearest(Point2D p, boolean factorAware)
     {

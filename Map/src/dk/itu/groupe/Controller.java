@@ -30,8 +30,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public class Controller extends ComponentAdapter implements
         MouseListener,
@@ -105,7 +105,7 @@ public class Controller extends ComponentAdapter implements
     @Override
     public void mousePressed(MouseEvent me)
     {
-        if (model.getMouseTool() != MouseTool.PATH && SwingUtilities.isLeftMouseButton(me)) {
+        if (SwingUtilities.isLeftMouseButton(me)) {
             model.setPressed(me.getPoint());
             model.setDragged(me.getPoint());
         }

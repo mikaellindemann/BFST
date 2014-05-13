@@ -8,8 +8,8 @@ import java.util.Map;
 /**
  * Represents the raw data from a line in kdv_unload.txt.
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public class EdgeData
 {
@@ -109,7 +109,8 @@ public class EdgeData
         dl.getInt();
         dl.getInt();
         dl.getString();
-        /*FRAKOERSEL = */dl.getInt();
+        /*FRAKOERSEL = */
+        dl.getInt();
         dl.getInt();
         SPEED = dl.getInt();
         DRIVETIME = dl.getDouble();

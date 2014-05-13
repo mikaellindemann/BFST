@@ -96,7 +96,7 @@ public class LinkedList<T> implements Iterable<T>
      *
      * @param index The index of the element. This list is 0-indexed, which
      * means the first element are at index 0.
-     * @return The element and <pre>index</pre>.
+     * @return The element and <code>index</code>.
      *
      * @throws IndexOutOfBoundsException If index is less than 0 or greater than
      * or equal to the size of the list.

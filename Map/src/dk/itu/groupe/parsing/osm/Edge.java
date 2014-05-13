@@ -5,15 +5,15 @@ import dk.itu.groupe.data.OneWay;
 /**
  * Represents the raw data from a line in edges.csv.
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public class Edge
 {
 
     private final OSMRoadType type;
     private final String roadname;
-   // private final int exitNumber;
+    // private final int exitNumber;
     private final int speedLimit;
     private final OneWay oneWay;
     private final long[] nodeIds;
@@ -27,7 +27,7 @@ public class Edge
         } else {
             s.append(",");
         }
-        /*s.append(exitNumber).append(",")*/s.append(speedLimit).append(",").append(oneWay.getNumber());
+        s.append(speedLimit).append(",").append(oneWay.getNumber());
         for (long l : nodeIds) {
             s.append(",").append(l);
         }
@@ -73,10 +73,9 @@ public class Edge
     }
 
     /*public int getExitNumber()
-    {
-        return exitNumber;
-    }*/
-
+     {
+     return exitNumber;
+     }*/
     public int getSpeedLimit()
     {
         return speedLimit;

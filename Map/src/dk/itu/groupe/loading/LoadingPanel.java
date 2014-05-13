@@ -8,11 +8,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 
 /**
- * This class objective is to display a loading screen for the 
- * user to see when the program is starting.
- * 
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * This class objective is to display a loading screen for the user to see when
+ * the program is starting.
+ *
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public class LoadingPanel extends JComponent
 {
@@ -21,19 +21,19 @@ public class LoadingPanel extends JComponent
     private final double maximumNumberOfLoadedElements = 22.0;
     private int numberOfLoadedElements;
     private final Color color = Color.decode("#5B9EAA");
-    
+
     public LoadingPanel()
     {
         numberOfLoadedElements = 0;
         image = new ImageIcon("./res/Loading.png").getImage();
     }
-    
+
     public void elementLoaded()
     {
         numberOfLoadedElements++;
         repaint();
     }
-    
+
     @Override
     public Dimension getPreferredSize()
     {
@@ -46,6 +46,6 @@ public class LoadingPanel extends JComponent
         g.drawImage(image, 0, 0, null);
         g.setColor(color);
         g.drawRect(10, getHeight() - 20, getWidth() - 20, 10);
-        g.fillRect(10, getHeight() - 20, (int)((getWidth() - 40) * (numberOfLoadedElements / maximumNumberOfLoadedElements)), 10);
+        g.fillRect(10, getHeight() - 20, (int) ((getWidth() - 40) * (numberOfLoadedElements / maximumNumberOfLoadedElements)), 10);
     }
 }

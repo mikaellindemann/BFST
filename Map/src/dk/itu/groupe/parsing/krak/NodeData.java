@@ -3,8 +3,8 @@ package dk.itu.groupe.parsing.krak;
 /**
  * An object storing the raw node data from the krak data file.
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public class NodeData
 {

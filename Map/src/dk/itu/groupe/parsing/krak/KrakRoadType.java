@@ -2,23 +2,22 @@ package dk.itu.groupe.parsing.krak;
 
 /**
  *
- * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) & Mikael
- * Jepsen (mlin@itu.dk)
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public enum KrakRoadType
-{   
+{
+
     ROAD(5, 5),
     PROJ_SECONDARY_ROUTE(24, 4),
     PROJ_ROAD(25, 5),
     SECONDARY_ROUTE_EXIT(34, 24),
-    
     OTHER_ROAD(6, 6),
     PATH(8, 11),
     DIRT_ROAD(10, 9),
     PEDESTRIAN_ZONE(11, 8),
     PROJ_OTHER_ROAD(26, 6),
     PROJ_PATH(28, 11),
-    
     UNKNOWN(0, 10),
     HIGHWAY(1, 1),
     EXPRESSWAY(2, 2),
@@ -34,7 +33,6 @@ public enum KrakRoadType
     EXPRESSWAY_TUNNEL(42, 12),
     FERRY(80, 14),
     ALSO_UNKNOWN(95, 10),
-    
     EXACT_LOCATION_UNKNOWN(99, 13);
 
     private final int typeNumber, newTypeNumber;
@@ -44,7 +42,7 @@ public enum KrakRoadType
         this.typeNumber = typeNumber;
         this.newTypeNumber = newTypeNumber;
     }
-    
+
     public int getNewTypeNumber()
     {
         return newTypeNumber;

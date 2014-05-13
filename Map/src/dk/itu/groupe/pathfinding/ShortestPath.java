@@ -1,9 +1,9 @@
 package dk.itu.groupe.pathfinding;
 
-import dk.itu.groupe.util.IndexMinimumPriorityQueue;
 import dk.itu.groupe.data.Edge;
 import dk.itu.groupe.pathfinding.Graph.WeightedEdge;
 import dk.itu.groupe.data.Node;
+import dk.itu.groupe.util.IndexedMinPQ;
 import dk.itu.groupe.util.Stack;
 import java.util.Arrays;
 
@@ -21,7 +21,7 @@ public class ShortestPath
 
     private final double[] distTo;
     private final WeightedEdge[] edgeTo;
-    private final IndexMinimumPriorityQueue<Double> priorityQueue;
+    private final IndexedMinPQ<Double> priorityQueue;
     private static Node[] nodeMap;
     private final boolean driveTime;
 
@@ -53,7 +53,7 @@ public class ShortestPath
         distTo[from] = 0.0;
 
         // relax vertices in order of distance from s
-        priorityQueue = new IndexMinimumPriorityQueue<Double>(g.V());
+        priorityQueue = new IndexedMinPQ<Double>(g.V());
         priorityQueue.insert(from, distTo[from]);
         while (!priorityQueue.isEmpty()) {
             int v = priorityQueue.delMin();
