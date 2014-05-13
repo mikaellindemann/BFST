@@ -1,9 +1,5 @@
 package dk.itu.groupe.util;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -13,30 +9,6 @@ import static org.junit.Assert.*;
  */
 public class StackTest
 {
-    
-    public StackTest()
-    {
-    }
-    
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-    
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-    
-    @Before
-    public void setUp()
-    {
-    }
-    
-    @After
-    public void tearDown()
-    {
-    }
 
     /**
      * Test of push method, of class Stack.
@@ -90,7 +62,7 @@ public class StackTest
         }
         assertNotNull(caught);
         assertSame(IndexOutOfBoundsException.class, caught.getClass());
-        String[] strings = new String[] {"One", "Two", "Three"};
+        String[] strings = new String[]{"One", "Two", "Three"};
         instance.push(strings[0]);
         instance.push(strings[1]);
         instance.push(strings[2]);
@@ -132,5 +104,5 @@ public class StackTest
         instance.pop();
         assertSame(1, instance.size());
     }
-    
+
 }

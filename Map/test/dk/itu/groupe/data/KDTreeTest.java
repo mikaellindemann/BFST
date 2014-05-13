@@ -1,14 +1,10 @@
 package dk.itu.groupe.data;
 
 import dk.itu.groupe.util.LinkedList;
-import org.junit.After;
-import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -18,30 +14,6 @@ import org.junit.Test;
 public class KDTreeTest
 {
 
-    public KDTreeTest()
-    {
-    }
-
-    @BeforeClass
-    public static void setUpClass()
-    {
-    }
-
-    @AfterClass
-    public static void tearDownClass()
-    {
-    }
-
-    @Before
-    public void setUp()
-    {
-    }
-
-    @After
-    public void tearDown()
-    {
-    }
-    
     /*
      * These three tests covers every branch of the constructor of KDTrees.
      */
@@ -51,7 +23,7 @@ public class KDTreeTest
         LinkedList<Edge> edges = new LinkedList<>();
         Throwable caught = null;
         try {
-            KDTree instance = new KDTree(edges, 0, 0, 0, 0);
+            new KDTree(edges, 0, 0, 0, 0);
         } catch (Exception ex) {
             caught = ex;
         }
@@ -67,11 +39,11 @@ public class KDTreeTest
         Node second = new Node(1, 4, 1);
         Node third = new Node(2, 1, 3);
         Node fourth = new Node(3, 4, 5);
-        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[] {first, second}));
-        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[] {third, first}));
-        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[] {third, second}));
-        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[] {fourth, first}));
-        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[] {fourth, third}));
+        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[]{first, second}));
+        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[]{third, first}));
+        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[]{third, second}));
+        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[]{fourth, first}));
+        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[]{fourth, third}));
         KDTree instance = new KDTree(edges, 0, 0, 4, 5);
         // If X is set, it means that the if statement at Label 1 returned true.
         // If Y is set, it means that the if statement at Label 1 returned false.
@@ -100,7 +72,7 @@ public class KDTreeTest
         assertNull(instance.HIGH.LOW.HIGH);
         assertNull(instance.HIGH.HIGH);
     }
-    
+
     @Test
     public void testXinLow()
     {
@@ -108,8 +80,8 @@ public class KDTreeTest
         Node first = new Node(0, 0, 0);
         Node second = new Node(1, 4, 1);
         Node third = new Node(2, 5, 1);
-        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[] {first, second}));
-        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[] {first, third}));
+        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[]{first, second}));
+        edges.add(new Edge(null, null, 0, 0, OneWay.NO, new Node[]{first, third}));
         KDTree instance = new KDTree(edges, 0, 0, 5, 2);
         assertEquals(KDTree.Dimension.X, instance.dim);
         assertEquals(KDTree.Dimension.X, instance.LOW.dim);
