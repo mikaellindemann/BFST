@@ -172,10 +172,10 @@ public class LinkedList<T> implements Iterable<T>
         @Override
         public T next()
         {
-            T value = element.value;
-            if (value == null) {
+            if (element == null) {
                 throw new NoSuchElementException();
             }
+            T value = element.value;
             element = element.next;
             return value;
         }
