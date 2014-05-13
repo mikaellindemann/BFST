@@ -37,9 +37,13 @@ public class Stack<T>
      * Peek at the top element, without removing it.
      *
      * @return The top element.
+     * @throws IndexOutOfBoundsException If the stack is empty.
      */
     public T peek()
     {
+        if (size == 0) {
+            throw new IndexOutOfBoundsException("No elements");
+        }
         return root.value;
     }
 
@@ -47,6 +51,7 @@ public class Stack<T>
      * Removes the top element and returns it to the caller.
      *
      * @return The top element.
+     * @throws IndexOutOfBoundsException If the stack is empty.
      */
     public T pop()
     {
