@@ -179,6 +179,12 @@ public class LinkedList<T> implements Iterable<T>
             element = element.next;
             return value;
         }
+        
+        @Override
+        public void remove()
+        {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private class LinkedNode
