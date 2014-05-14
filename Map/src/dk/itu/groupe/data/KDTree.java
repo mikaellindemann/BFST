@@ -1,9 +1,7 @@
 package dk.itu.groupe.data;
 
 import dk.itu.groupe.util.LinkedList;
-import java.awt.geom.Line2D;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
+import java.awt.geom.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;

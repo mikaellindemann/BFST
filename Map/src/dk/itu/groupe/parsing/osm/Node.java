@@ -8,12 +8,12 @@ import java.awt.geom.Point2D;
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
  * Mikael Jepsen (mlin@itu.dk)
  */
-public class Node implements Comparable<Node>
+public class Node
 {
 
     private long id;
-    private final double x;
-    private final double y;
+    final double x;
+    final double y;
     private boolean marked;
     private int edgeCount;
 
@@ -30,7 +30,7 @@ public class Node implements Comparable<Node>
         return id;
     }
 
-    public Point2D.Double getPoint()
+    public Point2D getPoint()
     {
         return new Point2D.Double(x, y);
     }
@@ -56,11 +56,5 @@ public class Node implements Comparable<Node>
     public boolean split()
     {
         return edgeCount > 2;
-    }
-
-    @Override
-    public int compareTo(Node that)
-    {
-        return (int) (this.id - that.id);
     }
 }

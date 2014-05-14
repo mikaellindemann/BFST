@@ -3,32 +3,15 @@ package dk.itu.groupe;
 import dk.itu.groupe.data.CommonRoadType;
 import dk.itu.groupe.loading.LoadingPanel;
 import dk.itu.groupe.pathfinding.NoPathFoundException;
-import java.awt.BorderLayout;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.Point2D;
-import javax.swing.AbstractAction;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 
 /**
+ * The Controller is responsible for dealing with events generated on the View.
+ *
+ * It handles mouseevents and other actions.
  *
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
  * Mikael Jepsen (mlin@itu.dk)
@@ -36,15 +19,20 @@ import javax.swing.UnsupportedLookAndFeelException;
 public class Controller extends ComponentAdapter implements
         MouseListener,
         MouseMotionListener,
-        MouseWheelListener,
-        WindowStateListener
+        MouseWheelListener
 {
 
     private final Model model;
     private final View view;
-
     private static Point lastRightClick;
 
+    /**
+     * Creates a new Controller that sets a lot of keybindings on the keyboard
+     * and listeners for mouse-input and frame-size changes.
+     *
+     * @param model The model the controller should change.
+     * @param view The view the controller should recieve input from.
+     */
     public Controller(final Model model, final View view)
     {
         this.model = model;
@@ -63,6 +51,15 @@ public class Controller extends ComponentAdapter implements
         view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), Action.ZOOM_OUT);
         view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, 0), Action.ZOOM_IN);
         view.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, 0), Action.ZOOM_OUT);
+        addListeners();
+    }
+
+    private void addListeners()
+    {
+        view.getMap().addComponentListener(this);
+        view.getMap().addMouseListener(this);
+        view.getMap().addMouseMotionListener(this);
+        view.getMap().addMouseWheelListener(this);
     }
 
     @Override
@@ -152,13 +149,6 @@ public class Controller extends ComponentAdapter implements
 
     @Override
     public void componentResized(ComponentEvent e)
-    {
-        model.setSize(view.getMap().getSize().width, view.getMap().getSize().height);
-        model.notifyObservers();
-    }
-
-    @Override
-    public void windowStateChanged(WindowEvent e)
     {
         model.setSize(view.getMap().getSize().width, view.getMap().getSize().height);
         model.notifyObservers();
@@ -274,8 +264,9 @@ public class Controller extends ComponentAdapter implements
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         final Model model = new Model(dataset);
-
+        System.out.println("Created model in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
         //Loading the actual map.
+        time = System.currentTimeMillis();
         model.loadCoastline();
         lp.elementLoaded();
         System.out.println("Loaded coastline in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
@@ -294,11 +285,6 @@ public class Controller extends ComponentAdapter implements
         final View view = new View(model);
         model.addObserver(view);
         Controller controller = new Controller(model, view);
-        view.getMap().addComponentListener(controller);
-        view.getMap().addMouseListener(controller);
-        view.getMap().addMouseMotionListener(controller);
-        view.getMap().addMouseWheelListener(controller);
-        frame.addWindowStateListener(controller);
         frame.setVisible(false);
         frame.getContentPane().removeAll();
         frame.add(view);

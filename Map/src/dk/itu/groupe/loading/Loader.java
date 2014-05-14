@@ -1,15 +1,8 @@
 package dk.itu.groupe.loading;
 
-import dk.itu.groupe.data.CommonRoadType;
-import dk.itu.groupe.data.Edge;
-import dk.itu.groupe.data.Node;
-import dk.itu.groupe.data.OneWay;
+import dk.itu.groupe.data.*;
 import dk.itu.groupe.util.LinkedList;
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,9 +20,11 @@ public class Loader
 {
 
     private final Map<Integer, CommonRoadType> rtMap;
+    private final Map<String, String> interner;
 
     public Loader()
     {
+        interner = new HashMap<>();
         rtMap = new HashMap<>();
         for (CommonRoadType rt : CommonRoadType.values()) {
             rtMap.put(rt.getTypeNo(), rt);
@@ -76,44 +71,44 @@ public class Loader
     {
         LinkedList<Edge> edges = new LinkedList<>();
         File f = new File(edgeDir + "edges" + rt.getTypeNo() + ".bin");
-        if (f.exists()) {
-
-            try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(f)))) {
-                int available;
-                while ((available = dis.available()) > 0) {
-                    for (int i = 0; i < available; i += 22) {
-                        CommonRoadType type = rtMap.get(dis.readInt());
-                        assert rt == type;
-                        String roadname = dis.readUTF();
-                        i += roadname.getBytes().length;
-                        float length = dis.readFloat();
-                        float driveTime = dis.readFloat();
-                        OneWay oneWay;
-                        switch (dis.readInt()) {
-                            case -1:
-                                oneWay = OneWay.TO_FROM;
-                                break;
-                            case 0:
-                                oneWay = OneWay.NO;
-                                break;
-                            case 1:
-                                oneWay = OneWay.FROM_TO;
-                                break;
-                            default:
-                                oneWay = OneWay.NO;
-                                System.err.println("Assuming no restrictions on edge.");
-                        }
-                        Node[] nodes = new Node[dis.readInt()];
-                        i += 4 * nodes.length;
-                        for (int j = 0; j < nodes.length; j++) {
-                            nodes[j] = nodeMap[dis.readInt()];
-                        }
-                        edges.add(new Edge(type, roadname, length, driveTime, oneWay, nodes));
+        if (!f.exists()) {
+            return edges;
+        }
+        try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(f)))) {
+            int available;
+            while ((available = dis.available()) > 0) {
+                for (int i = 0; i < available; i += 22) {
+                    CommonRoadType type = rtMap.get(dis.readInt());
+                    assert rt == type;
+                    String roadname = intern(dis.readUTF());
+                    i += roadname.getBytes().length;
+                    float length = dis.readFloat();
+                    float driveTime = dis.readFloat();
+                    OneWay oneWay;
+                    switch (dis.readInt()) {
+                        case -1:
+                            oneWay = OneWay.TO_FROM;
+                            break;
+                        case 0:
+                            oneWay = OneWay.NO;
+                            break;
+                        case 1:
+                            oneWay = OneWay.FROM_TO;
+                            break;
+                        default:
+                            oneWay = OneWay.NO;
+                            System.err.println("Assuming no restrictions on edge.");
                     }
+                    Node[] nodes = new Node[dis.readInt()];
+                    i += 4 * nodes.length;
+                    for (int j = 0; j < nodes.length; j++) {
+                        nodes[j] = nodeMap[dis.readInt()];
+                    }
+                    edges.add(new Edge(type, roadname, length, driveTime, oneWay, nodes));
                 }
-            } catch (IOException ex) {
-                ex.printStackTrace(System.err);
             }
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
         }
         return edges;
     }
@@ -192,5 +187,15 @@ public class Loader
             this.maxEdges = maxEdges;
         }
 
+    }
+
+    private String intern(String s)
+    {
+        if (!interner.containsKey(s)) {
+            interner.put(s, s);
+            return s;
+        } else {
+            return interner.get(s);
+        }
     }
 }

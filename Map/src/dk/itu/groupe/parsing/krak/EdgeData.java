@@ -1,7 +1,6 @@
 package dk.itu.groupe.parsing.krak;
 
 import dk.itu.groupe.data.OneWay;
-import java.awt.geom.Line2D;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,70 +13,36 @@ import java.util.Map;
 public class EdgeData
 {
 
-    private static HashMap<Integer, KrakRoadType> rtMap;
-    private static HashMap<String, OneWay> oneWayMap;
+    private final static HashMap<Integer, KrakRoadType> rtMap;
+    private final static HashMap<String, OneWay> oneWayMap;
 
-    public final int FNODE;
-    public final int TNODE;
-    public final double LENGTH;
-    public final int DAV_DK;
-    private final KrakRoadType TYPE;
-    public final String VEJNAVN;
-    /*public final int FROMLEFT;
-     public final int TOLEFT;
-     public final int FROMRIGHT;
-     public final int TORIGHT;
-     public final String FROMLEFT_BOGSTAV;
-     public final String TOLEFT_BOGSTAV;
-     public final String FROMRIGHT_BOGSTAV;
-     public final String TORIGHT_BOGSTAV;
-     public final int V_POSTNR;
-     public final int H_POSTNR;*/
-    //public final int FRAKOERSEL;
-    public final int SPEED;
-    public final double DRIVETIME;
-    public final OneWay ONE_WAY;
-    /*public final String F_TURN;
-     public final String T_TURN;*/
-    public final Line2D line;
-
-    @Override
-    public String toString()
-    {
-        return /*FNODE + ","
-                 + TNODE + ","
-                
-                 + DAV_DK + ","
-                 + */ TYPE.getNewTypeNumber() + ","
-                + "`" + VEJNAVN + "`,"
-                + LENGTH + ","
-                //+ FRAKOERSEL + ","
-                + SPEED + ","
-                + DRIVETIME + ","
-                + ONE_WAY.getNumber() + ","
-                + (FNODE - 1) + "," + (TNODE - 1);
+    static {
+        rtMap = new HashMap<>();
+        for (KrakRoadType rt : KrakRoadType.values()) {
+            rtMap.put(rt.getTypeNumber(), rt);
+        }
+        oneWayMap = new HashMap<>();
+        oneWayMap.put("", OneWay.NO);
+        oneWayMap.put("ft", OneWay.FROM_TO);
+        oneWayMap.put("tf", OneWay.TO_FROM);
+        oneWayMap.put("n", OneWay.NO);
     }
+
+    final int FNODE;
+    final int TNODE;
+    final double LENGTH;
+    final int DAV_DK;
+    final KrakRoadType TYPE;
+    final String VEJNAVN;
+    final int SPEED;
+    final double DRIVETIME;
+    final OneWay ONE_WAY;
 
     public EdgeData(String line, Map<Integer, NodeData> nodeMap)
     {
-        if (rtMap == null) {
-            rtMap = new HashMap<>();
-            for (KrakRoadType rt : KrakRoadType.values()) {
-                rtMap.put(rt.getTypeNumber(), rt);
-            }
-        }
-        if (oneWayMap == null) {
-            oneWayMap = new HashMap<>();
-            oneWayMap.put("", OneWay.NO);
-            oneWayMap.put("ft", OneWay.FROM_TO);
-            oneWayMap.put("tf", OneWay.TO_FROM);
-            oneWayMap.put("n", OneWay.NO);
-        }
         DataLine dl = new DataLine(line);
         FNODE = dl.getInt();
         TNODE = dl.getInt();
-        NodeData fN = nodeMap.get(FNODE);
-        NodeData tN = nodeMap.get(TNODE);
         LENGTH = dl.getDouble();
         DAV_DK = dl.getInt();
         dl.getInt();
@@ -109,7 +74,6 @@ public class EdgeData
         dl.getInt();
         dl.getInt();
         dl.getString();
-        /*FRAKOERSEL = */
         dl.getInt();
         dl.getInt();
         SPEED = dl.getInt();
@@ -120,12 +84,6 @@ public class EdgeData
         dl.getInt();
         dl.getString();
         dl.getInt();
-
-        this.line = new Line2D.Double(
-                fN.X_COORD,
-                fN.Y_COORD,
-                tN.X_COORD,
-                tN.Y_COORD);
     }
 
     public KrakRoadType getType()

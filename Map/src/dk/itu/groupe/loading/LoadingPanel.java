@@ -1,11 +1,7 @@
 package dk.itu.groupe.loading;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
+import java.awt.*;
+import javax.swing.*;
 
 /**
  * This class objective is to display a loading screen for the user to see when

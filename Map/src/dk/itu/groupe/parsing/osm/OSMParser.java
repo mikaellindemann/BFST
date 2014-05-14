@@ -29,7 +29,8 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class OSMParser extends DefaultHandler
 {
-    //Used for fast lookup from an OSM-roadtype-tag to the OSMRoadType-enum.
+
+    // Used for fast lookup from an OSM-roadtype-tag to the OSMRoadType-enum.
     private static Map<String, OSMRoadType> rtMap;
     // Used to limit the amount of RAM that is to be consumed by roadnames.
     private static final Map<String, String> interner = new HashMap<>();
@@ -140,22 +141,22 @@ public class OSMParser extends DefaultHandler
                     System.err.println(n);
                     assert (n.isMarked());
                 }
-                double x = n.getPoint().x;
-                double y = n.getPoint().y;
+                double x = n.x;
+                double y = n.y;
                 xMin = Math.min(x, xMin);
                 xMax = Math.max(x, xMax);
                 yMin = Math.min(y, yMin);
                 yMax = Math.max(y, yMax);
                 ferryRef.remove(n);
                 nodeStream.writeInt((int) n.getId());
-                nodeStream.writeFloat((float)x);
-                nodeStream.writeFloat((float)y);
+                nodeStream.writeFloat((float) x);
+                nodeStream.writeFloat((float) y);
             }
             for (Node n : ferryRef) {
                 assert n.isMarked();
                 nodeStream.writeInt((int) n.getId());
-                nodeStream.writeFloat((float)n.getPoint().x);
-                nodeStream.writeFloat((float)n.getPoint().y);
+                nodeStream.writeFloat((float) n.x);
+                nodeStream.writeFloat((float) n.y);
             }
             nodeStream.close();
         } catch (IOException ex) {
@@ -168,7 +169,7 @@ public class OSMParser extends DefaultHandler
                 edgeStreams.put(rt, new DataOutputStream(new BufferedOutputStream(new FileOutputStream("./res/data/osm/edges" + rt.getTypeNo() + ".bin"))));
             }
             for (Edge e : edgeSet) {
-                writeEdge(e, edgeStreams.get(e.getType()));
+                writeEdge(e, edgeStreams.get(e.type));
             }
             for (DataOutputStream edgeStream : edgeStreams.values()) {
                 edgeStream.close();
@@ -358,7 +359,7 @@ public class OSMParser extends DefaultHandler
 
     public void writeEdge(Edge edge, DataOutputStream edgeStream) throws IOException
     {
-        long[] nodeIds = edge.getNodeIds();
+        long[] nodeIds = edge.nodeIds;
         Node[] nodes = new Node[nodeIds.length];
         for (int i = 0; i < nodes.length; i++) {
             nodes[i] = nodemap.get(nodeIds[i]);
@@ -374,16 +375,15 @@ public class OSMParser extends DefaultHandler
             for (int i = lastSplitIndex + 1; i <= index; i++) {
                 length += nodes[i - 1].getPoint().distance(nodes[i].getPoint());
             }
-            //edgeStream.println("TYPE,VEJNAVN,LÆNGDE,FRAKOERSEL,SPEED,DRIVETIME,ONEWAY,NODES...");
-            edgeStream.writeInt(edge.getType().getTypeNo());
-            if (edge.getRoadname() == null) {
+            edgeStream.writeInt(edge.type.getTypeNo());
+            if (edge.roadname == null) {
                 edgeStream.writeUTF("");
             } else {
-                edgeStream.writeUTF(edge.getRoadname());
+                edgeStream.writeUTF(edge.roadname);
             }
-            edgeStream.writeFloat((float)length);
-            edgeStream.writeFloat((float)((length / (edge.getSpeedLimit() * 1000 / 60)) * 1.15));
-            edgeStream.writeInt(edge.getOneWay().getNumber());
+            edgeStream.writeFloat((float) length);
+            edgeStream.writeFloat((float) ((length / (edge.speedLimit * 1000 / 60)) * 1.15));
+            edgeStream.writeInt(edge.oneWay.getNumber());
             edgeStream.writeInt(index + 1 - lastSplitIndex);
             for (int i = lastSplitIndex; i <= index; i++) {
                 edgeStream.writeInt((int) nodes[i].getId());

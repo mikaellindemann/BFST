@@ -57,9 +57,11 @@ public class ShortestPath
         priorityQueue.insert(from, distTo[from]);
         while (!priorityQueue.isEmpty()) {
             int v = priorityQueue.delMin();
+            // If we have found the shortest path to the destination, we are done.
             if (v == to) {
                 return;
             }
+            // Otherwise we continue to relax the edges.
             for (WeightedEdge e : g.adjacent(v)) {
                 relax(e, to);
             }

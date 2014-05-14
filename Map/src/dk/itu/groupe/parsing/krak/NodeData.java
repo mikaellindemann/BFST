@@ -9,9 +9,7 @@ package dk.itu.groupe.parsing.krak;
 public class NodeData
 {
 
-    //final int ARC;
     public final int ID;
-    //final int KDV_ID;
     public final double X_COORD;
     public final double Y_COORD;
 

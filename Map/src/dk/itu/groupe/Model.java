@@ -3,12 +3,11 @@ package dk.itu.groupe;
 import dk.itu.groupe.data.*;
 import dk.itu.groupe.pathfinding.*;
 import dk.itu.groupe.loading.*;
-import dk.itu.groupe.util.LinkedList;
-import dk.itu.groupe.util.Stack;
+import dk.itu.groupe.util.*;
 import java.awt.Point;
 import java.awt.geom.*;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Set;
@@ -25,29 +24,21 @@ import java.util.Set;
 public class Model extends Observable
 {
 
-    private final double lowestX_COORD;
-    private final double highestX_COORD;
-    private final double lowestY_COORD;
-    private final double highestY_COORD;
-    private final float minFactor = 0.5f;
+    private final double lowestX_COORD, highestX_COORD, lowestY_COORD, highestY_COORD;
+    private final double minFactor = 0.5;
     private final int maxNodes;
+    private final Graph g;
+    private final Loader loader;
     private final Map<CommonRoadType, KDTree> treeMap;
     private final String dir;
 
     private boolean reset, pathByDriveTime;
-    private double leftX, bottomY, rightX, topY;
-    private double factor;
-    private double ratioX;
-    private double ratioY;
-    private double initialFactor;
-    private int from, to;
-    private int width, height;
-    private ShortestPath shortestPath;
-    private Graph g;
-    private final Loader loader;
+    private double leftX, bottomY, rightX, topY, factor, ratioX, ratioY, initialFactor;
+    private int from, to, screenWidth, screenHeight;
     private MouseTool mouseTool;
     private Node[] nodeMap;
     private Point2D pressed, dragged, moved;
+    private ShortestPath shortestPath;
     private String roadname;
 
     /**
@@ -79,6 +70,7 @@ public class Model extends Observable
         mouseTool = MouseTool.MOVE;
         treeMap = new HashMap<>();
         loader = new Loader();
+        g = new Graph(maxNodes);
     }
 
     // Puts the coastline data in a linkedlist and assigns it as the value to 
@@ -88,8 +80,8 @@ public class Model extends Observable
         LinkedList<Edge> edges = loader.loadCoastline("./res/data/coastline/");
         treeMap.put(CommonRoadType.COASTLINE, new KDTree(edges, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
 
-        height = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 110;
-        width = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
+        screenHeight = java.awt.Toolkit.getDefaultToolkit().getScreenSize().height - 110;
+        screenWidth = java.awt.Toolkit.getDefaultToolkit().getScreenSize().width;
 
         reset();
         initialFactor = factor;
@@ -97,7 +89,6 @@ public class Model extends Observable
 
     public void loadNodes()
     {
-        g = new Graph(maxNodes);
         nodeMap = loader.loadNodes(dir + "nodes.bin", maxNodes);
     }
 
@@ -121,8 +112,8 @@ public class Model extends Observable
         topY = highestY_COORD * 1.001;
 
         // These paddings make sure that the screen will center the map.
-        double xPadding = ((((topY - bottomY) / height) * width) - (highestX_COORD - lowestX_COORD)) / 2;
-        double yPadding = ((((rightX - leftX) / width) * height) - (highestY_COORD - lowestY_COORD)) / 2;
+        double xPadding = ((((topY - bottomY) / screenHeight) * screenWidth) - (highestX_COORD - lowestX_COORD)) / 2;
+        double yPadding = ((((rightX - leftX) / screenWidth) * screenHeight) - (highestY_COORD - lowestY_COORD)) / 2;
 
         if (xPadding > 0) {
             leftX = lowestX_COORD - xPadding;
@@ -218,7 +209,7 @@ public class Model extends Observable
             leftX = leftX + (30 * ratioX);
             rightX = rightX - (30 * ratioX);
             topY = topY - (30 * ratioY);
-            bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
+            bottomY = (topY - (rightX - leftX) / ((double) screenWidth / (double) screenHeight));
             center(x, y);
             calculateFactor();
             setChanged();
@@ -239,7 +230,7 @@ public class Model extends Observable
             leftX = leftX - (30 * ratioX);
             rightX = rightX + (30 * ratioX);
             topY = topY + (30 * ratioY);
-            bottomY = (topY - (rightX - leftX) / ((double) width / (double) height));
+            bottomY = (topY - (rightX - leftX) / ((double) screenWidth / (double) screenHeight));
             center(x, y);
             calculateFactor();
             setChanged();
@@ -309,8 +300,8 @@ public class Model extends Observable
     /**
      * This zoom-method zooms in to the specified rectangle.
      *
-     * If the rectangle doesn't match the ratio between screen width and height,
-     * the right or bottom side will be moved to fit.
+     * If the rectangle doesn't match the ratio between screen width and
+     * screenHeight, the right or bottom side will be moved to fit.
      *
      * @param xLeft Map coordinate for the left side of the rectangle.
      * @param yTop Screen coordinate for the top side of the rectangle.
@@ -337,10 +328,10 @@ public class Model extends Observable
                 y1 = y2;
                 y2 = tmp;
             }
-            double ratio = (double) width / (double) height;
+            double ratio = (double) screenWidth / (double) screenHeight;
             leftX = x1;
             topY = y1;
-            if (Math.abs(x2 - x1) / width > Math.abs(y1 - y2) / height) {
+            if (Math.abs(x2 - x1) / screenWidth > Math.abs(y1 - y2) / screenHeight) {
                 rightX = x2;
                 bottomY = (topY - (rightX - leftX) / ratio);
             } else {
@@ -400,19 +391,20 @@ public class Model extends Observable
      *
      * @return the current width.
      */
-    public int getWidth()
+    public int getScreenWidth()
     {
-        return width;
+        return screenWidth;
     }
 
     /**
-     * Returns the current height used for calculating the view of the map.
+     * Returns the current screenHeight used for calculating the view of the
+     * map.
      *
-     * @return the current height.
+     * @return the current screenHeight.
      */
-    public int getHeight()
+    public int getScreenHeight()
     {
-        return height;
+        return screenHeight;
     }
 
     /**
@@ -422,12 +414,12 @@ public class Model extends Observable
      * return the correct data.
      *
      * @param width The new width.
-     * @param height The new height.
+     * @param height The new screenHeight.
      */
     public void setSize(int width, int height)
     {
-        this.width = width;
-        this.height = height;
+        this.screenWidth = width;
+        this.screenHeight = height;
         if (reset) {
             reset();
         }
@@ -453,7 +445,7 @@ public class Model extends Observable
         if (treeMap.get(rt) != null) {
             return treeMap.get(rt).getEdges(xLeft, yBottom, xRight, yTop); //(xLeft, yBottom, xRight, yTop);
         } else {
-            return Collections.EMPTY_SET;
+            return new HashSet<>();
         }
     }
 
@@ -616,15 +608,15 @@ public class Model extends Observable
     private void calculateFactor()
     {
         // This factor determines how big the Map will be drawn.
-        factor = (rightX - leftX) / width;
-        if ((topY - bottomY) / height > factor) {
-            factor = (topY - bottomY) / height;
+        factor = (rightX - leftX) / screenWidth;
+        if ((topY - bottomY) / screenHeight > factor) {
+            factor = (topY - bottomY) / screenHeight;
         }
         assert (factor != 0);
 
-        // Ensures that zoom retains the correct ratio between width and height.
-        ratioX = (rightX - leftX) / width;
-        ratioY = (topY - bottomY) / height;
+        // Ensures that zoom retains the correct ratio between width and screenHeight.
+        ratioX = (rightX - leftX) / screenWidth;
+        ratioY = (topY - bottomY) / screenHeight;
     }
 
     /**
@@ -738,7 +730,7 @@ public class Model extends Observable
     public Point2D translatePoint(int x, int y)
     {
         double xMap = x * factor + leftX;
-        double yMap = (height - y) * factor + bottomY;
+        double yMap = (screenHeight - y) * factor + bottomY;
         return new Point2D.Double(xMap, yMap);
     }
 }

@@ -1,46 +1,22 @@
 package dk.itu.groupe;
 
-import dk.itu.groupe.data.CommonRoadType;
-import dk.itu.groupe.data.Edge;
-import dk.itu.groupe.data.Node;
+import dk.itu.groupe.data.*;
 import dk.itu.groupe.pathfinding.NoPathFoundException;
-import dk.itu.groupe.util.LinkedList;
-import dk.itu.groupe.util.Stack;
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.RenderingHints;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import dk.itu.groupe.util.*;
+import java.awt.*;
+import java.awt.geom.*;
 import java.awt.image.BufferedImage;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
+import java.text.*;
 import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JPopupMenu;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.*;
 
 /**
+ * The View is responsible for everything that is shown within the application.
+ *
+ * It contains the components used to draw the map, and components to show
+ * various information around the application.
  *
  * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
  * Mikael Jepsen (mlin@itu.dk)
@@ -48,92 +24,72 @@ import javax.swing.event.ListSelectionListener;
 public class View extends JComponent implements Observer
 {
 
-    private static final DecimalFormat df = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.ENGLISH));
-    private static final Font uiFont = new Font("calibri", Font.PLAIN, 15);
-
     private final Color BGColor = Color.decode("#457B85"), groundColor = Color.decode("#96FF70");
-    private final JLabel roadName;
-    private final JPanel leftPanelOpen, roadnamePanel;
+    private final DecimalFormat df = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.ENGLISH));
+    private final Font uiFont = new Font("calibri", Font.PLAIN, 15);
+    private final ImageIcon fromFlag = new ImageIcon("./res/flag_point_1.png"),
+            toFlag = new ImageIcon("./res/flag_point_2.png");
     private final JComponent map;
+    private final JLabel label_path, label_distance, label_time, roadName;
+    private final JList<InternalEdge> routingList;
+    private final JPanel leftPanel, roadnamePanel;
+    private final JPopupMenu menu;
     private final Model model;
-    private final ImageIcon fromFlag = new ImageIcon("./res/flag_point_1.png"), toFlag = new ImageIcon("./res/flag_point_2.png");
 
-    private JList<InternalEdge> routingList;
     private BufferedImage image;
-    private JLabel label_path, label_distance, label_time;
-    private JPopupMenu menu;
+    private JPanel glassPane;
 
+    /**
+     * Creates a new View.
+     *
+     * Sets up all the components and layout.
+     *
+     * @param model The model this view should show.
+     */
     public View(final Model model)
     {
         this.model = model;
         map = new MapView();
 
-        // Creates buttons, labels and their listeners.
-        createMenu();
-        createTextField();
-        createLabels();
-        roadName = new JLabel(" ");
-
-        roadnamePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        roadnamePanel.setBackground(BGColor);
-        roadnamePanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
-        roadnamePanel.add(roadName);
-
-        leftPanelOpen = new JPanel(new FlowLayout(FlowLayout.LEADING));
-        leftPanelOpen.add(label_path);
-        JScrollPane scrollPane = new JScrollPane(routingList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setPreferredSize(new Dimension(230, 400));
-        leftPanelOpen.add(scrollPane);
-        leftPanelOpen.add(label_distance);
-        leftPanelOpen.add(label_time);
-        leftPanelOpen.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
-        leftPanelOpen.setPreferredSize(new Dimension(250, map.getHeight()));
-        leftPanelOpen.setBackground(BGColor);
-
-        setLayout(new BorderLayout());
-        add(roadnamePanel, BorderLayout.SOUTH);
-        add(map, BorderLayout.CENTER);
-    }
-
-    public void addListSelectionListener(ListSelectionListener listener)
-    {
-        routingList.addListSelectionListener(listener);
-    }
-
-    private void createMenu()
-    {
-        menu = new JPopupMenu();
-        menu.setLightWeightPopupEnabled(false);
-        menu.updateUI();
+        /*
+         * Create the menu
+         */
         JMenuItem startPoint = new JMenuItem("Set startpoint", fromFlag);
-        startPoint.addActionListener(Action.SET_FROM.getListener(model));
         JMenuItem endPoint = new JMenuItem("Set endpoint", toFlag);
-        endPoint.addActionListener(Action.SET_TO.getListener(model));
         JMenuItem resetDirections = new JMenuItem("Reset directions");
-        resetDirections.addActionListener(Action.RESET_DIRECTIONS.getListener(model));
         JMenuItem pathDist = new JRadioButtonMenuItem("Shortest path");
-        pathDist.setSelected(!model.getPathByDriveTime());
-        pathDist.addActionListener(Action.SHORTEST.getListener(model));
         JMenuItem pathTime = new JRadioButtonMenuItem("Fastest path");
+        JMenuItem mouseMove = new JRadioButtonMenuItem("Move");
+        JMenuItem mouseZoom = new JRadioButtonMenuItem("Zoom");
+        JMenuItem reset = new JMenuItem("Show Denmark");
+
+        // Default selections.
+        pathDist.setSelected(!model.getPathByDriveTime());
         pathTime.setSelected(model.getPathByDriveTime());
-        pathTime.addActionListener(Action.FASTEST.getListener(model));
+        mouseMove.setSelected(model.getMouseTool() == MouseTool.MOVE);
+        mouseZoom.setSelected(model.getMouseTool() == MouseTool.ZOOM);
+
+        // Button groups
         ButtonGroup paths = new ButtonGroup();
         paths.add(pathDist);
         paths.add(pathTime);
 
-        JMenuItem mouseMove = new JRadioButtonMenuItem("Move");
-        mouseMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
-        JMenuItem mouseZoom = new JRadioButtonMenuItem("Zoom");
-        mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
-        mouseMove.setSelected(model.getMouseTool() == MouseTool.MOVE);
-        mouseZoom.setSelected(model.getMouseTool() == MouseTool.ZOOM);
-        ButtonGroup group = new ButtonGroup();
-        group.add(mouseMove);
-        group.add(mouseZoom);
+        ButtonGroup mouse = new ButtonGroup();
+        mouse.add(mouseMove);
+        mouse.add(mouseZoom);
 
-        JMenuItem reset = new JMenuItem("Show Denmark");
+        // Listeners
+        startPoint.addActionListener(Action.SET_FROM.getListener(model));
+        endPoint.addActionListener(Action.SET_TO.getListener(model));
+        resetDirections.addActionListener(Action.RESET_DIRECTIONS.getListener(model));
+        pathDist.addActionListener(Action.SHORTEST.getListener(model));
+        pathTime.addActionListener(Action.FASTEST.getListener(model));
+        mouseMove.addActionListener(Action.MOUSE_MOVE.getListener(model));
+        mouseZoom.addActionListener(Action.MOUSE_ZOOM.getListener(model));
         reset.addActionListener(Action.RESET.getListener(model));
 
+        // Create menu
+        menu = new JPopupMenu();
         menu.add(pathDist);
         menu.add(pathTime);
         menu.addSeparator();
@@ -146,29 +102,13 @@ public class View extends JComponent implements Observer
         menu.add(mouseZoom);
         menu.addSeparator();
         menu.add(reset);
-    }
+        /*
+         * Ended menu creation
+         */
 
-    public void showContextMenu(Point e)
-    {
-        menu.show(map, e.x, e.y);
-    }
-
-    public void openLeftPanel()
-    {
-        JPanel glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());
-        glassPane.add(leftPanelOpen, BorderLayout.WEST);
-
-        glassPane.setVisible(true);
-    }
-
-    public void closeLeftPanel()
-    {
-        JPanel glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());
-        glassPane.setVisible(false);
-    }
-
-    private void createLabels()
-    {
+        /*
+         * Create labels
+         */
         label_path = new JLabel("Path:");
         label_path.setFont(uiFont);
         label_path.setForeground(Color.WHITE);
@@ -182,19 +122,90 @@ public class View extends JComponent implements Observer
         label_time.setFont(uiFont);
         label_time.setForeground(Color.WHITE);
         label_time.setPreferredSize(new Dimension(180, 20));
-    }
 
-    private void createTextField()
-    {
+        roadName = new JLabel(" ");
+        /*
+         * Ended labels creation
+         */
+
+        // Creates the panel in the bottom of the screen that is used to show
+        // the name of the road on which the mouse hovers.
+        roadnamePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        roadnamePanel.setBackground(BGColor);
+        roadnamePanel.setBorder(BorderFactory.createMatteBorder(2, 0, 0, 0, Color.BLACK));
+        roadnamePanel.add(roadName);
+
+        // Creates the routing-panel on the left side of the screen.
         routingList = new JList<>();
-        routingList.setFixedCellWidth(230);
+        routingList.setFixedCellWidth(235);
+        JScrollPane scrollPane = new JScrollPane(routingList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setPreferredSize(new Dimension(235, 400));
+        leftPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+        leftPanel.add(label_path);
+        leftPanel.add(scrollPane);
+        leftPanel.add(label_distance);
+        leftPanel.add(label_time);
+        leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 2, Color.BLACK));
+        leftPanel.setPreferredSize(new Dimension(250, map.getHeight()));
+        leftPanel.setBackground(BGColor);
+
+        // Adds everything together.
+        setLayout(new BorderLayout());
+        add(roadnamePanel, BorderLayout.SOUTH);
+        add(map, BorderLayout.CENTER);
     }
 
+    /**
+     * Shows the contextmenu at the specified point.
+     *
+     * @param e The point where the menu should be shown.
+     */
+    public void showContextMenu(Point e)
+    {
+        menu.show(map, e.x, e.y);
+    }
+
+    /**
+     * Opens the panel on the left.
+     *
+     * The left panel is used for showing information about the current route.
+     */
+    public void openLeftPanel()
+    {
+        if (glassPane == null) {
+            glassPane = ((JPanel) ((JFrame) getTopLevelAncestor()).getGlassPane());
+            glassPane.add(leftPanel, BorderLayout.WEST);
+        }
+
+        glassPane.setVisible(true);
+    }
+
+    /**
+     * Closes the left panel.
+     */
+    public void closeLeftPanel()
+    {
+        if (glassPane != null) {
+            glassPane.setVisible(false);
+        }
+    }
+
+    /**
+     * Returns the component which is responsible for drawing the map.
+     *
+     * This method is used to add listeners and to tell the map if the size of
+     * the window has changed.
+     *
+     * @return The map-component
+     */
     public JComponent getMap()
     {
         return map;
     }
 
+    /**
+     * Updates the list in the left panel with the new path if any.
+     */
     public void updatePathList()
     {
         Stack<Edge> edges = null;
@@ -282,6 +293,11 @@ public class View extends JComponent implements Observer
         }
     }
 
+    /**
+     * A convenience method for showing errormessages for the user.
+     *
+     * @param message
+     */
     public void showErrorMessage(String message)
     {
         JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
@@ -300,7 +316,7 @@ public class View extends JComponent implements Observer
             if (model.getMouseTool() == MouseTool.ZOOM && pressed != null) {
                 Graphics2D gB = (Graphics2D) g;
                 gB.drawImage(image, 0, 0, Color.BLUE.darker().darker(), null);
-
+                AffineTransform at = gB.getTransform();
                 double factor = model.getFactor();
                 Point2D topLeft = model.getLeftTop(), bottomRight = model.getRightBottom();
                 gB.scale(1 / factor, -1 / factor);
@@ -335,6 +351,7 @@ public class View extends JComponent implements Observer
                     gB.fillRect((int) x1, (int) y1, side, (int) (y2 - y1));
                     gB.drawRect((int) x1, (int) y1, side, (int) (y2 - y1));
                 }
+                gB.setTransform(at);
             } else {
                 Graphics2D gB = image.createGraphics();
                 gB.setColor(Color.BLUE.darker().darker());
@@ -465,17 +482,17 @@ public class View extends JComponent implements Observer
         @Override
         public Dimension getPreferredSize()
         {
-            return new Dimension(model.getWidth(), model.getHeight());
+            return new Dimension(model.getScreenWidth(), model.getScreenHeight());
         }
     }
 
-    class InternalEdge
+    private class InternalEdge
     {
 
         float length;
         String name;
 
-        InternalEdge(String roadname, float length)
+        private InternalEdge(String roadname, float length)
         {
             this.name = roadname;
             this.length = length;

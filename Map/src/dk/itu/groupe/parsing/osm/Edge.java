@@ -11,28 +11,11 @@ import dk.itu.groupe.data.OneWay;
 public class Edge
 {
 
-    private final OSMRoadType type;
-    private final String roadname;
-    // private final int exitNumber;
-    private final int speedLimit;
-    private final OneWay oneWay;
-    private final long[] nodeIds;
-
-    @Override
-    public String toString()
-    {
-        StringBuilder s = new StringBuilder(type.getTypeNo() + ",");
-        if (roadname != null) {
-            s.append("`").append(roadname).append("`,");
-        } else {
-            s.append(",");
-        }
-        s.append(speedLimit).append(",").append(oneWay.getNumber());
-        for (long l : nodeIds) {
-            s.append(",").append(l);
-        }
-        return s.toString();
-    }
+    final OSMRoadType type;
+    final String roadname;
+    final int speedLimit;
+    final OneWay oneWay;
+    final long[] nodeIds;
 
     public Edge(OSMRoadType type,
             String roadname,
@@ -47,7 +30,6 @@ public class Edge
         } else {
             this.roadname = "";
         }
-        //this.exitNumber = exitNumber;
         if (speedLimit == 0) {
             this.speedLimit = type.getSpeed();
         } else {
@@ -56,34 +38,4 @@ public class Edge
         this.oneWay = oneWay;
         this.nodeIds = nodeIds;
     }
-
-    public OSMRoadType getType()
-    {
-        return type;
-    }
-
-    public String getRoadname()
-    {
-        return roadname;
-    }
-
-    public long[] getNodeIds()
-    {
-        return nodeIds;
-    }
-
-    /*public int getExitNumber()
-     {
-     return exitNumber;
-     }*/
-    public int getSpeedLimit()
-    {
-        return speedLimit;
-    }
-
-    public OneWay getOneWay()
-    {
-        return oneWay;
-    }
-
 }
