@@ -74,9 +74,6 @@ public class IndexedMinPQ<Key extends Comparable<Key>>
      *
      * @throws NoSuchElementException If <code>index</code> is not present in
      * the priority queue.
-     *
-     * @throws IllegalArgumentException If <code>priority</code> is not less
-     * than the previous priority.
      */
     public void decreaseKey(int index, Key priority)
     {
@@ -87,7 +84,7 @@ public class IndexedMinPQ<Key extends Comparable<Key>>
             throw new NoSuchElementException("index is not in the priority queue");
         }
         if (keys[index].compareTo(priority) <= 0) {
-            throw new IllegalArgumentException("Calling decreaseKey() with given argument would not decrease the key");
+            return;
         }
         keys[index] = priority;
         swim(qp[index]);

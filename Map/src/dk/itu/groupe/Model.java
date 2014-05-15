@@ -40,6 +40,7 @@ public class Model extends Observable
     private Point2D pressed, dragged, moved;
     private ShortestPath shortestPath;
     private String roadname;
+    private boolean sourceChanged;
 
     /**
      * On creation of the Model, it will start to load in the data.
@@ -545,6 +546,7 @@ public class Model extends Observable
         } else {
             from = nodeTo.id();
         }
+        sourceChanged = true;
         setChanged();
     }
 
@@ -568,7 +570,14 @@ public class Model extends Observable
     @SuppressWarnings("unchecked")
     public Stack<Edge> getPath() throws NoPathFoundException
     {
+        if (!sourceChanged && shortestPath.pathByDriveTime() == pathByDriveTime) {
+            if (shortestPath.hasPathTo(to)) {
+                setChanged();
+                return shortestPath.pathTo(to);
+            }
+        }
         shortestPath = new ShortestPath(g, from, to, pathByDriveTime, nodeMap);
+        sourceChanged = false;
         if (shortestPath.hasPathTo(to)) {
             setChanged();
             return shortestPath.pathTo(to);

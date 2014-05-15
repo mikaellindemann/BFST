@@ -18,7 +18,7 @@ import java.util.Arrays;
  */
 public class ShortestPath
 {
-
+    private final Graph g;
     private final double[] distTo;
     private final WeightedEdge[] edgeTo;
     private final IndexedMinPQ<Double> priorityQueue;
@@ -46,6 +46,7 @@ public class ShortestPath
     public ShortestPath(Graph g, int from, int to, boolean driveTime, Node[] nodeMap)
     {
         this.driveTime = driveTime;
+        this.g = g;
         ShortestPath.nodeMap = nodeMap;
         distTo = new double[g.V()];
         edgeTo = new WeightedEdge[g.V()];
@@ -66,6 +67,11 @@ public class ShortestPath
                 relax(e, to);
             }
         }
+    }
+    
+    public boolean pathByDriveTime()
+    {
+        return driveTime;
     }
 
     /**
