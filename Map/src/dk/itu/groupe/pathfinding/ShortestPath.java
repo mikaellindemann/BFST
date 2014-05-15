@@ -142,9 +142,10 @@ public class ShortestPath
     }
 
     /**
-     * A simple heuristic to make the algorithm faster.
+     * A simple and optimistic heuristic to make the algorithm faster.
      *
-     * It should use Euclidian-distance for shortest paths. 0 otherwise.
+     * For shortest path: Euclidean-distance.
+     * For fastest path: Euclidean-distance divided by 130 km/h.
      *
      * @param s The current Node.
      * @param t The destination Node.
@@ -154,7 +155,7 @@ public class ShortestPath
     private double heuristic(int s, int t)
     {
         if (driveTime) {
-            return 0;
+            return Math.sqrt(Math.pow(nodeMap[s].x() - nodeMap[t].x(), 2) + Math.pow(nodeMap[s].y() - nodeMap[t].y(), 2)) / 1000 / 130 * 60;
         } else {
             return Math.sqrt(Math.pow(nodeMap[s].x() - nodeMap[t].x(), 2) + Math.pow(nodeMap[s].y() - nodeMap[t].y(), 2));
         }
