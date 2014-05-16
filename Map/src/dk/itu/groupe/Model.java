@@ -103,8 +103,10 @@ public class Model extends Observable
             @Override
             public void run()
             {
-                for (Edge edge : edgeList) {
-                    g.addEdge(edge);
+                if (rt != CommonRoadType.PEDESTRIAN) {
+                    for (Edge edge : edgeList) {
+                        g.addEdge(edge);
+                    }
                 }
                 if (!edgeList.isEmpty()) {
                     treeMap.put(rt, new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
