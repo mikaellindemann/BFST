@@ -427,8 +427,7 @@ public class View extends JComponent implements Observer
                             Edge edge = (Edge) ed;
                             if (edge.getShape().intersects(topLeft.getX(), bottomRight.getY(), bottomRight.getX() - topLeft.getX(), topLeft.getY() - bottomRight.getY())) {
                                 if (rt == CommonRoadType.PLACES) {
-                                    Rectangle2D b = edge.getShape().getBounds2D();
-                                    gB.drawString(edge.getRoadname(), (int) b.getCenterX(), (int) b.getCenterY());
+                                    gB.drawString(edge.getRoadname(), (int) edge.getCenterX(), (int) edge.getCenterY());
                                     continue;
                                 }
                                 if (rt == CommonRoadType.COASTLINE) {
