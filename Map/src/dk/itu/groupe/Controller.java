@@ -6,6 +6,9 @@ import dk.itu.groupe.pathfinding.NoPathFoundException;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import javax.swing.*;
 
 /**
@@ -275,9 +278,16 @@ public class Controller extends ComponentAdapter implements
         lp.elementLoaded();
         System.out.println("Loaded nodes in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
         time = System.currentTimeMillis();
-        for (final CommonRoadType rt : CommonRoadType.values()) {
-            model.loadRoadType(rt);
-            lp.elementLoaded();
+        try {
+            ExecutorService es = Executors.newFixedThreadPool(4);
+            for (final CommonRoadType rt : CommonRoadType.values()) {
+                model.loadRoadType(rt, es);
+                lp.elementLoaded();
+            }
+            es.shutdown();
+            es.awaitTermination(1, TimeUnit.DAYS);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace(System.err);
         }
         System.out.println("Loaded edges in " + (System.currentTimeMillis() - time) / 1000.0 + " s");
         // Finished loading.

@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * The model contains all the information about the map.
@@ -93,15 +94,23 @@ public class Model extends Observable
         nodeMap = loader.loadNodes(dir + "nodes.bin", maxNodes);
     }
 
-    public void loadRoadType(CommonRoadType rt)
+    public void loadRoadType(final CommonRoadType rt, ExecutorService es)
     {
-        LinkedList<Edge> edgeList = loader.loadEdges(rt, dir, nodeMap);
-        if (!edgeList.isEmpty()) {
-            treeMap.put(rt, new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
-        }
-        for (Edge edge : edgeList) {
-            g.addEdge(edge);
-        }
+        final LinkedList<Edge> edgeList = loader.loadEdges(rt, dir, nodeMap);
+        es.execute(new Runnable()
+        {
+
+            @Override
+            public void run()
+            {
+                for (Edge edge : edgeList) {
+                    g.addEdge(edge);
+                }
+                if (!edgeList.isEmpty()) {
+                    treeMap.put(rt, new KDTree(edgeList, lowestX_COORD, lowestY_COORD, highestX_COORD, highestY_COORD));
+                }
+            }
+        });
     }
 
     /**

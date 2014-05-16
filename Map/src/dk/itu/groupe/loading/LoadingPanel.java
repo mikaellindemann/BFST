@@ -14,7 +14,7 @@ public class LoadingPanel extends JComponent
 {
 
     private final Image image;
-    private final double maximumNumberOfLoadedElements = 22.0;
+    private final double maximumNumberOfLoadedElements = 21.0;
     private int numberOfLoadedElements;
     private final Color color = Color.decode("#5B9EAA");
 
