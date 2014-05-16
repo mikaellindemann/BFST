@@ -237,3 +237,4 @@ nb-configuration.xml
 /OSMParsing/ways.csv
 /OSMParsing/ways/*.csv
 /MapOSM/data
+/MapParsing/nbproject/private/
