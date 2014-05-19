@@ -1,8 +1,7 @@
 package dk.itu.groupe.pathfinding;
 
 import dk.itu.groupe.data.Edge;
-import java.util.HashSet;
-import java.util.Set;
+import dk.itu.groupe.util.LinkedList;
 
 /**
  * This class represents an EdgeWeighted Digraph.
@@ -16,7 +15,7 @@ public class Graph
 
     private final int numberOfNodes;
     private int numberOfEdges;
-    private Set<WeightedEdge>[] adjacencyLists;
+    private LinkedList<WeightedEdge>[] adjacencyLists;
 
     /**
      * Creates a new Graph with <code>nodes</code> Nodes.
@@ -31,7 +30,7 @@ public class Graph
         }
         this.numberOfNodes = numberOfNodes;
         this.numberOfEdges = 0;
-        adjacencyLists = (Set<WeightedEdge>[]) new Set[numberOfNodes];
+        adjacencyLists = (LinkedList<WeightedEdge>[]) new LinkedList[numberOfNodes];
     }
 
     /**
@@ -80,7 +79,7 @@ public class Graph
     private void addE(WeightedEdge e)
     {
         if (adjacencyLists[e.from] == null) {
-            adjacencyLists[e.from] = new HashSet<>();
+            adjacencyLists[e.from] = new LinkedList<>();
         }
         adjacencyLists[e.from].add(e);
         numberOfEdges++;
@@ -98,7 +97,7 @@ public class Graph
             throw new IndexOutOfBoundsException("vertex " + node + " is not between 0 and " + (numberOfNodes - 1));
         }
         if (adjacencyLists[node] == null) {
-            adjacencyLists[node] = new HashSet<>();
+            adjacencyLists[node] = new LinkedList<>();
         }
         return adjacencyLists[node];
     }
@@ -110,7 +109,7 @@ public class Graph
      */
     public Iterable<Edge> edges()
     {
-        Set<Edge> set = new HashSet<>();
+        LinkedList<Edge> set = new LinkedList<>();
         for (int v = 0; v < numberOfNodes; v++) {
             for (WeightedEdge e : adjacent(v)) {
                 set.add(e.e);
