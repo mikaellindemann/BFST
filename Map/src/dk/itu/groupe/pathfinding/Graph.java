@@ -19,8 +19,7 @@ public class Graph
     private Set<WeightedEdge>[] adjacencyLists;
 
     /**
-     * Creates a new Graph with
-     * <code>nodes</code> Nodes.
+     * Creates a new Graph with <code>nodes</code> Nodes.
      *
      * @param numberOfNodes The number of nodes in the Graph.
      */
@@ -33,9 +32,6 @@ public class Graph
         this.numberOfNodes = numberOfNodes;
         this.numberOfEdges = 0;
         adjacencyLists = (Set<WeightedEdge>[]) new Set[numberOfNodes];
-        for (int v = 0; v < numberOfNodes; v++) {
-            adjacencyLists[v] = new HashSet<WeightedEdge>();
-        }
     }
 
     /**
@@ -83,13 +79,15 @@ public class Graph
 
     private void addE(WeightedEdge e)
     {
+        if (adjacencyLists[e.from] == null) {
+            adjacencyLists[e.from] = new HashSet<>();
+        }
         adjacencyLists[e.from].add(e);
         numberOfEdges++;
     }
 
     /**
-     * Returns a view of all Edges that goes from
-     * <code>node</code>
+     * Returns a view of all Edges that goes from <code>node</code>
      *
      * @param node The id of the Node.
      * @return A view of all Edges that goes from <code>node</code>.
@@ -98,6 +96,9 @@ public class Graph
     {
         if (node < 0 || node >= numberOfNodes) {
             throw new IndexOutOfBoundsException("vertex " + node + " is not between 0 and " + (numberOfNodes - 1));
+        }
+        if (adjacencyLists[node] == null) {
+            adjacencyLists[node] = new HashSet<>();
         }
         return adjacencyLists[node];
     }

@@ -73,6 +73,8 @@ public class Model extends Observable
         treeMap = new HashMap<>();
         loader = new Loader();
         g = new Graph(maxNodes);
+        // Sets pathfinding to use fastest path as default.
+        pathByDriveTime = true;
     }
 
     // Puts the coastline data in a linkedlist and assigns it as the value to 
