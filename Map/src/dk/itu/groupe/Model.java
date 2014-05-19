@@ -629,16 +629,12 @@ public class Model extends Observable
      */
     private void calculateFactor()
     {
-        // This factor determines how big the Map will be drawn.
-        factor = (rightX - leftX) / screenWidth;
-        if ((topY - bottomY) / screenHeight > factor) {
-            factor = (topY - bottomY) / screenHeight;
-        }
-        assert (factor != 0);
-
         // Ensures that zoom retains the correct ratio between width and screenHeight.
         ratioX = (rightX - leftX) / screenWidth;
         ratioY = (topY - bottomY) / screenHeight;
+        // This factor determines how big the Map will be drawn.
+        factor = Math.max(ratioX, ratioY);
+        assert (factor != 0);
     }
 
     /**
