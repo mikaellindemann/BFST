@@ -77,8 +77,12 @@ public class Model extends Observable
         pathByDriveTime = true;
     }
 
-    // Puts the coastline data in a linkedlist and assigns it as the value to 
-    // the coastline enum in our hashset treeMap so that it can be accessed later
+    /**
+     * Loads the coasline from datafiles.
+     *
+     * Creates the structures responsible for the KD-Tree containing coastline.
+     * Also initializes the view.
+     */
     public void loadCoastline()
     {
         LinkedList<Edge> edges = loader.loadCoastline("./res/data/coastline/");
@@ -91,11 +95,21 @@ public class Model extends Observable
         initialFactor = factor;
     }
 
+    /**
+     * Loads the nodes from datafiles.
+     */
     public void loadNodes()
     {
         nodeMap = loader.loadNodes(dir + "nodes.bin", maxNodes);
     }
 
+    /**
+     * Loads the specified roadtype. When the loading is done, the building of
+     * structures is submitted to a threadpool to speed up loading.
+     *
+     * @param rt The specified roadtype.
+     * @param es The thread pool to use for faster building of structures.
+     */
     public void loadRoadType(final CommonRoadType rt, ExecutorService es)
     {
         final LinkedList<Edge> edgeList = loader.loadEdges(rt, dir, nodeMap);
@@ -492,50 +506,94 @@ public class Model extends Observable
         return factor;
     }
 
+    /**
+     * Sets the point of last time the mousebutton was pressed.
+     *
+     * @param e The onscreen point where the mousebutton was pressed.
+     */
     public void setPressed(Point e)
     {
         pressed = (e != null) ? translatePoint(e.x, e.y) : null;
         setChanged();
     }
 
+    /**
+     * Sets the point of where the mouse was last dragged to.
+     *
+     * @param e The onscreen point.
+     */
     public void setDragged(Point e)
     {
         dragged = (e != null) ? translatePoint(e.x, e.y) : null;
         setChanged();
     }
 
+    /**
+     * Sets the point of where the mouse was last moved (but not dragged).
+     *
+     * @param e The onscreen point.
+     */
     public void setMoved(Point e)
     {
         moved = (e != null) ? translatePoint(e.x, e.y) : null;
         setChanged();
     }
 
+    /**
+     * Changes the way the path should be calculated.
+     *
+     * @param b Boolean reflecting whether the path should be calculated by time
+     * (true) or distance (false).
+     */
     public void setPathByDriveTime(boolean b)
     {
         pathByDriveTime = b;
         setChanged();
     }
 
+    /**
+     * States whether the current path is calculated by time or distance.
+     *
+     * @return True if path is calculated by time, false otherwise.
+     */
     public boolean getPathByDriveTime()
     {
         return pathByDriveTime;
     }
 
+    /**
+     * States whether the two endpoints of the routing is set or not.
+     *
+     * @return true if both points are set, false otherwise.
+     */
     public boolean pathPointsSet()
     {
         return from >= 0 && to >= 0;
     }
 
+    /**
+     * Returns the node that should be used as first point in routing.
+     *
+     * @return the node that should be used as first point in routing.
+     */
     public Node fromPoint()
     {
         return from >= 0 ? nodeMap[from] : null;
     }
 
+    /**
+     * Returns the node that should be used as last point in routing.
+     *
+     * @return the node that should be used as last point in routing.
+     */
     public Node toPoint()
     {
         return to >= 0 ? nodeMap[to] : null;
     }
 
+    /**
+     * Resets both points, and the last calculated route.
+     */
     public void resetPointSet()
     {
         shortestPath = null;
@@ -544,6 +602,14 @@ public class Model extends Observable
         setChanged();
     }
 
+    /**
+     * Sets the fromnode to the node nearest to the on-map coordinates specified
+     * by e.
+     *
+     * @param e On map coordinates.
+     * @throws NoPathFoundException If no point is within a distance specified
+     * by the kd-tree.
+     */
     public void setFromNode(Point2D e) throws NoPathFoundException
     {
         Edge near = nearest(e, false);
@@ -563,6 +629,14 @@ public class Model extends Observable
         setChanged();
     }
 
+    /**
+     * Sets the to node to the node nearest to the on-map coordinates specified
+     * by e.
+     *
+     * @param e On map coordinates.
+     * @throws NoPathFoundException If no point is within a distance specified
+     * by the kd-tree.
+     */
     public void setToNode(Point2D e) throws NoPathFoundException
     {
         Edge near = nearest(e, false);
@@ -580,7 +654,12 @@ public class Model extends Observable
         setChanged();
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Returns the path if one is found.
+     *
+     * @return The path if one is found.
+     * @throws NoPathFoundException If no path is found.
+     */
     public Stack<Edge> getPath() throws NoPathFoundException
     {
         if (!sourceChanged && shortestPath.pathByDriveTime() == pathByDriveTime) {
@@ -599,16 +678,25 @@ public class Model extends Observable
         throw new NoPathFoundException("No path was found");
     }
 
+    /**
+     * @return The on-map point of where the mouse was last dragged.
+     */
     public Point2D getDragged()
     {
         return dragged;
     }
 
+    /**
+     * @return The on-map point of where the mouse was last pressed.
+     */
     public Point2D getPressed()
     {
         return pressed;
     }
 
+    /**
+     * @return The on-map point of where the mouse was last dragged.
+     */
     public Point2D getMoved()
     {
         return moved;
@@ -629,16 +717,12 @@ public class Model extends Observable
      */
     private void calculateFactor()
     {
-        // This factor determines how big the Map will be drawn.
-        factor = (rightX - leftX) / screenWidth;
-        if ((topY - bottomY) / screenHeight > factor) {
-            factor = (topY - bottomY) / screenHeight;
-        }
-        assert (factor != 0);
-
         // Ensures that zoom retains the correct ratio between width and screenHeight.
         ratioX = (rightX - leftX) / screenWidth;
         ratioY = (topY - bottomY) / screenHeight;
+        // This factor determines how big the Map will be drawn.
+        factor = Math.max(ratioX, ratioY);
+        assert (factor != 0);
     }
 
     /**
@@ -745,9 +829,9 @@ public class Model extends Observable
     /**
      * Translates screen-coordinates into map-coordinates.
      *
-     * @param x
-     * @param y
-     * @return
+     * @param x On screen-x-coordinate.
+     * @param y On-screen-y-coordinate.
+     * @return The on-map point representation of the supplied screen-point.
      */
     public Point2D translatePoint(int x, int y)
     {
