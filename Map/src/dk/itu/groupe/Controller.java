@@ -6,6 +6,10 @@ import dk.itu.groupe.pathfinding.NoPathFoundException;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -237,8 +241,9 @@ public class Controller extends ComponentAdapter implements
     public static void main(String[] args)
     {
         try {
+            System.setErr(new PrintStream("log-" + DateFormat.getDateInstance().format(new Date()) + ".log"));
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+        } catch (FileNotFoundException | ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
             ex.printStackTrace(System.err);
         }
         ImageIcon icon = new ImageIcon("./res/Icon.png");
