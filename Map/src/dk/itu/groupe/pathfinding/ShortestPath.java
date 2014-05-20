@@ -15,7 +15,10 @@ import java.util.Arrays;
  * it is used for fastest-path search the heuristic returns 0, in other words it
  * is using Dijkstras algorithm until it finds the destination Node.
  *
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
+
 public class ShortestPath
 {
     private final Graph g;

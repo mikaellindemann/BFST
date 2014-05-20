@@ -1,8 +1,8 @@
 package dk.itu.groupe.data;
 
 /**
- *
- * @author Mikael
+ * @author Peter Bindslev (plil@itu.dk), Rune Henriksen (ruju@itu.dk) &amp;
+ * Mikael Jepsen (mlin@itu.dk)
  */
 public enum CommonRoadType
 {
